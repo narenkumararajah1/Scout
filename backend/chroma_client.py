@@ -1,17 +1,20 @@
 """ChromaDB client configured with the all-MiniLM-L6-v2 embedding model.
 
-No collections are created and no documents are ingested here - that is
-Knowledge Agent scope (Phase 2, Day 8). Day 1 only establishes a working,
-persistent connection with the correct embedding function configured.
+The organizational knowledge collection used by the Knowledge Agent
+(Phase 2, Day 8) is defined here; document ingestion lives in
+backend/knowledge_ingestion.py.
 """
 
 from functools import lru_cache
 
 import chromadb
 from chromadb.api import ClientAPI
+from chromadb.api.models.Collection import Collection
 from chromadb.utils import embedding_functions
 
 from backend.config import get_settings
+
+KNOWLEDGE_COLLECTION_NAME = "organizational_knowledge"
 
 
 @lru_cache
@@ -25,6 +28,13 @@ def get_embedding_function() -> embedding_functions.SentenceTransformerEmbedding
     settings = get_settings()
     return embedding_functions.SentenceTransformerEmbeddingFunction(
         model_name=settings.chroma_embedding_model
+    )
+
+
+def get_knowledge_collection() -> Collection:
+    return get_chroma_client().get_or_create_collection(
+        name=KNOWLEDGE_COLLECTION_NAME,
+        embedding_function=get_embedding_function(),
     )
 
 

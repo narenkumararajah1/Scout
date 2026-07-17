@@ -1,8 +1,8 @@
 import pytest
 
 from backend.agents import ALL_AGENTS
+from backend.agents.opportunity_agent import OpportunityAnalysisAgent
 from backend.agents.planner_agent import PlannerAgent
-from backend.agents.research_agent import ResearchAgent
 from backend.workflow.state import WorkflowState
 
 
@@ -37,10 +37,10 @@ def test_planner_agent_produces_execution_plan():
 
 
 def test_placeholder_agent_run_is_a_noop():
-    agent = ResearchAgent()
+    agent = OpportunityAnalysisAgent()
     state = WorkflowState()
 
     result = agent.run(state)
 
     assert result is state
-    assert result.research_output is None
+    assert result.opportunity_output is None

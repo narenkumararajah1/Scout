@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from backend.config import get_settings
+from backend.knowledge_ingestion import ingest_documents
 from backend.logging_config import configure_logging
 from backend.routers import health, workflow
 from backend.scheduler import start_scheduler, stop_scheduler
@@ -15,6 +16,7 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    ingest_documents()
     start_scheduler()
     yield
     stop_scheduler()

@@ -25,6 +25,16 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     llm_model: str = "claude-sonnet-5"
 
+    # Used starting Phase 2 Day 6 (Research Agent). Scout researches a
+    # configured target company rather than a per-run user query, per
+    # PROJECT_CONTEXT.md's framing of an autonomous, scheduled workflow.
+    target_company: str = "Example Prospect Co."
+
+    # Used starting Phase 2 Day 8 (Knowledge Agent). Documents placed here
+    # are ingested into ChromaDB on startup; empty until real organizational
+    # knowledge (case studies, whitepapers, service offerings) is supplied.
+    knowledge_sources_dir: str = "data/knowledge_sources"
+
     log_level: str = "INFO"
     log_file: str = "logs/scout.log"
 
