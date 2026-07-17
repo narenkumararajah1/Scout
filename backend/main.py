@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from backend.config import get_settings
 from backend.logging_config import configure_logging
-from backend.routers import health
+from backend.routers import health, workflow
 from backend.scheduler import start_scheduler, stop_scheduler
 
 configure_logging()
@@ -22,6 +22,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 app.include_router(health.router)
+app.include_router(workflow.router)
 
 
 @app.get("/")

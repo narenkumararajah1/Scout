@@ -1,7 +1,8 @@
-"""LiteLLM configuration for future Google ADK integration (Phase 1, Day 3).
+"""LiteLLM configuration for Claude, for use by Google ADK agents.
 
 This module only prepares LiteLLM to reach Claude. No completions are
-requested during Day 1 - ADK orchestration and agents do not exist yet.
+requested yet - the current agents (backend/agents) are placeholders
+with no real research/analysis/content logic until Phase 2 onward.
 """
 
 import litellm

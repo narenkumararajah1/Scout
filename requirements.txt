@@ -10,3 +10,9 @@ litellm==1.83.9
 apscheduler==3.11.3
 pytest==8.4.2
 httpx==0.28.1
+google-adk==1.18.0
+
+# Pinned to avoid a dependency conflict: google-adk's install resolves this
+# transitive package to a version newer than chromadb's opentelemetry stack,
+# which breaks chromadb's import chain (see IMPLEMENTATION_RULES.md / Day 3 notes).
+opentelemetry-exporter-otlp-proto-grpc==1.37.0
