@@ -4,6 +4,8 @@ Used by agents that need real LLM output (starting with the Research
 Agent in Phase 2, Day 6).
 """
 
+import json
+
 import litellm
 
 from backend.config import get_settings
@@ -45,3 +47,24 @@ def strip_markdown_json_fence(text: str) -> str:
             text = text[4:]
         text = text.strip()
     return text
+
+
+def parse_json_array(raw_response: str, caller_name: str) -> list:
+    """Strips any markdown fence and parses a JSON array response.
+
+    Raises ValueError with a message naming the caller if the response
+    isn't valid JSON or isn't an array - shared by every agent/service
+    that asks Claude for a JSON array (Opportunity Analysis Agent,
+    Content Generation Agent's peers, and V2's research_service).
+    """
+    text = strip_markdown_json_fence(raw_response)
+
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{caller_name} could not parse Claude's response as JSON: {exc}") from exc
+
+    if not isinstance(parsed, list):
+        raise ValueError(f"{caller_name} expected a JSON array.")
+
+    return parsed
