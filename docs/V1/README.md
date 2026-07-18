@@ -2,7 +2,7 @@
 
 AI-powered, multi-agent sales intelligence platform. Scout researches a target company, retrieves relevant organizational knowledge, identifies and scores business opportunities, and generates business-ready content — end to end, on demand or on a schedule.
 
-See [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) for the full project overview, [ROADMAP.md](ROADMAP.md) for the day-by-day development plan, and [DECISIONS.md](DECISIONS.md) for finalized architecture decisions.
+See [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) for the full project overview, [ROADMAP.md](ROADMAP.md) for the day-by-day development plan, and [DECISIONS.md](DECISIONS.md) for finalized architecture decisions. These are Version 1 documentation, archived under `docs/V1/`.
 
 **Status: MVP complete** (Phase 1-4, Days 1-20). All six agents are fully implemented, real end-to-end workflow execution works via Google ADK, results are dashboarded and persisted, and the workflow runs automatically on a schedule with optional email notifications.
 
