@@ -418,6 +418,34 @@ The application should remain functional throughout development.
 
 ---
 
+# ADR-017
+
+## Status
+
+Accepted
+
+## Date
+
+Phase 1
+
+## Decision
+
+Run each workflow agent's blocking work on a worker thread (`asyncio.to_thread`) from the ADK orchestration layer, rather than calling it directly on the event loop.
+
+## Rationale
+
+Agents perform blocking, network-bound work (Claude calls via `litellm.completion`). Calling that directly from an `async` orchestration step blocks the whole FastAPI event loop for the duration of every LLM call - verified during the Version 1 review, where an in-flight run left a concurrent `/health` request unanswered until the run finished. Because APScheduler shares the same event loop, a scheduled run would freeze the entire application, not just the workflow request. IMPLEMENTATION_RULES.md requires network-bound operations to run asynchronously and not block the main execution flow.
+
+Offloading to a thread fixes this without changing any agent's synchronous `run()` interface, keeping the change minimal per ADR-001 and ADR-002.
+
+## Consequences
+
+- The event loop stays responsive during a workflow run.
+- Concurrent requests (health checks, dashboard reads, another triggered run) are no longer blocked behind an in-progress run.
+- Agents remain simple, synchronous, framework-agnostic functions; only the orchestration layer changed.
+
+---
+
 # Future Decisions
 
 This document should continue to grow as Scout evolves.

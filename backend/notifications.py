@@ -67,7 +67,7 @@ def send_notification(state: WorkflowState) -> bool:
         if settings.smtp_use_tls:
             server.starttls()
         if settings.smtp_username:
-            server.login(settings.smtp_username, settings.smtp_password)
+            server.login(settings.smtp_username, settings.smtp_password.get_secret_value())
         server.send_message(message)
 
     logger.info(

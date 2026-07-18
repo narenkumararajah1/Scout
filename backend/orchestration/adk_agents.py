@@ -6,7 +6,9 @@ interface so ADK's SequentialAgent + Runner can orchestrate the workflow,
 per DECISIONS.md ("Google ADK manages orchestration").
 """
 
+import asyncio
 import logging
+import time
 from typing import Any, AsyncGenerator
 
 from google.adk.agents import BaseAgent
@@ -40,21 +42,33 @@ class ScoutStepAgent(BaseAgent):
         state = WorkflowState.model_validate(raw_state) if raw_state else WorkflowState()
 
         step_name = self.wrapped_agent_class.name
+        started_at = time.monotonic()
 
         try:
             agent = self.wrapped_agent_class()
             state.current_stage = agent.name
-            state = agent.run(state)
+            # Agents perform blocking, network-bound work (litellm.completion
+            # calls); running them directly here would block this coroutine's
+            # event loop for the full duration of every LLM call, freezing
+            # the whole FastAPI process - including concurrent requests and
+            # the same-process APScheduler - for as long as the run takes
+            # (V2 IMPLEMENTATION_RULES.md: network-bound operations should be
+            # asynchronous and must not block the main execution flow).
+            # Offloading to a thread keeps the event loop responsive without
+            # changing any agent's synchronous run() interface.
+            state = await asyncio.to_thread(agent.run, state)
         except Exception as exc:  # noqa: BLE001 - a failed stage must not crash the workflow
+            duration = time.monotonic() - started_at
             logger.exception("%s failed during workflow execution", step_name)
             state.status = "failed"
             state.errors.append(f"{step_name}: {exc}")
-            message = f"{step_name} failed: {exc}"
+            message = f"{step_name} failed after {duration:.2f}s: {exc}"
         else:
+            duration = time.monotonic() - started_at
             state.completed_stages.append(agent.name)
             # Reporting Agent decides and applies the run's final status
             # itself (before saving it), so this layer no longer needs to.
-            message = f"{agent.name} completed successfully."
+            message = f"{agent.name} completed successfully in {duration:.2f}s."
 
         actions = EventActions(state_delta={"workflow_state": state.model_dump(mode="json")})
         yield Event(

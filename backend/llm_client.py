@@ -9,7 +9,7 @@ import litellm
 from backend.config import get_settings
 
 settings = get_settings()
-litellm.api_key = settings.anthropic_api_key
+litellm.api_key = settings.anthropic_api_key.get_secret_value()
 
 
 def get_default_model() -> str:

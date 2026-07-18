@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 from unittest.mock import patch
 
 import pytest
@@ -12,6 +13,7 @@ from backend.orchestration.workflow import (
     APP_NAME,
     USER_ID,
     _session_service,
+    run_workflow,
     run_workflow_sync,
 )
 from backend.report_storage import get_reports, init_reports_table
@@ -242,3 +244,47 @@ def test_run_workflow_does_not_leak_sessions():
         _session_service.list_sessions(app_name=APP_NAME, user_id=USER_ID)
     )
     assert sessions.sessions == []
+
+
+def test_workflow_run_does_not_block_the_event_loop():
+    """V2 Phase 1 regression test: agents perform blocking, synchronous
+    LLM calls. Before adk_agents.py offloaded each agent's run() to a
+    worker thread, a single slow call blocked this coroutine's entire
+    event loop for the call's duration, starving every other concurrent
+    task on that loop - verified live during the Version 1 review, where
+    an in-flight run left a concurrent /health request unanswered until
+    the run finished (see docs/V2/DECISIONS.md ADR-017). A slow mocked
+    call simulates that latency here; a concurrent heartbeat task must
+    keep ticking throughout, proving the loop stayed responsive.
+    """
+    tick_count = 0
+
+    def slow_completion(prompt: str) -> str:
+        time.sleep(0.3)
+        return "1. Company Research: ...\n2. Company News: ...\n3. Technology Trends: ..."
+
+    async def heartbeat():
+        nonlocal tick_count
+        while True:
+            await asyncio.sleep(0.02)
+            tick_count += 1
+
+    async def run_with_heartbeat():
+        heartbeat_task = asyncio.create_task(heartbeat())
+        with patch(
+            "backend.agents.research_agent.generate_completion",
+            side_effect=slow_completion,
+        ), patch(
+            "backend.agents.opportunity_agent.generate_completion",
+            return_value="[]",
+        ):
+            await run_workflow()
+        heartbeat_task.cancel()
+
+    asyncio.run(run_with_heartbeat())
+
+    # research_agent alone makes 3 sequential slow calls (~0.9s blocked
+    # time if the event loop were frozen). A responsive loop ticks the
+    # heartbeat roughly every 0.02s throughout, so many ticks is expected;
+    # a blocked loop would starve it almost entirely.
+    assert tick_count >= 15

@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,7 +23,9 @@ class Settings(BaseSettings):
     chroma_embedding_model: str = "all-MiniLM-L6-v2"
 
     # Used starting Phase 1 Day 3 (Google ADK + LiteLLM integration).
-    anthropic_api_key: str = ""
+    # SecretStr (V2 Phase 1 configuration hardening) so the key can't leak
+    # via an accidental repr()/log of the Settings object.
+    anthropic_api_key: SecretStr = SecretStr("")
     llm_model: str = "claude-sonnet-5"
 
     # Used starting Phase 2 Day 6 (Research Agent). Scout researches a
@@ -45,7 +48,8 @@ class Settings(BaseSettings):
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_username: str = ""
-    smtp_password: str = ""
+    # SecretStr (V2 Phase 1 configuration hardening) - see anthropic_api_key.
+    smtp_password: SecretStr = SecretStr("")
     smtp_use_tls: bool = True
     notification_email_from: str = ""
     notification_email_to: str = ""
