@@ -1,12 +1,14 @@
 """Scout V2 core data model (docs/V2/DATA_MODEL.md).
 
-Pydantic models for the business entities introduced in V2 Phase 2, plus
-the Innominds Intelligence Layer knowledge entities added in Phase 5.
-These represent the canonical entities only - persistence lives in
-backend/repositories, and nothing here is wired into the live V1 workflow
-yet (that begins in later roadmap phases).
+Pydantic models for the business entities introduced in V2 Phase 2, the
+Innominds Intelligence Layer knowledge entities added in Phase 5, and
+the Capability Match entity added in Phase 6. These represent the
+canonical entities only - persistence lives in backend/repositories, and
+nothing here is wired into the live V1 workflow yet (that begins in
+later roadmap phases).
 """
 
+from backend.models.capability_match import CapabilityMatch
 from backend.models.company import Company
 from backend.models.knowledge import (
     CaseStudy,
@@ -39,4 +41,5 @@ __all__ = [
     "CaseStudy",
     "Partnership",
     "ProofPoint",
+    "CapabilityMatch",
 ]

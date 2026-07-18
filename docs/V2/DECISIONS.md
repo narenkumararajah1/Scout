@@ -474,6 +474,32 @@ Enforcing this at the repository layer (by simply not exposing an update/delete 
 
 ---
 
+# ADR-019
+
+## Status
+
+Accepted
+
+## Date
+
+Phase 6
+
+## Decision
+
+The new Capability Match entity is stored in SQLite (not ChromaDB), and references Capability/Case Study/Proof Point entities - which live in ChromaDB (Phase 5) - by their opaque composite id string (e.g. "capability:&lt;uuid&gt;"), with no database-level foreign key. Like Signal and Opportunity (ADR-018), Capability Match is Create + Read only - generated fresh from a Research Session's Signals each research cycle, never edited.
+
+## Rationale
+
+Capability Match is a structured relationship record with a computed confidence score, matching Storage Architecture's "Scores" example under SQLite, not the free-text/embedding content ChromaDB stores (ADR-006, ADR-007). But its evidence (which capability, case study, proof point) lives in ChromaDB, a non-relational store that can't participate in a SQL foreign key. Storing the opaque id as a plain string is the simplest way to preserve that link (IMPLEMENTATION_RULES.md: "avoid unnecessary complexity"; "do not duplicate data between storage systems unless necessary" - copying the full capability content into SQLite would duplicate it, so only its id and a denormalized name are stored for display).
+
+## Consequences
+
+- Capability Match rows can go stale if a referenced capability is later deleted from ChromaDB (deleting a knowledge entity was documented as possible in Phase 5) - referential integrity for this specific link is an application concern, not a database-enforced one. Acceptable for now given Phase 6's scope; worth revisiting only if this becomes a real operational problem.
+- Sets the pattern future phases should follow for any other SQLite entity that needs to reference ChromaDB content (e.g. Phase 7's Opportunity, if it references capabilities/proof points directly).
+- Historical capability matches remain a reproducible snapshot of what was matched and why, consistent with ADR-009's "each execution creates a new historical snapshot" model.
+
+---
+
 # Future Decisions
 
 This document should continue to grow as Scout evolves.

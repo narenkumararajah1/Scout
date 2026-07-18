@@ -8,6 +8,7 @@ from backend.config import get_settings
 from backend.knowledge_ingestion import ingest_documents
 from backend.logging_config import configure_logging
 from backend.report_storage import init_reports_table
+from backend.repositories.capability_match_repository import init_capability_matches_table
 from backend.repositories.company_repository import init_companies_table
 from backend.repositories.opportunity_repository import init_opportunities_table
 from backend.repositories.recipient_repository import (
@@ -40,6 +41,7 @@ async def lifespan(app: FastAPI):
     init_recipients_table()
     init_delivery_history_table()
     init_schedules_table()
+    init_capability_matches_table()
     ingest_documents()
     start_scheduler()
     yield

@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 
 from backend.database import get_connection
 from backend.main import app
+from backend.repositories.capability_match_repository import init_capability_matches_table
 from backend.repositories.company_repository import init_companies_table
 from backend.repositories.opportunity_repository import init_opportunities_table
 from backend.repositories.recipient_repository import init_delivery_history_table, init_recipients_table
@@ -34,10 +35,12 @@ def clear_v2_tables() -> None:
     init_recipients_table()
     init_delivery_history_table()
     init_schedules_table()
+    init_capability_matches_table()
 
     with get_connection() as connection:
         for table in (
             "delivery_history",
+            "capability_matches",
             "signals",
             "opportunities",
             "research_reports",
