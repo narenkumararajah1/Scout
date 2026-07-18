@@ -1,9 +1,9 @@
 """Common interface shared by all Scout agents.
 
 Agents are framework-agnostic: backend/orchestration adapts them to
-Google ADK for sequential execution. Real research/analysis/content
-behavior (as opposed to this placeholder pass-through) is introduced
-starting Phase 2.
+Google ADK for sequential execution. All six agents now override run()
+with real logic; the default implementation here is only a safety-net
+fallback (never actually used) for any agent that doesn't.
 """
 
 import logging

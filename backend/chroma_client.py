@@ -31,7 +31,13 @@ def get_embedding_function() -> embedding_functions.SentenceTransformerEmbedding
     )
 
 
+@lru_cache
 def get_knowledge_collection() -> Collection:
+    # Caches the collection handle, not its contents - upserts/queries
+    # still hit the live persistent store, so this is safe and just
+    # avoids repeating get_or_create_collection's lookup on every single
+    # Knowledge Agent run and ingestion call, consistent with the client
+    # and embedding function already being cached above.
     return get_chroma_client().get_or_create_collection(
         name=KNOWLEDGE_COLLECTION_NAME,
         embedding_function=get_embedding_function(),

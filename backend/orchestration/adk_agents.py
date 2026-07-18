@@ -1,6 +1,6 @@
-"""Google ADK agent wrappers around Scout's Day 2 placeholder agents.
+"""Google ADK agent wrappers around Scout's six agents.
 
-Each Scout agent (backend/agents/*) runs its existing, framework-agnostic
+Each Scout agent (backend/agents/*) runs its own framework-agnostic
 logic; this module only adapts that logic to Google ADK's BaseAgent
 interface so ADK's SequentialAgent + Runner can orchestrate the workflow,
 per DECISIONS.md ("Google ADK manages orchestration").
@@ -52,8 +52,8 @@ class ScoutStepAgent(BaseAgent):
             message = f"{step_name} failed: {exc}"
         else:
             state.completed_stages.append(agent.name)
-            if self.wrapped_agent_class is ReportingAgent and state.status != "failed":
-                state.status = "completed"
+            # Reporting Agent decides and applies the run's final status
+            # itself (before saving it), so this layer no longer needs to.
             message = f"{agent.name} completed successfully."
 
         actions = EventActions(state_delta={"workflow_state": state.model_dump(mode="json")})

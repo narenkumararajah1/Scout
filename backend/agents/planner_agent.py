@@ -8,6 +8,7 @@ ADK happens in backend/orchestration.
 import logging
 
 from backend.agents.base import BaseAgent
+from backend.config import get_settings
 from backend.workflow.state import WorkflowState
 
 logger = logging.getLogger(__name__)
@@ -27,5 +28,6 @@ class PlannerAgent(BaseAgent):
     def run(self, state: WorkflowState) -> WorkflowState:
         logger.info("%s determined execution order: %s", self.name, self.EXECUTION_ORDER)
         state.status = "planned"
+        state.target_company = get_settings().target_company
         state.planner_output = {"execution_order": self.EXECUTION_ORDER}
         return state

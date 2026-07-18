@@ -35,6 +35,21 @@ class Settings(BaseSettings):
     # knowledge (case studies, whitepapers, service offerings) is supplied.
     knowledge_sources_dir: str = "data/knowledge_sources"
 
+    # Used starting Phase 4 Day 18 (APScheduler automated execution).
+    scheduler_interval_hours: int = 24
+
+    # Used starting Phase 4 Day 18 (Reporting Agent email notifications).
+    # Empty until real SMTP credentials are supplied; notification sending
+    # is skipped (not attempted) when smtp_host or notification_email_to
+    # is blank.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_use_tls: bool = True
+    notification_email_from: str = ""
+    notification_email_to: str = ""
+
     log_level: str = "INFO"
     log_file: str = "logs/scout.log"
 

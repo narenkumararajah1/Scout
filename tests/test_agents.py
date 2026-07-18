@@ -1,8 +1,8 @@
 import pytest
 
 from backend.agents import ALL_AGENTS
-from backend.agents.opportunity_agent import OpportunityAnalysisAgent
 from backend.agents.planner_agent import PlannerAgent
+from backend.config import get_settings
 from backend.workflow.state import WorkflowState
 
 
@@ -27,6 +27,7 @@ def test_planner_agent_produces_execution_plan():
     result = agent.run(state)
 
     assert result.status == "planned"
+    assert result.target_company == get_settings().target_company
     assert result.planner_output["execution_order"] == [
         "Research Agent",
         "Knowledge Agent",
@@ -34,13 +35,3 @@ def test_planner_agent_produces_execution_plan():
         "Content Generation Agent",
         "Reporting Agent",
     ]
-
-
-def test_placeholder_agent_run_is_a_noop():
-    agent = OpportunityAnalysisAgent()
-    state = WorkflowState()
-
-    result = agent.run(state)
-
-    assert result is state
-    assert result.opportunity_output is None

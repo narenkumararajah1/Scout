@@ -16,6 +16,7 @@ class WorkflowState(BaseModel):
     workflow_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     status: str = "pending"
     current_stage: Optional[str] = None
+    target_company: Optional[str] = None
 
     planner_output: Optional[dict] = None
     research_output: Optional[dict] = None

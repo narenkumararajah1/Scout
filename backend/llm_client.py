@@ -29,3 +29,19 @@ def generate_completion(prompt: str) -> str:
         messages=[{"role": "user", "content": prompt}],
     )
     return response["choices"][0]["message"]["content"]
+
+
+def strip_markdown_json_fence(text: str) -> str:
+    """Strips a ```json ... ``` (or bare ```...```) wrapper if present.
+
+    Models are instructed to respond with raw JSON, but sometimes wrap it
+    in a markdown code fence anyway; this normalizes either case before
+    json.loads.
+    """
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.strip("`")
+        if text.lower().startswith("json"):
+            text = text[4:]
+        text = text.strip()
+    return text
