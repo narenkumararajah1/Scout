@@ -446,6 +446,34 @@ Offloading to a thread fixes this without changing any agent's synchronous `run(
 
 ---
 
+# ADR-018
+
+## Status
+
+Accepted
+
+## Date
+
+Phase 2
+
+## Decision
+
+The repository layer exposes only Create and Read operations for Research Session, Signal, Opportunity, and Report - no update or delete methods exist for these four entities. Company, Recipient, and Schedule get full CRUD.
+
+## Rationale
+
+IMPLEMENTATION_RULES.md's Data Integrity section requires that Research Sessions and Reports remain immutable and that historical records always be reproducible; ADR-009 treats Research Sessions as immutable for the same reason. Signals and Opportunities are generated fresh from a specific Research Session's evidence each research cycle rather than edited afterward, so the same reasoning extends to them. Company, Recipient, and Schedule are configuration entities that FR-002, FR-016, and FR-019 explicitly require to be manageable (add/remove/enable/disable), so they need full CRUD.
+
+Enforcing this at the repository layer (by simply not exposing an update/delete function) means no caller, now or in a future phase, can accidentally mutate historical intelligence - the constraint doesn't rely on every future caller remembering the rule.
+
+## Consequences
+
+- Historical research, signals, opportunities, and reports can never be silently overwritten by application code.
+- A correction to a past research cycle must be a new Research Session (and its own Signals/Opportunities/Report), not an edit - consistent with the "each execution creates a new historical snapshot" model in ADR-009.
+- If a future phase genuinely needs to correct or annotate historical data, that requires a deliberate, documented change to this ADR and the repository layer, not a workaround.
+
+---
+
 # Future Decisions
 
 This document should continue to grow as Scout evolves.
