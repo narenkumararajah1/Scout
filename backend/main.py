@@ -17,7 +17,7 @@ from backend.repositories.recipient_repository import (
 from backend.repositories.report_repository import init_research_reports_table
 from backend.repositories.research_repository import init_research_tables
 from backend.repositories.schedule_repository import init_schedules_table
-from backend.routers import health, workflow
+from backend.routers import companies, health, workflow
 from backend.scheduler import start_scheduler, stop_scheduler
 
 configure_logging()
@@ -27,11 +27,12 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_reports_table()
-    # V2 Phase 2 core data layer tables. Not yet read or written by any
-    # live code path - agents, the workflow, and the dashboard all
-    # continue to use V1's existing reports table unchanged. These are
-    # created now so later phases can start using them without a
-    # separate migration step.
+    # V2 Phase 2 core data layer tables. companies is now live (Phase 3's
+    # company management endpoints); the rest are still unused by any
+    # live code path - agents, the workflow, and V1's dashboard pages all
+    # continue to use V1's existing reports table and TARGET_COMPANY
+    # config unchanged. Created now so later phases can start using them
+    # without a separate migration step.
     init_companies_table()
     init_research_tables()
     init_opportunities_table()
@@ -48,6 +49,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 app.include_router(health.router)
 app.include_router(workflow.router)
+app.include_router(companies.router)
 
 
 @app.get("/")

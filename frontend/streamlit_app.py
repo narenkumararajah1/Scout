@@ -11,6 +11,7 @@ st.set_page_config(page_title="Scout", layout="wide")
 
 pages = [
     st.Page("pages/run_scout.py", title="Run Scout", icon=":material/play_arrow:"),
+    st.Page("pages/companies.py", title="Companies", icon=":material/apartment:"),
     st.Page("pages/intelligence.py", title="Intelligence", icon=":material/insights:"),
     st.Page("pages/reports.py", title="Reports & History", icon=":material/description:"),
 ]
