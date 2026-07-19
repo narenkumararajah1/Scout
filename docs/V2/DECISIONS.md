@@ -500,6 +500,32 @@ Capability Match is a structured relationship record with a computed confidence 
 
 ---
 
+# ADR-020
+
+## Status
+
+Accepted
+
+## Date
+
+Phase 9
+
+## Decision
+
+Manual Company Analysis (FR-003) always persists its results - there is no non-persisting/"preview" execution mode. It reuses Phase 4/6/7/8's existing service functions (`research_company`, `match_capabilities`, `analyze_opportunities`, `generate_report`) unmodified, each of which persists as an intrinsic part of doing its job.
+
+## Rationale
+
+REQUIREMENTS.md's FR-003 states the generated report "may optionally be saved into historical records," which reads as a toggle. But no entity in DATA_MODEL.md or IMPLEMENTATION_RULES.md's Data Integrity section has a non-persisted/draft existence - Research Sessions, Signals, Capability Matches, Opportunities, and Reports are all defined as immutable historical snapshots created fresh each research cycle (ADR-009, ADR-018, ADR-019), and scheduled monitoring (the other consumer of this same pipeline, per ADR-012) has no preview concept either. Adding a "don't persist" flag would mean threading a persist/no-persist branch through four independently-owned services whose current single responsibility is exactly "run this stage and persist its output" - real, spread-out complexity for a capability nothing else in the system uses, which IMPLEMENTATION_RULES.md's "avoid unnecessary complexity" principle argues against. ADR-012's own rationale ("both workflows should use the same intelligence pipeline... reduced duplicate logic") supports reusing the services exactly as they are rather than forking a variant for manual analysis.
+
+## Consequences
+
+- Every manual analysis run leaves a full, queryable historical record (Research Session, Signals, Capability Matches, Opportunities, Report) exactly like a scheduled run would - consistent with ADR-009's "each execution creates a new historical snapshot."
+- A user cannot "try" an analysis without it counting toward that company's history; running analysis on a company they don't intend to pursue still creates real records. Acceptable given no other part of the system has a lighter-weight alternative.
+- If a genuine preview/non-persisting requirement emerges later, it requires a deliberate, documented change to this ADR and to each of the four services' interfaces, not a workaround bolted onto the orchestration layer alone.
+
+---
+
 # Future Decisions
 
 This document should continue to grow as Scout evolves.

@@ -47,3 +47,17 @@ def stop_scheduler() -> None:
     if scheduler.running:
         scheduler.shutdown(wait=False)
         logger.info("APScheduler stopped.")
+
+
+def get_scheduler_status() -> dict:
+    """Scheduler half of V2 Phase 9's System Status dashboard section
+    (FR-017). The health half already exists (backend/routers/health.py,
+    Phase 1); this only adds what health.py doesn't cover.
+    """
+    settings = get_settings()
+    job = scheduler.get_job(JOB_ID) if scheduler.running else None
+    return {
+        "running": scheduler.running,
+        "interval_hours": settings.scheduler_interval_hours,
+        "next_run_time": job.next_run_time.isoformat() if job and job.next_run_time else None,
+    }

@@ -85,6 +85,19 @@ def list_opportunities(company_id: str) -> list[Opportunity]:
     return [_row_to_opportunity(row) for row in rows]
 
 
+def list_all_opportunities(limit: Optional[int] = None) -> list[Opportunity]:
+    """Highest-priority opportunities across every company (V2 Phase 9's
+    Analytics "opportunity rankings" view, PROJECT_CONTEXT.md)."""
+    query = "SELECT * FROM opportunities ORDER BY priority DESC, confidence_score DESC"
+    params: tuple = ()
+    if limit is not None:
+        query += " LIMIT ?"
+        params = (limit,)
+    with get_connection() as connection:
+        rows = connection.execute(query, params).fetchall()
+    return [_row_to_opportunity(row) for row in rows]
+
+
 def list_opportunities_for_session(research_session_id: str) -> list[Opportunity]:
     with get_connection() as connection:
         rows = connection.execute(

@@ -12,6 +12,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from backend.models.company import Company
+from backend.models.report import Report
+from backend.orchestration.manual_analysis import run_manual_analysis
 from backend.services import company_service
 
 logger = logging.getLogger(__name__)
@@ -83,3 +85,29 @@ def disable_monitoring(company_id: str) -> Company:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     logger.info("Disabled monitoring for company %s.", company_id)
     return company
+
+
+@router.post("/{company_id}/analyze", response_model=Report, status_code=201)
+async def analyze_company(company_id: str) -> Report:
+    """Manual Company Analysis (V2 Phase 9, FR-003): runs the complete
+    Research -> Capability Matching -> Opportunity Analysis -> Reporting
+    pipeline for one company on demand and returns the resulting Report.
+    """
+    try:
+        company = company_service.get_company(company_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    try:
+        report = await run_manual_analysis(company)
+    except ValueError as exc:
+        # A legitimate pipeline outcome (e.g. no capability matches, so
+        # Opportunity/Reporting Service had nothing to work with) rather
+        # than a bug - maps to a client-visible 422, not a 500.
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001 - an upstream (Claude API) failure must return a meaningful message
+        logger.exception("Manual analysis failed for company %s.", company_id)
+        raise HTTPException(status_code=502, detail=f"Manual analysis failed: {exc}") from exc
+
+    logger.info("Manual analysis produced report %s for company %s.", report.id, company_id)
+    return report
