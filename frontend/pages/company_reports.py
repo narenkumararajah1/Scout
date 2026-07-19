@@ -67,3 +67,44 @@ else:
             st.write(report.get("recommendations", "N/A"))
         with st.expander("Talking Points"):
             st.write(report.get("talking_points", "N/A"))
+
+        st.divider()
+        st.subheader("Distribution")
+
+        if st.button("Distribute Report", type="primary"):
+            with st.spinner("Sending to eligible recipients..."):
+                try:
+                    distribute_response = requests.post(
+                        f"{BACKEND_URL}/reports/{report['id']}/distribute", timeout=30
+                    )
+                    distribute_response.raise_for_status()
+                except requests.RequestException as exc:
+                    st.error(f"Could not distribute report: {exc}")
+                else:
+                    st.session_state["last_distribution"] = distribute_response.json()
+
+        try:
+            deliveries_response = requests.get(
+                f"{BACKEND_URL}/reports/{report['id']}/deliveries", timeout=10
+            )
+            deliveries_response.raise_for_status()
+            deliveries = deliveries_response.json()
+        except requests.RequestException as exc:
+            st.error("Could not load delivery history for this report.")
+            st.caption(str(exc))
+            deliveries = []
+
+        if not deliveries:
+            st.caption("No deliveries yet for this report.")
+        else:
+            status_icon = {"sent": "✅", "skipped": "⚠️", "failed": "❌"}
+            rows = [
+                {
+                    "Recipient ID": delivery["recipient_id"][:8],
+                    "Channel": delivery["channel"],
+                    "Status": f"{status_icon.get(delivery['status'], '')} {delivery['status']}",
+                    "Delivery Time": delivery["delivery_time"],
+                }
+                for delivery in deliveries
+            ]
+            st.dataframe(rows, use_container_width=True, hide_index=True)

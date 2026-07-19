@@ -54,6 +54,14 @@ class Settings(BaseSettings):
     notification_email_from: str = ""
     notification_email_to: str = ""
 
+    # Used starting Phase 10 (Distribution). A single, deployment-wide
+    # Microsoft Teams incoming webhook URL - Recipient's "teams" channel
+    # means "include this deployment's Teams channel", not a per-recipient
+    # Teams identity (DATA_MODEL.md's Recipient has no such attribute).
+    # Empty until configured; Teams delivery is skipped (not attempted)
+    # rather than failing, matching the SMTP settings' pattern above.
+    teams_webhook_url: str = ""
+
     log_level: str = "INFO"
     log_file: str = "logs/scout.log"
 

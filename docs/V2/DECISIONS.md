@@ -526,6 +526,36 @@ REQUIREMENTS.md's FR-003 states the generated report "may optionally be saved in
 
 ---
 
+# ADR-021
+
+## Status
+
+Accepted
+
+## Date
+
+Phase 10
+
+## Decision
+
+Report distribution (FR-015, ADR-015) is triggered explicitly - via `POST /reports/{report_id}/distribute` and a "Distribute" action on the Reports dashboard page - rather than automatically after every report is generated. In particular, Manual Company Analysis (Phase 9) never auto-distributes.
+
+## Rationale
+
+ARCHITECTURE.md's "Manual Company Analysis" system workflow diagram ends at "Dashboard Response", with no Distribution step - unlike "Scheduled Monitoring", whose diagram explicitly ends "Persistence -> Distribution". The architecture already draws this line: distribution is scheduled monitoring's job, not manual analysis's.
+
+But no phase before Phase 10 wired an actual scheduled, per-company execution of the V2 intelligence pipeline (research_service -> capability_matching_service -> opportunity_analysis_service -> reporting_service) - backend/scheduler.py's only registered job still runs V1's single-target-company `run_workflow()`, and backend/repositories/schedule_repository.py's Phase 2 docstring already flagged this explicitly: "wiring per-company schedules from this table into the scheduler is later-phase work." ROADMAP.md's Phase 10 objectives are narrowly "Support Email, Microsoft Teams... Recipient preferences, Delivery history, Failure handling" - it does not list "wire scheduled multi-company research" as a deliverable, and that capability spans Phase 3 (Company Management) and Phase 4 (Enhanced Research Engine) territory that neither phase built either.
+
+Building a full scheduled multi-company pipeline now would be a large, undocumented scope expansion smuggled into a phase titled "Distribution" (ROADMAP.md's Change Management: "New features should not be inserted into the middle of completed phases"). Instead, Phase 10 builds the complete, correct Distribution Layer (Email + Teams channels, Delivery History, per-recipient/channel failure isolation) as a standalone, callable capability, and exposes it as an explicit trigger the dashboard and API can call for a given Report.
+
+## Consequences
+
+- FR-015 ("Scout shall automatically distribute reports") and the Automation Philosophy's "Distribute reports" step remain only partially realized until a future phase wires scheduled, per-company V2 research and calls `distribution_service.distribute_report()` as that pipeline's final step - exactly matching ARCHITECTURE.md's Scheduled Monitoring workflow.
+- Until then, a user (or a future scheduled job) must explicitly trigger distribution for each generated Report; nothing sends automatically today.
+- The distribution capability itself is complete and decoupled from how it gets triggered (ADR-015's "distribution layer should be extensible without changing report generation" is satisfied either way), so wiring the future scheduled trigger requires no changes to this module - only a new caller.
+
+---
+
 # Future Decisions
 
 This document should continue to grow as Scout evolves.
