@@ -68,3 +68,23 @@ def parse_json_array(raw_response: str, caller_name: str) -> list:
         raise ValueError(f"{caller_name} expected a JSON array.")
 
     return parsed
+
+
+def parse_json_object(raw_response: str, caller_name: str) -> dict:
+    """Strips any markdown fence and parses a JSON object response.
+
+    Raises ValueError with a message naming the caller if the response
+    isn't valid JSON or isn't an object - the object-shaped counterpart
+    to parse_json_array, shared by V2's reporting_service.
+    """
+    text = strip_markdown_json_fence(raw_response)
+
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{caller_name} could not parse Claude's response as JSON: {exc}") from exc
+
+    if not isinstance(parsed, dict):
+        raise ValueError(f"{caller_name} expected a JSON object.")
+
+    return parsed

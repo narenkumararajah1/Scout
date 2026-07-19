@@ -85,6 +85,15 @@ def list_opportunities(company_id: str) -> list[Opportunity]:
     return [_row_to_opportunity(row) for row in rows]
 
 
+def list_opportunities_for_session(research_session_id: str) -> list[Opportunity]:
+    with get_connection() as connection:
+        rows = connection.execute(
+            "SELECT * FROM opportunities WHERE research_session_id = ? ORDER BY priority DESC",
+            (research_session_id,),
+        ).fetchall()
+    return [_row_to_opportunity(row) for row in rows]
+
+
 def _row_to_opportunity(row) -> Opportunity:
     return Opportunity(
         id=row["id"],

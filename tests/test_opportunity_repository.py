@@ -6,6 +6,7 @@ from backend.repositories.opportunity_repository import (
     create_opportunity,
     get_opportunity,
     list_opportunities,
+    list_opportunities_for_session,
 )
 from backend.repositories.research_repository import create_research_session
 from tests.conftest import clear_v2_tables
@@ -71,3 +72,23 @@ def test_list_opportunities_filters_by_company_and_orders_most_recent_first():
     opportunities = list_opportunities(company_a.id)
 
     assert [o.id for o in opportunities] == [second.id, first.id]
+
+
+def test_list_opportunities_for_session_filters_by_session_and_orders_by_priority():
+    clear_v2_tables()
+    company, session_a = _make_company_and_session()
+    session_b = create_research_session(ResearchSession(company_id=company.id, status="completed"))
+
+    low = create_opportunity(
+        Opportunity(company_id=company.id, research_session_id=session_a.id, title="Low", priority=3)
+    )
+    high = create_opportunity(
+        Opportunity(company_id=company.id, research_session_id=session_a.id, title="High", priority=9)
+    )
+    create_opportunity(
+        Opportunity(company_id=company.id, research_session_id=session_b.id, title="Different session", priority=10)
+    )
+
+    opportunities = list_opportunities_for_session(session_a.id)
+
+    assert [o.id for o in opportunities] == [high.id, low.id]
