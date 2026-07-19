@@ -29,6 +29,7 @@ def test_create_and_get_opportunity_round_trips_list_fields():
         priority=1,
         confidence_score=0.9,
         supporting_signal_ids=["sig-1", "sig-2"],
+        capability_match_ids=["match-1"],
         recommended_services=["Cloud infrastructure consulting"],
         recommended_case_studies=["case-study-1"],
     )
@@ -43,6 +44,7 @@ def test_create_and_get_opportunity_round_trips_list_fields():
     assert fetched.priority == 1
     assert fetched.confidence_score == 0.9
     assert fetched.supporting_signal_ids == ["sig-1", "sig-2"]
+    assert fetched.capability_match_ids == ["match-1"]
     assert fetched.recommended_services == ["Cloud infrastructure consulting"]
     assert fetched.recommended_case_studies == ["case-study-1"]
 

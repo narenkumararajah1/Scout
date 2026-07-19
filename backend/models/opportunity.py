@@ -6,10 +6,16 @@ DATA_MODEL.md's Relationships section ("Research Session 1 -> Many
 Opportunities", "Company 1 -> Many Reports" implies the same company
 linkage for Opportunity via its Attributes list).
 
-List attributes (supporting signals, recommended services/case studies)
-are stored as JSON rather than through join tables - nothing queries
-these relationally yet, and a join table can be introduced later if a
-real access pattern needs it (avoid premature complexity).
+capability_match_ids added in Phase 7: DATA_MODEL.md's literal Opportunity
+attributes don't list it, but ARCHITECTURE.md's Opportunity Analysis Agent
+has "Capability Matches" (Phase 6) as its documented Input - without this
+link an Opportunity couldn't trace back to which match's confidence and
+reasoning produced it, which ADR-011 requires.
+
+List attributes are stored as JSON rather than through join tables -
+nothing queries these relationally yet, and a join table can be
+introduced later if a real access pattern needs it (avoid premature
+complexity).
 """
 
 import uuid
@@ -28,6 +34,7 @@ class Opportunity(BaseModel):
     priority: Optional[int] = None
     confidence_score: Optional[float] = None
     supporting_signal_ids: list[str] = Field(default_factory=list)
+    capability_match_ids: list[str] = Field(default_factory=list)
     recommended_services: list[str] = Field(default_factory=list)
     recommended_case_studies: list[str] = Field(default_factory=list)
     generated_date: datetime = Field(default_factory=datetime.utcnow)

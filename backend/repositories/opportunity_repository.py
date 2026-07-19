@@ -27,6 +27,7 @@ def init_opportunities_table() -> None:
                 priority INTEGER,
                 confidence_score REAL,
                 supporting_signal_ids TEXT NOT NULL,
+                capability_match_ids TEXT NOT NULL,
                 recommended_services TEXT NOT NULL,
                 recommended_case_studies TEXT NOT NULL,
                 generated_date TEXT NOT NULL,
@@ -44,9 +45,9 @@ def create_opportunity(opportunity: Opportunity) -> Opportunity:
             """
             INSERT INTO opportunities
                 (id, company_id, research_session_id, title, description, priority,
-                 confidence_score, supporting_signal_ids, recommended_services,
-                 recommended_case_studies, generated_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 confidence_score, supporting_signal_ids, capability_match_ids,
+                 recommended_services, recommended_case_studies, generated_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 opportunity.id,
@@ -57,6 +58,7 @@ def create_opportunity(opportunity: Opportunity) -> Opportunity:
                 opportunity.priority,
                 opportunity.confidence_score,
                 dump_list(opportunity.supporting_signal_ids),
+                dump_list(opportunity.capability_match_ids),
                 dump_list(opportunity.recommended_services),
                 dump_list(opportunity.recommended_case_studies),
                 opportunity.generated_date.isoformat(),
@@ -93,6 +95,7 @@ def _row_to_opportunity(row) -> Opportunity:
         priority=row["priority"],
         confidence_score=row["confidence_score"],
         supporting_signal_ids=load_list(row["supporting_signal_ids"]),
+        capability_match_ids=load_list(row["capability_match_ids"]),
         recommended_services=load_list(row["recommended_services"]),
         recommended_case_studies=load_list(row["recommended_case_studies"]),
         generated_date=datetime.fromisoformat(row["generated_date"]),
