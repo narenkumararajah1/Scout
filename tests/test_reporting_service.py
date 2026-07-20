@@ -99,6 +99,70 @@ def test_generate_report_creates_and_persists_report():
     assert persisted[0].id == report.id
 
 
+def test_generate_report_coerces_list_valued_fields_to_a_single_string():
+    """Regression test: Gemini has been observed returning "point-like"
+    fields (talking_points, recommendations) as a JSON array of strings
+    instead of the single string the prompt's example shows and Report
+    requires - this used to crash report creation with a Pydantic
+    ValidationError. generate_report should normalize this instead."""
+    clear_v2_tables()
+    company, session = _make_company_and_session()
+    create_opportunity(
+        Opportunity(company_id=company.id, research_session_id=session.id, title="AI Advisory", priority=8)
+    )
+
+    response_with_list_fields = json.dumps(
+        {
+            "executive_summary": "Strong opportunity for AI/data platform advisory.",
+            "company_overview": "Acme Corp is a mid-size data infrastructure company.",
+            "key_findings": "Actively hiring ML engineers.",
+            "technology_analysis": "Investing in Kubernetes and multi-cloud tooling.",
+            "capability_alignment": "AI Ready Data aligns well (confidence 0.85).",
+            "opportunities_section": "AI/Data Platform Advisory (priority 8).",
+            "recommendations": ["Schedule a discovery call.", "Share the case study."],
+            "talking_points": ["They are hiring ML engineers.", "They use Kubernetes."],
+        }
+    )
+
+    with patch(
+        "backend.services.reporting_service.generate_completion",
+        return_value=response_with_list_fields,
+    ):
+        report = reporting_service.generate_report(company, session)
+
+    assert report.recommendations == "1. Schedule a discovery call.\n2. Share the case study."
+    assert report.talking_points == "1. They are hiring ML engineers.\n2. They use Kubernetes."
+
+
+def test_generate_report_coerces_a_single_item_list_without_numbering():
+    clear_v2_tables()
+    company, session = _make_company_and_session()
+    create_opportunity(
+        Opportunity(company_id=company.id, research_session_id=session.id, title="AI Advisory", priority=8)
+    )
+
+    response_with_single_item_list = json.dumps(
+        {
+            "executive_summary": "Strong opportunity for AI/data platform advisory.",
+            "company_overview": "Acme Corp is a mid-size data infrastructure company.",
+            "key_findings": "Actively hiring ML engineers.",
+            "technology_analysis": "Investing in Kubernetes and multi-cloud tooling.",
+            "capability_alignment": "AI Ready Data aligns well (confidence 0.85).",
+            "opportunities_section": "AI/Data Platform Advisory (priority 8).",
+            "recommendations": "1. Schedule a discovery call.",
+            "talking_points": ["They are hiring ML engineers."],
+        }
+    )
+
+    with patch(
+        "backend.services.reporting_service.generate_completion",
+        return_value=response_with_single_item_list,
+    ):
+        report = reporting_service.generate_report(company, session)
+
+    assert report.talking_points == "They are hiring ML engineers."
+
+
 def test_generate_report_raises_clear_error_on_missing_required_fields():
     clear_v2_tables()
     company, session = _make_company_and_session()

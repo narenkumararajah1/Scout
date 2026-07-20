@@ -30,6 +30,26 @@ from backend.repositories.research_repository import list_signals_for_session
 
 logger = logging.getLogger(__name__)
 
+
+def _coerce_to_text(value):
+    """Normalizes a report section to a single string.
+
+    The prompt's example shows every field as a plain string (e.g.
+    "talking_points": "..."), and Claude always complies - but Gemini has
+    been observed returning "point-like" fields (talking_points,
+    recommendations) as a JSON array of strings instead, which fails
+    Report's str-typed fields with a Pydantic ValidationError. Rather
+    than fixing this per-provider in the prompt (no wording guarantees
+    every model interprets it identically), normalize defensively at the
+    boundary where the parsed LLM response becomes a typed Report.
+    """
+    if isinstance(value, list):
+        if len(value) == 1:
+            return str(value[0])
+        return "\n".join(f"{index}. {item}" for index, item in enumerate(value, start=1))
+    return value
+
+
 REQUIRED_REPORT_FIELDS = (
     "executive_summary",
     "company_overview",
@@ -95,14 +115,14 @@ def generate_report(company: Company, research_session: ResearchSession) -> Repo
         Report(
             company_id=company.id,
             research_session_id=research_session.id,
-            executive_summary=raw_report["executive_summary"],
-            company_overview=raw_report["company_overview"],
-            key_findings=raw_report["key_findings"],
-            technology_analysis=raw_report["technology_analysis"],
-            capability_alignment=raw_report["capability_alignment"],
-            opportunities_section=raw_report["opportunities_section"],
-            recommendations=raw_report["recommendations"],
-            talking_points=raw_report["talking_points"],
+            executive_summary=_coerce_to_text(raw_report["executive_summary"]),
+            company_overview=_coerce_to_text(raw_report["company_overview"]),
+            key_findings=_coerce_to_text(raw_report["key_findings"]),
+            technology_analysis=_coerce_to_text(raw_report["technology_analysis"]),
+            capability_alignment=_coerce_to_text(raw_report["capability_alignment"]),
+            opportunities_section=_coerce_to_text(raw_report["opportunities_section"]),
+            recommendations=_coerce_to_text(raw_report["recommendations"]),
+            talking_points=_coerce_to_text(raw_report["talking_points"]),
         )
     )
     logger.info("Report created for company %s (%s): report %s.", company.name, company.id, report.id)
