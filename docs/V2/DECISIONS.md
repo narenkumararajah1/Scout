@@ -590,6 +590,39 @@ LLM usage, async execution, and scheduler performance were each reviewed and fou
 
 ---
 
+# ADR-023
+
+## Status
+
+Accepted
+
+## Date
+
+Post-Phase 12
+
+## Decision
+
+Added a temporary, reversible provider switch so Scout can run on Google's Gemini API instead of Anthropic's Claude, without changing ADR-005's standing decision that Claude is the intended primary model. `Settings.llm_provider` ("anthropic", default, or "google") selects which api key and LiteLLM model prefix `backend/llm_client.py` uses; `Settings.google_api_key` is added alongside (not instead of) `anthropic_api_key`. Every agent and service continues calling `generate_completion(prompt)` exactly as before - none of their interfaces changed.
+
+## Rationale
+
+The Anthropic account backing this deployment hit a billing/credit block, stopping all development and testing that depends on real LLM output (Manual Analysis, Research, Capability Matching, Opportunity Analysis, Reporting, Conversational Intelligence). Rather than waiting on that to resolve, or hardcoding a one-off Gemini call somewhere, the fix follows ADR-004's original reasoning for choosing LiteLLM in the first place: "Future model providers can be added with minimal application changes." `llm_client.py` was the single, already-isolated module every agent/service depends on (verified: it's the only file in the codebase that imports `litellm` directly), so the entire migration is contained there and in `config.py` - zero changes to any agent, service, prompt module, or test that calls `generate_completion()`.
+
+Gemini's LiteLLM handler resolves its api key from `GOOGLE_API_KEY`/`GEMINI_API_KEY` environment variables rather than honoring LiteLLM's generic global `litellm.api_key` assignment (confirmed by reading the installed LiteLLM package's Gemini handler source) - Anthropic's handler behaves differently. Passing `api_key=` explicitly on every `litellm.completion()` call, keyed off `llm_provider`, is the one approach that works correctly for both providers rather than relying on either handler's implicit env var scanning.
+
+`gemini/gemini-pro-latest` was chosen as the model: it is Google's own alias that always resolves to their current stable, Pro-tier (reasoning-capable) Gemini model, directly matching "latest stable model suitable for reasoning" without hardcoding a version string that goes stale. No new dependency was needed - the installed LiteLLM version (1.83.9) has Gemini support built in, and `google-genai` is already an installed transitive dependency of `google-adk`; neither the Gemini LiteLLM handler nor this change imports it directly.
+
+The default `llm_provider` stays `"anthropic"` in `config.py`/`.env.example` (shipped default, matching ADR-005) - only the deployment's own local, gitignored `.env` sets `LLM_PROVIDER=google` for this temporary override. This means a fresh clone or a new contributor still gets Claude by default; the Gemini override is deliberately local-only and not committed as the project's new default.
+
+## Consequences
+
+- Switching back to Anthropic requires only editing the local `.env` (`LLM_PROVIDER=anthropic`, `LLM_MODEL=claude-sonnet-5`) - `ANTHROPIC_API_KEY` is untouched throughout, so no key re-entry is needed either.
+- Both providers' credentials can be configured simultaneously without conflict; only `llm_provider` decides which is actually used at call time.
+- If a future phase adds a third provider, `_PROVIDER_CONFIG` in `llm_client.py` is the one place to extend - no agent or service would need to change.
+- This decision does not supersede ADR-005; Claude remains Scout's intended primary model. This is documented as a temporary, environment-scoped override, not a permanent provider change.
+
+---
+
 # Future Decisions
 
 This document should continue to grow as Scout evolves.

@@ -26,6 +26,19 @@ class Settings(BaseSettings):
     # SecretStr (V2 Phase 1 configuration hardening) so the key can't leak
     # via an accidental repr()/log of the Settings object.
     anthropic_api_key: SecretStr = SecretStr("")
+
+    # Google AI Studio (Gemini Developer API) key - added for the
+    # temporary Anthropic-to-Gemini migration (ADR-023). Kept alongside
+    # anthropic_api_key, not in place of it, so switching back to
+    # Anthropic later needs only an env var change, not re-entering a key.
+    google_api_key: SecretStr = SecretStr("")
+
+    # Selects which provider above llm_client.py uses - "anthropic"
+    # (default, ADR-005) or "google". backend/llm_client.py's
+    # _PROVIDER_CONFIG maps this to the right api key and LiteLLM model
+    # prefix, so every agent/service keeps calling generate_completion()
+    # exactly as before regardless of which provider is active.
+    llm_provider: str = "anthropic"
     llm_model: str = "claude-sonnet-5"
 
     # Used starting Phase 2 Day 6 (Research Agent). Scout researches a

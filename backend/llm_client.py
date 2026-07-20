@@ -1,7 +1,11 @@
-"""LiteLLM configuration and completion helper for Claude.
+"""LiteLLM configuration and completion helper for the active LLM provider.
 
 Used by agents that need real LLM output (starting with the Research
-Agent in Phase 2, Day 6).
+Agent in Phase 2, Day 6). Provider-agnostic since the temporary Gemini
+migration (ADR-023): backend.config.Settings.llm_provider selects
+"anthropic" (default, ADR-005) or "google", each with its own api key and
+LiteLLM model prefix. Every caller of generate_completion() is unaffected
+either way - switching providers is a pure .env change.
 """
 
 import json
@@ -11,7 +15,17 @@ import litellm
 from backend.config import get_settings
 
 settings = get_settings()
-litellm.api_key = settings.anthropic_api_key.get_secret_value()
+
+# Maps llm_provider -> (api key, LiteLLM model prefix). The api key is
+# passed explicitly on every completion() call below rather than only
+# via a global litellm.api_key assignment - Gemini's LiteLLM handler
+# looks for GOOGLE_API_KEY/GEMINI_API_KEY env vars rather than honoring
+# that generic global, so passing api_key= explicitly is the one approach
+# that works reliably across both providers.
+_PROVIDER_CONFIG = {
+    "anthropic": {"api_key": settings.anthropic_api_key, "model_prefix": "anthropic"},
+    "google": {"api_key": settings.google_api_key, "model_prefix": "gemini"},
+}
 
 
 def get_default_model() -> str:
@@ -19,16 +33,25 @@ def get_default_model() -> str:
 
 
 def generate_completion(prompt: str) -> str:
-    """Requests a single completion from Claude via LiteLLM.
+    """Requests a single completion from the active LLM provider via LiteLLM.
 
-    Raises whatever exception LiteLLM raises (e.g. on a missing or
-    invalid API key) - callers don't need their own try/except for this,
-    since backend/orchestration already catches and records per-stage
-    failures without crashing the workflow.
+    Raises ValueError if settings.llm_provider isn't a supported provider.
+    Otherwise raises whatever exception LiteLLM raises (e.g. on a missing
+    or invalid API key) - callers don't need their own try/except for
+    this, since backend/orchestration already catches and records
+    per-stage failures without crashing the workflow.
     """
+    provider = _PROVIDER_CONFIG.get(settings.llm_provider)
+    if provider is None:
+        raise ValueError(
+            f"Unsupported LLM_PROVIDER {settings.llm_provider!r}; expected one of "
+            f"{sorted(_PROVIDER_CONFIG)}."
+        )
+
     response = litellm.completion(
-        model=f"anthropic/{get_default_model()}",
+        model=f"{provider['model_prefix']}/{get_default_model()}",
         messages=[{"role": "user", "content": prompt}],
+        api_key=provider["api_key"].get_secret_value(),
     )
     return response["choices"][0]["message"]["content"]
 
