@@ -15,6 +15,7 @@ pages = {
         st.Page("pages/manual_analysis.py", title="Manual Analysis", icon=":material/search:"),
         st.Page("pages/company_reports.py", title="Reports", icon=":material/summarize:"),
         st.Page("pages/analytics.py", title="Analytics", icon=":material/query_stats:"),
+        st.Page("pages/ask_scout.py", title="Ask Scout", icon=":material/chat:"),
     ],
     "Administration": [
         st.Page("pages/recipients.py", title="Recipients", icon=":material/group:"),
