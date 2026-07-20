@@ -19,6 +19,28 @@ import os
 os.environ.setdefault("SQLITE_PATH", "data/test_scout.db")
 os.environ.setdefault("CHROMA_PERSIST_DIR", "data/test_chroma")
 
+# Same root cause, different field: pydantic-settings resolves any field a
+# test's `Settings(...)` call doesn't explicitly pass from the real .env
+# file, not a blank default - so a test built around "this field defaults
+# to empty" (e.g. tests/test_notifications.py, tests/test_email_channel.py)
+# silently starts exercising real SMTP/API credentials the moment a real
+# developer .env has them configured, rather than actually testing the
+# empty-config code path. Setting these blank in the OS environment
+# outranks the .env file per pydantic-settings' precedence, without
+# affecting any test that explicitly passes its own value to Settings(...)
+# (explicit kwargs always outrank both).
+for _test_env_var in (
+    "SMTP_HOST",
+    "SMTP_USERNAME",
+    "SMTP_PASSWORD",
+    "NOTIFICATION_EMAIL_FROM",
+    "NOTIFICATION_EMAIL_TO",
+    "ANTHROPIC_API_KEY",
+    "GOOGLE_API_KEY",
+    "TEAMS_WEBHOOK_URL",
+):
+    os.environ.setdefault(_test_env_var, "")
+
 import pytest
 from fastapi.testclient import TestClient
 
