@@ -16,6 +16,8 @@ Report generation only - actual distribution (email/Teams) is Phase 10's
 job; ROADMAP.md explicitly separates "Reporting" from "Distribution."
 """
 
+import logging
+
 from backend.llm_client import generate_completion, parse_json_object
 from backend.models.company import Company
 from backend.models.report import Report
@@ -25,6 +27,8 @@ from backend.repositories.capability_match_repository import list_capability_mat
 from backend.repositories.opportunity_repository import list_opportunities_for_session
 from backend.repositories.report_repository import create_report
 from backend.repositories.research_repository import list_signals_for_session
+
+logger = logging.getLogger(__name__)
 
 REQUIRED_REPORT_FIELDS = (
     "executive_summary",
@@ -87,7 +91,7 @@ def generate_report(company: Company, research_session: ResearchSession) -> Repo
             f"Reporting Service's response was missing required field(s): {', '.join(missing_fields)}"
         )
 
-    return create_report(
+    report = create_report(
         Report(
             company_id=company.id,
             research_session_id=research_session.id,
@@ -101,3 +105,5 @@ def generate_report(company: Company, research_session: ResearchSession) -> Repo
             talking_points=raw_report["talking_points"],
         )
     )
+    logger.info("Report created for company %s (%s): report %s.", company.name, company.id, report.id)
+    return report

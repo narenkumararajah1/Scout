@@ -1,8 +1,10 @@
 """FastAPI application entry point."""
 
+import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 from backend.config import get_settings
 from backend.knowledge_ingestion import ingest_documents
@@ -23,6 +25,7 @@ from backend.scheduler import start_scheduler, stop_scheduler
 
 configure_logging()
 settings = get_settings()
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -57,6 +60,29 @@ app.include_router(recipients.router)
 app.include_router(analytics.router)
 app.include_router(system.router)
 app.include_router(conversation.router)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Catches any exception a route didn't already turn into an
+    HTTPException (V2 Phase 12 hardening).
+
+    Without this, an unexpected bug surfaced only as uvicorn's raw
+    traceback on stderr - never through this app's own configured
+    logger (backend/logging_config.py), and the client got whatever
+    Starlette's default 500 body happens to be. IMPLEMENTATION_RULES.md's
+    Error Handling section requires every failure to be logged and to
+    avoid silent failures; Security requires not exposing internal
+    implementation details through APIs, so the response body stays
+    generic while the real detail goes to the log.
+
+    FastAPI/Starlette route HTTPException and validation errors to their
+    own more specific handlers before falling back to this one, so
+    existing per-route error handling (404s, 422s, the 502s raised by
+    the manual analysis and conversation endpoints) is unaffected.
+    """
+    logger.exception("Unhandled exception while processing %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "An unexpected error occurred."})
 
 
 @app.get("/")

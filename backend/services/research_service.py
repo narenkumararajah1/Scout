@@ -16,6 +16,8 @@ the four generate_completion calls raises, no ResearchSession or Signal
 is persisted.
 """
 
+import logging
+
 from backend.llm_client import generate_completion, parse_json_array
 from backend.models.company import Company
 from backend.models.research import ResearchSession, Signal
@@ -27,6 +29,8 @@ from backend.prompts.research_prompts import (
 )
 from backend.repositories.research_repository import create_research_session, create_signal
 
+logger = logging.getLogger(__name__)
+
 # Signals are extracted from an LLM's general knowledge, not fetched from
 # a cited source document - Scout has no web-search/citation tooling yet,
 # so asking the model to invent a specific source would risk exactly the
@@ -36,6 +40,7 @@ SIGNAL_SOURCE = "AI-generated research summary"
 
 
 def research_company(company: Company) -> ResearchSession:
+    logger.info("Research started for company %s (%s).", company.name, company.id)
     company_technology = generate_completion(build_company_technology_prompt(company.name))
     organizational_strategic = generate_completion(
         build_organizational_strategic_prompt(company.name)
@@ -74,4 +79,10 @@ def research_company(company: Company) -> ResearchSession:
             )
         )
 
+    logger.info(
+        "Research completed for company %s (%s): %d signal(s) extracted.",
+        company.name,
+        company.id,
+        len(raw_signals),
+    )
     return session

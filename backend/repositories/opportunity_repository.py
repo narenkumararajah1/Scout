@@ -36,6 +36,16 @@ def init_opportunities_table() -> None:
             )
             """
         )
+        # V2 Phase 12: list_opportunities/list_opportunities_for_session
+        # filter by exactly these columns; SQLite doesn't index foreign
+        # keys automatically.
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_opportunities_company_id ON opportunities (company_id)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_opportunities_research_session_id "
+            "ON opportunities (research_session_id)"
+        )
         connection.commit()
 
 

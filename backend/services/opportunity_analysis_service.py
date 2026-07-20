@@ -15,6 +15,8 @@ assigns a priority score per opportunity, and Scout deterministically
 sorts by it, rather than trusting the model's own list ordering.
 """
 
+import logging
+
 from backend.llm_client import generate_completion, parse_json_array
 from backend.models.company import Company
 from backend.models.opportunity import Opportunity
@@ -23,6 +25,8 @@ from backend.prompts.opportunity_analysis_prompts import build_opportunity_analy
 from backend.repositories.capability_match_repository import list_capability_matches_for_session
 from backend.repositories.opportunity_repository import create_opportunity
 from backend.repositories.research_repository import list_signals_for_session
+
+logger = logging.getLogger(__name__)
 
 REQUIRED_OPPORTUNITY_FIELDS = ("title", "priority", "confidence_score")
 
@@ -87,4 +91,11 @@ def analyze_opportunities(company: Company, research_session: ResearchSession) -
     # the LLM-assigned priority, rather than trusting response ordering -
     # simple, explainable, matching V1's opportunity_agent.py precedent.
     opportunities.sort(key=lambda o: o.priority, reverse=True)
+
+    logger.info(
+        "Opportunity analysis completed for company %s (%s): %d opportunity(ies) generated.",
+        company.name,
+        company.id,
+        len(opportunities),
+    )
     return opportunities

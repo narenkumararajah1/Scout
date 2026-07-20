@@ -34,6 +34,16 @@ def init_capability_matches_table() -> None:
             )
             """
         )
+        # V2 Phase 12: list_capability_matches/list_capability_matches_for_session
+        # filter by exactly these columns; SQLite doesn't index foreign
+        # keys automatically.
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_capability_matches_company_id ON capability_matches (company_id)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_capability_matches_research_session_id "
+            "ON capability_matches (research_session_id)"
+        )
         connection.commit()
 
 

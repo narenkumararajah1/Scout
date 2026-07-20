@@ -46,6 +46,16 @@ def init_research_tables() -> None:
             )
             """
         )
+        # V2 Phase 12: every list_* query in this module filters by
+        # exactly these columns (company_id, research_session_id) -
+        # SQLite doesn't index foreign keys automatically, so without
+        # these every such lookup was a full table scan.
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_research_sessions_company_id ON research_sessions (company_id)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_signals_research_session_id ON signals (research_session_id)"
+        )
         connection.commit()
 
 

@@ -49,6 +49,15 @@ def init_delivery_history_table() -> None:
             )
             """
         )
+        # V2 Phase 12: list_deliveries_for_recipient/list_deliveries_for_report
+        # filter by exactly these columns; SQLite doesn't index foreign
+        # keys automatically.
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_delivery_history_recipient_id ON delivery_history (recipient_id)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_delivery_history_report_id ON delivery_history (report_id)"
+        )
         connection.commit()
 
 

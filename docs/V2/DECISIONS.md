@@ -556,6 +556,40 @@ Building a full scheduled multi-company pipeline now would be a large, undocumen
 
 ---
 
+# ADR-022
+
+## Status
+
+Accepted
+
+## Date
+
+Phase 12
+
+## Decision
+
+Phase 12's hardening work is scoped to four concrete, verified gaps rather than a broad rewrite: (1) added INFO-level start/completion logging to research_service, capability_matching_service, opportunity_analysis_service, and reporting_service, which had none; (2) added a global FastAPI exception handler that logs and generically responds to any exception a route doesn't already turn into an HTTPException; (3) added SQLite indexes on every foreign-key column (`company_id`, `research_session_id`, `recipient_id`, `report_id`) used in a `WHERE` clause across the V2 repositories, none of which existed; (4) reviewed LLM usage, async execution, and scheduler performance against ROADMAP.md's Phase 12 objectives and made no code changes there - see Rationale.
+
+## Rationale
+
+IMPLEMENTATION_RULES.md's Logging section gives three literal examples - "Research completed," "Opportunity generated," "Report created" - and the three services responsible for exactly those events had zero logging at all (confirmed by grep), while capability_matching_service.py only logged a warning path. This is a direct, unambiguous compliance gap, not a style preference.
+
+No route previously caught a genuinely unexpected exception (a real bug, not a validated business-rule ValueError); it surfaced only as uvicorn's raw traceback on stderr, invisible to this app's own configured logger (backend/logging_config.py) and to log rotation. IMPLEMENTATION_RULES.md's Error Handling section requires every failure to be logged and application stability preserved, and Security requires not exposing internal implementation details through APIs - a single global handler satisfies all three at once, verified to not intercept FastAPI's own more-specific handlers (HTTPException, request validation) since Starlette dispatches to the most specific registered handler first.
+
+No SQLite index existed anywhere in the schema beyond each table's own PRIMARY KEY (confirmed by grep for `CREATE INDEX`), yet every `list_*(company_id)` / `list_*_for_session(research_session_id)` query in every V2 repository filters on exactly these foreign-key columns. This is the literal, textbook case IMPLEMENTATION_RULES.md's "avoid premature optimization" carve-out doesn't apply to: it's not speculative tuning without evidence of a problem, it's indexing the columns the codebase's own established query patterns already scan by, with zero behavior change and zero added complexity to any calling code.
+
+LLM usage, async execution, and scheduler performance were each reviewed and found to have no concrete, evidenced problem: every route that does blocking work is a sync `def` (FastAPI runs these in its own threadpool automatically) or explicitly wraps blocking calls in `asyncio.to_thread` (ADR-017's precedent, already applied consistently in backend/orchestration/adk_agents.py and backend/orchestration/manual_analysis.py); the sequential multi-call structure of research_service.py and capability_matching_service.py's prompts is an established Phase 4/6 design with no measured latency or cost problem to fix; and backend/scheduler.py's single interval job has nothing further to optimize without the scheduled multi-company pipeline ADR-021 already deferred. IMPLEMENTATION_RULES.md is explicit - "Optimize only after correctness. Measure performance before introducing optimizations. Avoid premature optimization" - so redesigning any of these without measured evidence would violate the same principle Phase 12 is supposed to uphold.
+
+## Consequences
+
+- Every V2 intelligence-pipeline stage now logs its start and completion, closing the literal gap between IMPLEMENTATION_RULES.md's Logging examples and what the code actually did.
+- An unhandled bug anywhere in the API can no longer crash a request into an unlogged, detail-leaking response; it's captured, logged through the standard pipeline, and returns a safe generic message.
+- Every existing foreign-key-scoped list query gets a matching index with no behavior or interface change - safe by construction, verified by the existing test suite passing unchanged plus a new test asserting the indexes exist.
+- FR-004 ("automatically research monitored companies according to a configurable schedule") and FR-019 ("automatically execute workflows according to configurable schedules") remain unfulfilled for the V2 multi-company model, same as ADR-021 already documented for FR-015 - Phase 12 hardens what exists, it does not close that gap, since doing so was never one of Phase 12's stated objectives and remains real, undocumented-scope work for a future phase.
+- Future work on LLM usage, async execution, or scheduler performance should start from actual measurements (latency, token cost, concurrency load) rather than speculative rewrites, consistent with this decision's rationale.
+
+---
+
 # Future Decisions
 
 This document should continue to grow as Scout evolves.

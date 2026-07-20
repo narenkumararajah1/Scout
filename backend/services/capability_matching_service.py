@@ -118,4 +118,10 @@ def match_capabilities(company: Company, research_session: ResearchSession) -> l
         )
         matches.append(match)
 
+    logger.info(
+        "Capability matching completed for company %s (%s): %d match(es) generated.",
+        company.name,
+        company.id,
+        len(matches),
+    )
     return matches

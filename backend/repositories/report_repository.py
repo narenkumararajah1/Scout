@@ -40,6 +40,15 @@ def init_research_reports_table() -> None:
             )
             """
         )
+        # V2 Phase 12: list_reports filters by company_id; SQLite doesn't
+        # index foreign keys automatically.
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_research_reports_company_id ON research_reports (company_id)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_research_reports_research_session_id "
+            "ON research_reports (research_session_id)"
+        )
         connection.commit()
 
 
