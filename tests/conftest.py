@@ -1,3 +1,24 @@
+import os
+
+# Must run before any `backend.*` import below: backend.config.get_settings()
+# is process-wide cached (functools.lru_cache), and several modules
+# (backend/llm_client.py, backend/chroma_client.py) read it at import
+# time. Setting these here, first, points the entire test session at a
+# dedicated SQLite file and ChromaDB directory instead of the ones the
+# live app/dashboard uses.
+#
+# Without this, the test suite shared real, persistent state with
+# whatever Scout instance was running locally: `clear_v2_tables()` below
+# would delete real companies/reports out from under a live dashboard
+# session, and tests that assume an empty ChromaDB knowledge corpus
+# (tests/test_orchestration.py) would silently start failing - or, worse,
+# hang - the moment real capability/case-study data was indexed for
+# actual use (a Mock's exhausted side_effect list raises StopIteration,
+# which a Python 3.9 asyncio Future refuses to propagate cleanly,
+# freezing the run instead of failing it).
+os.environ.setdefault("SQLITE_PATH", "data/test_scout.db")
+os.environ.setdefault("CHROMA_PERSIST_DIR", "data/test_chroma")
+
 import pytest
 from fastapi.testclient import TestClient
 
