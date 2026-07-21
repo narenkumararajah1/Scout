@@ -1,9 +1,9 @@
 """PostgreSQL connection handling (V3 Phase 1 - ADR-014).
 
 Introduced alongside the existing SQLite implementation in
-backend/database.py, not in place of it. No repository has been migrated
-to use this yet - each migrates incrementally per
-docs/v3/16_IMPLEMENTATION_ROADMAP.md.
+backend/database/sqlite.py, not in place of it. Phase 2 is the first
+consumer (backend/repositories/user_repository.py) - every other
+repository still reads/writes SQLite; see TECH_DEBT.md.
 """
 
 from __future__ import annotations
@@ -13,8 +13,15 @@ from contextlib import asynccontextmanager
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import declarative_base
 
 from backend.config import get_settings
+
+# Declarative base for Postgres ORM entities. Lives here (not in
+# backend/models/, which holds V2's plain domain dataclasses) per the
+# V3 Phase 2 decision to keep persistence entities separate from
+# business/domain models - see backend/database/models.py.
+Base = declarative_base()
 
 _engine: AsyncEngine | None = None
 _session_factory: async_sessionmaker[AsyncSession] | None = None

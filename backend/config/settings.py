@@ -81,6 +81,15 @@ class Settings(BaseSettings):
     # rather than failing, matching the SMTP settings' pattern above.
     teams_webhook_url: str = ""
 
+    # JWT auth (V3 Phase 2 - ADR-020). jwt_secret_key must be set to a real
+    # generated value in .env for any non-development use - the empty
+    # default only exists so Settings() doesn't fail to construct before
+    # it's configured. Refresh tokens are deliberately out of scope until
+    # a full token lifecycle strategy is designed - see TECH_DEBT.md.
+    jwt_secret_key: SecretStr = SecretStr("")
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expiry_minutes: int = 30
+
     log_level: str = "INFO"
     log_file: str = "logs/scout.log"
 

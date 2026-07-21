@@ -19,6 +19,11 @@ import os
 os.environ.setdefault("SQLITE_PATH", "data/test_scout.db")
 os.environ.setdefault("CHROMA_PERSIST_DIR", "data/test_chroma")
 
+# Same isolation principle, V3 Phase 2's Postgres-backed tests: point at a
+# distinct database name so tests never share state with a developer's
+# local `scout` database, if one happens to be running.
+os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://scout:scout@localhost:5432/scout_test")
+
 # Same root cause, different field: pydantic-settings resolves any field a
 # test's `Settings(...)` call doesn't explicitly pass from the real .env
 # file, not a blank default - so a test built around "this field defaults
@@ -59,6 +64,57 @@ from backend.repositories.schedule_repository import init_schedules_table
 def client() -> TestClient:
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture
+async def postgres_available():
+    """Skips the test if PostgreSQL isn't reachable at DATABASE_URL - this
+    sandbox has no local Postgres, so V3 Phase 2's integration tests
+    (test_user_repository.py, test_auth_endpoint.py) skip here and only
+    actually run wherever a real instance is available (see TECH_DEBT.md).
+
+    Creates backend/database/models.py's tables directly rather than via
+    Alembic (test speed; migrations/ is still the source of truth for
+    real deployments), and truncates them after each test.
+
+    Also resets backend.database.postgres's cached engine/session factory
+    before and after each test. The app itself is meant to reuse one
+    engine for its whole process lifetime (one event loop under uvicorn),
+    but pytest-asyncio gives each async test its own event loop by
+    default - reusing an engine whose connection pool was created under a
+    previous test's (now-closed) loop raises "attached to a different
+    loop" / "another operation is in progress" on the next test.
+    """
+    from sqlalchemy import text
+
+    import backend.database.postgres as postgres_module
+    from backend.database.models import Base
+
+    async def _reset_engine() -> None:
+        if postgres_module._engine is not None:
+            await postgres_module._engine.dispose()
+        postgres_module._engine = None
+        postgres_module._session_factory = None
+
+    await _reset_engine()
+
+    try:
+        async with postgres_module.get_session() as session:
+            await session.execute(text("SELECT 1"))
+    except Exception as exc:
+        pytest.skip(f"PostgreSQL not reachable at DATABASE_URL - {exc}")
+
+    engine = postgres_module._get_engine()
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+
+    yield
+
+    async with postgres_module.get_session() as session:
+        await session.execute(text("TRUNCATE TABLE users RESTART IDENTITY"))
+        await session.commit()
+
+    await _reset_engine()
 
 
 def clear_v2_tables() -> None:

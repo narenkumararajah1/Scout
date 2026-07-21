@@ -6,6 +6,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from backend.api.error_handlers import register_error_handlers
+from backend.api.routers.auth import router as auth_v1_router
 from backend.config import get_settings
 from backend.knowledge_ingestion import ingest_documents
 from backend.utils.logging import configure_logging
@@ -60,6 +62,9 @@ app.include_router(recipients.router)
 app.include_router(analytics.router)
 app.include_router(system.router)
 app.include_router(conversation.router)
+app.include_router(auth_v1_router)
+
+register_error_handlers(app)
 
 
 @app.exception_handler(Exception)

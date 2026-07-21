@@ -13,11 +13,24 @@ httpx==0.28.1
 google-adk==1.18.0
 
 # PostgreSQL (V3 Phase 1 - ADR-014). Introduced alongside the existing
-# sqlite3 usage in backend/database.py, not replacing it yet - see
-# backend/postgres_client.py.
+# sqlite3 usage in backend/database/sqlite.py, not replacing it yet - see
+# backend/database/postgres.py.
 sqlalchemy==2.0.36
+greenlet==3.1.1
 asyncpg==0.30.0
 alembic==1.13.3
+
+# JWT auth (V3 Phase 2 - ADR-020). bcrypt used directly rather than via
+# passlib: passlib 1.7.4 (unmaintained since 2020) is incompatible with
+# bcrypt>=4.1, which dropped the internal API passlib's self-test reads.
+python-jose[cryptography]==3.3.0
+bcrypt==4.2.1
+email-validator==2.2.0
+
+# Enables `async def test_...` for the new Postgres-backed tests
+# (tests/test_user_repository.py, tests/test_auth_endpoint.py) without
+# decorating every one with @pytest.mark.asyncio - see pytest.ini.
+pytest-asyncio==0.24.0
 
 # Pinned to avoid a dependency conflict: google-adk's install resolves this
 # transitive package to a version newer than chromadb's opentelemetry stack,
