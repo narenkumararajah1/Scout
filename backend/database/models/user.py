@@ -1,9 +1,9 @@
-"""PostgreSQL ORM entities (SQLAlchemy declarative models).
+"""User ORM entity (V3 Phase 2 - the auth vertical slice).
 
 Deliberately separate from backend/models/, which holds V2's plain
 dataclasses returned by the SQLite repositories - those are domain/business
-objects, not persistence entities, and V3 Phase 2 keeps the two apart
-rather than mixing ORM classes into that package.
+objects, not persistence entities, and V3 keeps the two apart rather than
+mixing ORM classes into that package.
 """
 
 from datetime import datetime, timezone

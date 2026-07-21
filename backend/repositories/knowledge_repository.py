@@ -2,7 +2,7 @@
 Phase 5).
 
 Extends V1's existing ChromaDB "organizational_knowledge" collection
-(backend/chroma_client.py) rather than creating a parallel one -
+(backend/database/chroma.py) rather than creating a parallel one -
 IMPLEMENTATION_RULES.md's ChromaDB Usage rule requires a single
 authoritative knowledge repository. Each entity is namespaced by a
 prefixed id ("capability:<id>") and tagged with an entity_type metadata
@@ -18,7 +18,7 @@ knowledge_ingestion.py already established for freeform documents.
 
 from typing import Optional
 
-from backend.chroma_client import get_knowledge_collection
+from backend.database.chroma import get_knowledge_collection
 from backend.models.knowledge import (
     CaseStudy,
     Capability,

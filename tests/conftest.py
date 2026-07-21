@@ -2,7 +2,7 @@ import os
 
 # Must run before any `backend.*` import below: backend.config.get_settings()
 # is process-wide cached (functools.lru_cache), and several modules
-# (backend/llm_client.py, backend/chroma_client.py) read it at import
+# (backend/llm_client.py, backend/database/chroma.py) read it at import
 # time. Setting these here, first, points the entire test session at a
 # dedicated SQLite file and ChromaDB directory instead of the ones the
 # live app/dashboard uses.
@@ -73,7 +73,7 @@ async def postgres_available():
     (test_user_repository.py, test_auth_endpoint.py) skip here and only
     actually run wherever a real instance is available (see TECH_DEBT.md).
 
-    Creates backend/database/models.py's tables directly rather than via
+    Creates backend/database/models/'s tables directly rather than via
     Alembic (test speed; migrations/ is still the source of truth for
     real deployments), and truncates them after each test.
 
@@ -111,7 +111,11 @@ async def postgres_available():
     yield
 
     async with postgres_module.get_session() as session:
-        await session.execute(text("TRUNCATE TABLE users RESTART IDENTITY"))
+        # CASCADE handles executives/opportunities' FK dependency on
+        # companies automatically, regardless of truncation order.
+        await session.execute(
+            text("TRUNCATE TABLE users, companies, executives, opportunities RESTART IDENTITY CASCADE")
+        )
         await session.commit()
 
     await _reset_engine()

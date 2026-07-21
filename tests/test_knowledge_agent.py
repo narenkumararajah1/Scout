@@ -4,7 +4,7 @@ from unittest.mock import patch
 import chromadb
 
 from backend.agents.knowledge_agent import KnowledgeAgent
-from backend.chroma_client import get_embedding_function
+from backend.database.chroma import get_embedding_function
 from backend.workflow.state import WorkflowState
 
 

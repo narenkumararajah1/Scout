@@ -9,7 +9,7 @@ documents rather than fabricating any.
 """
 
 from backend.agents.base import BaseAgent
-from backend.chroma_client import get_knowledge_collection
+from backend.database.chroma import get_knowledge_collection
 from backend.config import get_settings
 from backend.workflow.state import WorkflowState
 

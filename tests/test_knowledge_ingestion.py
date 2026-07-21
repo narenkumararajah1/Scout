@@ -2,7 +2,7 @@ import uuid
 
 import chromadb
 
-from backend.chroma_client import get_embedding_function
+from backend.database.chroma import get_embedding_function
 from backend.knowledge_ingestion import ingest_documents
 
 

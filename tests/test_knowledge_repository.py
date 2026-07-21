@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import chromadb
 
-from backend.chroma_client import get_embedding_function
+from backend.database.chroma import get_embedding_function
 from backend.models.knowledge import CaseStudy, Capability, Industry, Partnership, ProofPoint, Service, Technology
 from backend.repositories import knowledge_repository
 

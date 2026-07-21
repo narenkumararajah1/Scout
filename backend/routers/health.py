@@ -5,7 +5,8 @@ from typing import Callable
 
 from fastapi import APIRouter
 
-from backend import chroma_client, database
+from backend.database import chroma
+from backend import database
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -27,7 +28,7 @@ def _check(name: str, check_fn: Callable[[], bool]) -> bool:
 @router.get("/health")
 def health_check() -> dict:
     database_connected = _check("database", database.check_connection)
-    chroma_connected = _check("chroma", chroma_client.check_connection)
+    chroma_connected = _check("chroma", chroma.check_connection)
     return {
         "status": "ok" if database_connected and chroma_connected else "degraded",
         "database_connected": database_connected,

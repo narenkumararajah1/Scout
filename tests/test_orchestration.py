@@ -7,7 +7,7 @@ import pytest
 
 from backend.agents.knowledge_agent import KnowledgeAgent
 from backend.agents.research_agent import ResearchAgent
-from backend.chroma_client import get_knowledge_collection
+from backend.database.chroma import get_knowledge_collection
 from backend.database import get_connection
 from backend.orchestration.workflow import (
     APP_NAME,

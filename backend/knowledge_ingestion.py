@@ -1,7 +1,7 @@
 """Document ingestion for the Knowledge Agent's organizational knowledge base.
 
 Reads .txt/.md files from the configured knowledge_sources_dir and upserts
-them into the ChromaDB collection defined in backend/chroma_client.py. The
+them into the ChromaDB collection defined in backend/database/chroma.py. The
 directory is empty until real organizational knowledge (case studies,
 whitepapers, service offerings, marketing material) is supplied, per
 DECISIONS.md ("only approved sources ... do not assume access to
@@ -14,7 +14,7 @@ from typing import Optional
 
 from chromadb.api.models.Collection import Collection
 
-from backend.chroma_client import get_knowledge_collection
+from backend.database.chroma import get_knowledge_collection
 from backend.config import get_settings
 
 logger = logging.getLogger(__name__)
