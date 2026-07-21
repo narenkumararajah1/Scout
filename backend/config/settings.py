@@ -90,6 +90,13 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_token_expiry_minutes: int = 30
 
+    # Company/Opportunity persistence cutover (V3 Phase 3B). One of
+    # "sqlite" | "dual_write" | "shadow_read" | "postgres" - see
+    # backend/migration_mode.py and TECH_DEBT.md. Rolling forward or
+    # backward between stages is exactly this one config change; nothing
+    # else in the app needs to change or be redeployed.
+    migration_mode: str = "sqlite"
+
     log_level: str = "INFO"
     log_file: str = "logs/scout.log"
 

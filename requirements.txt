@@ -20,6 +20,10 @@ greenlet==3.1.1
 asyncpg==0.30.0
 alembic==1.13.3
 
+# Synchronous Postgres driver (V3 Phase 3B - ADR-020's sync facade). A
+# separate engine from asyncpg's async one - see backend/database/postgres_sync.py.
+psycopg2-binary==2.9.12
+
 # JWT auth (V3 Phase 2 - ADR-020). bcrypt used directly rather than via
 # passlib: passlib 1.7.4 (unmaintained since 2020) is incompatible with
 # bcrypt>=4.1, which dropped the internal API passlib's self-test reads.

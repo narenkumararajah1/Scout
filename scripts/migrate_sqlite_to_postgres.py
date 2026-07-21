@@ -26,7 +26,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -93,8 +93,12 @@ def _parse_datetime(raw: str) -> datetime:
     # datetime.utcnow()); asyncpg's driver requires an actual datetime
     # object for a TIMESTAMP WITH TIME ZONE column, unlike psycopg2 which
     # coerces strings implicitly - passing the raw string through raises
-    # asyncpg.exceptions.DataError.
-    return datetime.fromisoformat(raw)
+    # asyncpg.exceptions.DataError. Tagging it explicitly as UTC (rather
+    # than leaving it naive) avoids the driver/session interpreting it in
+    # a different timezone and silently shifting the stored value - see
+    # backend/repositories/postgres/sync_facade.py's _as_utc for the same
+    # fix applied to Stage 3B's dual-write path.
+    return datetime.fromisoformat(raw).replace(tzinfo=timezone.utc)
 
 
 async def _upsert_company(row) -> None:
