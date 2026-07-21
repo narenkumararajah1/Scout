@@ -1,4 +1,4 @@
-# Transitional Architecture (V3 Phase 4B)
+# Transitional Architecture (V3 Phase 5)
 
 This document tracks the deliberate, temporary gap between what Scout's
 repository structure now looks like and what actually runs the product.
@@ -9,125 +9,110 @@ matches that target. Every item below should be resolved (and this
 section removed) as its corresponding phase lands; new transitional gaps
 opened in later phases should be added here rather than left implicit.
 
-## Current state (end of Phase 4B)
+## Current state (end of Phase 5)
 
-- **LLM Gateway and Prompt Management are now physically relocated, for
-  real.** `backend/llm_client.py` and `backend/prompts/` no longer
-  exist; every agent/service that imported from them now imports from
-  `backend/ai/llm_gateway.py` and `backend/ai/prompts/` instead - the
-  final step of this phase, done only after every other Stage 4B change
-  was verified passing, per the approved plan.
-- **Manual Analysis is now a composable pipeline, not a hard-coded call
-  sequence.** `backend/orchestration/pipeline.py` (`PipelineStage`,
-  `PipelineContext`, `Pipeline`, `OrchestrationMode`, `ComparisonReport`)
-  and `backend/orchestration/stages.py` (nine concrete stages) replace
-  `backend/orchestration/manual_analysis.py`'s old four-line linear
-  sequence. Each stage declares its own mode participation via
-  `is_enabled()` - there are no scattered `if mode == ...` conditionals
-  in the pipeline runner or the workflow itself.
-- **`run_manual_analysis(company) -> Report` is preserved exactly** -
-  same signature, same return type, same module-level patchable names
-  (`research_company`, `match_capabilities`, `analyze_opportunities`,
-  `generate_report`). The one existing caller
-  (`backend/routers/companies.py`) and the pre-existing test file
-  (`tests/test_manual_analysis_orchestration.py`) needed **zero**
-  changes - both still pass unmodified. The richer
-  `run_manual_analysis_pipeline(company) -> PipelineResult` is the new
-  entrypoint that exposes confidence scores, evidence citations, and
-  (shadow mode only) the `ComparisonReport` - nothing routes to it yet.
-- **`settings.ai_orchestration_mode`** - one of `legacy` (default) |
-  `shadow` | `augmented` | `integrated` - controls everything. **The
-  deployed default is `legacy`** - in that mode, only the four original
-  stages run, in the same order, calling the exact same functions;
-  behavior is byte-identical to before this phase. Confirmed by the
-  full pre-existing test suite passing unchanged and a live reboot
-  showing identical `/health`, `/companies` (4, unchanged), and
-  `data/scout.db` MD5.
-- **`shadow` mode runs everything but changes nothing user-facing.** The
-  legacy pipeline's real output is still what's returned; alongside it,
-  Knowledge Fusion, Knowledge Extraction, Confidence Scoring, and
-  Evidence Manager run against the same inputs and produce a structured
-  `ComparisonReport` (confidence, evidence, extracted entities,
-  opportunity scoring, per-stage latency, token usage, estimated LLM
-  cost, missing/additional evidence) - reviewable before any cutover, as
-  required. A real sample report was generated during this phase's
-  implementation (see Verification below).
-- **`augmented` mode keeps the legacy opportunity confidence_score
-  exactly as persisted** - `opportunity_analysis_service.py` is
-  completely unchanged - and makes the new Confidence Engine score
-  available *alongside* it via `PipelineResult.confidence_results`.
-  Nothing is replaced.
-- **`integrated` mode is where the new scores/evidence become
-  authoritative** - but only at the `PipelineResult` / presentation
-  level. V2's `opportunity_repository.py` is Create+Read only (no
-  update method - a deliberate V2 design choice, "opportunities are
-  generated fresh each research cycle... rather than mutated in
-  place"), so the persisted `Opportunity.confidence_score` row itself
-  is never rewritten in any mode. A future phase would need to decide
-  whether to change that persistence contract if literal DB-level
-  replacement is ever required - not attempted here.
-- **Evidence Manager is the canonical citation layer for every new
-  (shadow/augmented/integrated) report** - each opportunity's supporting
-  capability matches are stored as `Evidence` rows and cited via
-  `cite_evidence()`, rather than presenting V2's id-only fields
-  (`capability_match_ids` etc.) directly.
-- **Per-stage metrics are real, not estimated, except LLM cost/tokens.**
-  `StageMetrics` records genuine wall-clock `execution_time_seconds`,
-  `retrieval_latency_seconds`, `extraction_latency_seconds`, and
-  `confidence_calculation_seconds` for every stage. Token usage and
-  estimated cost are a deliberately-labeled *heuristic* (~4 characters
-  per token, a placeholder blended rate) - `generate_completion()`
-  returns only completion text, not usage metadata, and changing that
-  shared contract would ripple across every existing caller. Good
-  enough for shadow-mode comparison, not billing-grade.
-- **Company/Opportunity migration-mode cutover status is unchanged from
-  Phase 3B** - still deployed at `sqlite` (default), untouched by this
-  phase.
+- **Three new Postgres entities, none wired into any live path:**
+  `Technology`, `BusinessInitiative`, `Notification`
+  (`backend/database/models/{technology,business_initiative,notification}.py`,
+  `migrations/versions/0004_...py`). Technology and BusinessInitiative
+  upsert by `(company_id, name)` - the same fact commonly gets
+  re-extracted across research cycles, and Knowledge Extraction
+  (Phase 4A) has no concept of "this already exists," so that
+  idempotency lives in the repository layer.
+- **Company Intelligence Service is the first real caller of Knowledge
+  Extraction's output.** Phase 4A's `extract_entities()` was explicitly
+  built to never touch persistence; `backend/services/company_intelligence_service.py`
+  is the separate caller that does - persisting extracted
+  Technologies/BusinessInitiatives/Executives and aggregating them (plus
+  recent SQLite Signals, plus Glean if configured) into one profile.
+  Executive persistence reuses Phase 3A's existing
+  `executive_repository.py` functions completely unchanged (that file
+  has no upsert of its own, so the check-then-update-or-create logic
+  lives in this new caller, not in the already-completed Phase 3A file).
+- **Technology Analysis and Executive Intelligence are net-new AI
+  services** - no V2 equivalent existed for either. Both reuse the LLM
+  Gateway, Confidence Engine, and (Executive Intelligence only) Evidence
+  Manager as the citation layer, exactly as Phase 4A/4B's primitives
+  were designed to be reused.
+- **Notifications are generated from V2's existing `Signal` type
+  categories** (`backend/models/research.py`'s `SIGNAL_TYPE_*`
+  constants, read-only against SQLite) via `backend/services/notification_service.py`,
+  persisted into the new `Notification` table. The mapping from V2's 4
+  broad signal categories to V3's more granular notification types is a
+  deliberate simplification (documented in the service's own comments) -
+  technology signals only become a notification when they mention AI
+  specifically, and opportunity alerts fire only above an explicit 0.7
+  confidence threshold, since `docs/v3` doesn't specify one.
+- **Glean is a real, working integration - disabled by default.**
+  `backend/integrations/glean_client.py` provides `GleanClient` (real
+  HTTP calls, degrades to an empty result on any failure) and
+  `NullGleanClient` (returns `[]` immediately, no network call);
+  `get_glean_client()` is the only place that decides which one a
+  caller gets, based on `glean_enabled`/`glean_api_url`/`glean_api_token`
+  (all default off/empty). Every caller's code is identical either way -
+  this is what makes "Scout remains fully functional without Glean" true
+  by construction, not by convention. Glean's results are plain
+  `KnowledgeItem`s, so they slot directly into Phase 4A's Knowledge
+  Fusion as one more source - Fusion's signature never changed to
+  support this.
+- **Nothing from this phase is wired into any live route, agent, or
+  orchestration path.** Same low-risk profile as Phase 4A: net-new,
+  additive capability with no existing behavior to migrate away from -
+  no orchestration-mode config was needed for this phase (unlike
+  3B/4B), since there's nothing live to roll back from.
+- **Opportunity Analysis and Capability Alignment needed no Phase 5
+  work.** V2's `opportunity_analysis_service.py` and
+  `capability_matching_service.py` already substantially satisfy those
+  two roadmap deliverables; what's missing (business_impact, reasoning,
+  case-study-backed alignment detail) is populated by advancing
+  `AI_ORCHESTRATION_MODE` (Phase 4B's job), not new Phase 5 code.
+- **Company/Opportunity migration-mode cutover and AI-orchestration
+  cutover status are both unchanged from Phase 3B/4B** - still deployed
+  at `sqlite`/`legacy` (defaults), untouched by this phase.
 - **Streamlit is still the only active frontend; React is still
   scaffolded but not integrated; auth still covers login +
   current-user only** (all unchanged from earlier phases).
 
-## Verification notes (Phase 4B)
+## Verification notes (Phase 5)
 
-Same `pgserver` ad hoc approach as Phases 2, 3A, 3B, and 4A - not a
-project dependency, used only during this implementation, then torn
-down. All 324 tests (every prior phase's plus this phase's new ones)
-passed with zero skips against a real PostgreSQL instance, both before
-and after the final llm_client.py/prompts/ relocation step; 276 passed /
-48 skipped here in the sandbox default (Postgres-gated tests skip
-cleanly without a reachable `DATABASE_URL`, as in normal CI). A real
-sample `ComparisonReport` was generated end-to-end against realistic
-inputs (a Nutanix-shaped company/research scenario) and reviewed - it
-correctly surfaced extracted technologies/executives/initiatives,
-knowledge-fusion deduplication, per-opportunity confidence comparison,
-and a genuine "missing evidence" gap (legacy referenced two evidence
-ids, the new pipeline had only stored a citation for one, since no
-Evidence was created for the raw research signal - exactly the kind of
-gap `shadow` mode exists to surface before any cutover). Rollback was
-verified by test (`test_rollback_to_legacy_is_purely_a_config_change`):
-flipping `AI_ORCHESTRATION_MODE` from `integrated` back to `legacy`
-mid-session immediately stops all new stages and returns to
-byte-identical legacy behavior, no code or deployment change involved.
+Same `pgserver` ad hoc approach as every prior phase - not a project
+dependency, used only during this implementation, then torn down. The
+full Alembic chain (`0001` → `0004`, and the complete downgrade back to
+base) applied cleanly in both directions. All 355 tests (every prior
+phase's plus this phase's new ones) passed with zero skips against a
+real PostgreSQL instance; 284 passed / 71 skipped here in the sandbox
+default (Postgres-gated tests skip cleanly without a reachable
+`DATABASE_URL`, as in normal CI - the Glean null-client/real-client
+tests are fully unconditional, since they need neither Postgres nor a
+real network).
+
+A full end-to-end demonstration was run against real Postgres: seeded a
+Nutanix-shaped company, persisted extracted technologies/executives/
+initiatives, ran Technology Analysis and Executive Intelligence (mocked
+LLM), generated a leadership-change notification from a Signal and an
+opportunity alert from a high-confidence Opportunity, and built a full
+`CompanyIntelligenceProfile` - confirming `glean_knowledge=[]` when
+unconfigured, exactly as designed. The live application was rebooted
+afterward: `/health`, `/companies` (4, unchanged), and `data/scout.db`'s
+MD5 checksum all matched every prior phase's - confirmed untouched.
 
 ## What changes this, and when
 
 Per `docs/v3/16_IMPLEMENTATION_ROADMAP.md`:
 
-- **Actually advancing `AI_ORCHESTRATION_MODE` in a real deployment**
-  (not yet done - this phase built and verified the mechanism, it did
-  not flip the switch): `legacy` → `shadow` (review real comparison
-  reports on real companies) → `augmented` → `integrated`.
-- **A decision on Opportunity persistence** if `integrated` mode's
-  scores/evidence ever need to be the literal DB row, not just the
-  `PipelineResult` - would require revisiting V2's Create+Read-only
-  `opportunity_repository.py` contract.
-- **Completing the Phase 3B rollout:** actually advancing
-  `MIGRATION_MODE` past `sqlite` in a real deployment, independent of
-  Phase 4's work.
-- **Phase 5:** per the roadmap, next up after AI Intelligence - Business
-  Intelligence (Company Intelligence, Technology Analysis, Opportunity
-  Analysis, Capability Alignment, Executive Intelligence,
-  Notifications).
+- **Wiring Phase 5's services into something live** (not yet done - this
+  phase built and verified them standalone): likely new API routes once
+  a real frontend consumer exists (Phase 7), or hooked into
+  `AI_ORCHESTRATION_MODE`'s `shadow`/`augmented`/`integrated` stages
+  alongside Phase 4B's existing stages.
+- **Configuring Glean for real** (not yet done - `glean_enabled` stays
+  `false` until there's a real Glean instance and token to point at).
+- **Advancing `AI_ORCHESTRATION_MODE`/`MIGRATION_MODE` past their
+  defaults** in a real deployment - independent of Phase 5's work,
+  carried over unchanged from Phases 3B/4B.
+- **Phase 6 (Sales Enablement):** per the roadmap, next up - Sales
+  Playbook, Meeting Preparation, Outreach Generation, Reports, Export
+  functionality.
 - **A later phase (not yet scheduled):** full token lifecycle - refresh
   tokens, logout/session invalidation.
 - **Phase 7 (Frontend Experience):** the React app becomes the real UI;

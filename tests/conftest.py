@@ -111,10 +111,13 @@ async def postgres_available():
     yield
 
     async with postgres_module.get_session() as session:
-        # CASCADE handles executives/opportunities' FK dependency on
-        # companies automatically, regardless of truncation order.
+        # CASCADE handles every other table's FK dependency on companies
+        # automatically, regardless of truncation order.
         await session.execute(
-            text("TRUNCATE TABLE users, companies, executives, opportunities RESTART IDENTITY CASCADE")
+            text(
+                "TRUNCATE TABLE users, companies, executives, opportunities, evidence, "
+                "technologies, business_initiatives, notifications RESTART IDENTITY CASCADE"
+            )
         )
         await session.commit()
 

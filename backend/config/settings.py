@@ -104,6 +104,16 @@ class Settings(BaseSettings):
     # mirroring migration_mode's rollback-by-config-alone guarantee above.
     ai_orchestration_mode: str = "legacy"
 
+    # Glean enterprise knowledge integration (V3 Phase 5 - ADR per
+    # docs/v3/12_INTEGRATIONS.md). Disabled by default - Scout is fully
+    # functional without it (PostgreSQL + ChromaDB + public research
+    # only). Enabling it is a pure configuration change - see
+    # backend/integrations/glean_client.py's get_glean_client() factory,
+    # which every caller uses instead of branching on this flag itself.
+    glean_enabled: bool = False
+    glean_api_url: str = ""
+    glean_api_token: SecretStr = SecretStr("")
+
     log_level: str = "INFO"
     log_file: str = "logs/scout.log"
 
