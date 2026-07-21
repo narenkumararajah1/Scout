@@ -2,7 +2,7 @@
 (V2 Phase 9, FR-014).
 
 A thin HTTP client of the FastAPI backend: no aggregation logic lives
-here. Distinct from V1's "Reports & History" page (frontend/pages/reports.py),
+here. Distinct from V1's "Reports & History" page (frontend/streamlit/pages/reports.py),
 which still shows V1's single-run workflow history unchanged.
 """
 

@@ -12,7 +12,7 @@ from typing import Optional
 
 from backend.database import get_connection
 from backend.models.schedule import Schedule
-from backend.repositories._json_list import dump_list, load_list
+from backend.utils.json_list import dump_list, load_list
 
 
 def init_schedules_table() -> None:

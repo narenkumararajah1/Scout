@@ -10,7 +10,7 @@ from typing import Optional
 
 from backend.database import get_connection
 from backend.models.capability_match import CapabilityMatch
-from backend.repositories._json_list import dump_list, load_list
+from backend.utils.json_list import dump_list, load_list
 
 
 def init_capability_matches_table() -> None:

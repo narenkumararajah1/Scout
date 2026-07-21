@@ -19,6 +19,12 @@ class Settings(BaseSettings):
 
     sqlite_path: str = "data/scout.db"
 
+    # PostgreSQL (V3 Phase 1 - ADR-014). Introduced alongside the existing
+    # SQLite database, not in place of it: SQLite remains the backing store
+    # for every current repository until each is migrated in a later V3
+    # phase per docs/v3/16_IMPLEMENTATION_ROADMAP.md.
+    database_url: str = "postgresql+asyncpg://scout:scout@localhost:5432/scout"
+
     chroma_persist_dir: str = "data/chroma"
     chroma_embedding_model: str = "all-MiniLM-L6-v2"
 

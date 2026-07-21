@@ -1,6 +1,6 @@
 """Streamlit dashboard entry point - defines navigation only.
 
-Page content lives under frontend/pages/. No business logic lives here
+Page content lives under frontend/streamlit/pages/. No business logic lives here
 or in any page: all state and processing belong to the FastAPI backend;
 Streamlit only renders data returned by its API.
 """

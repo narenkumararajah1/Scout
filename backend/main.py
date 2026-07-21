@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 from backend.config import get_settings
 from backend.knowledge_ingestion import ingest_documents
-from backend.logging_config import configure_logging
+from backend.utils.logging import configure_logging
 from backend.report_storage import init_reports_table
 from backend.repositories.capability_match_repository import init_capability_matches_table
 from backend.repositories.company_repository import init_companies_table
@@ -69,7 +69,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 
     Without this, an unexpected bug surfaced only as uvicorn's raw
     traceback on stderr - never through this app's own configured
-    logger (backend/logging_config.py), and the client got whatever
+    logger (backend/utils/logging.py), and the client got whatever
     Starlette's default 500 body happens to be. IMPLEMENTATION_RULES.md's
     Error Handling section requires every failure to be logged and to
     avoid silent failures; Security requires not exposing internal

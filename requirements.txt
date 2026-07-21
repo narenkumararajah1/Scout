@@ -12,6 +12,13 @@ pytest==8.4.2
 httpx==0.28.1
 google-adk==1.18.0
 
+# PostgreSQL (V3 Phase 1 - ADR-014). Introduced alongside the existing
+# sqlite3 usage in backend/database.py, not replacing it yet - see
+# backend/postgres_client.py.
+sqlalchemy==2.0.36
+asyncpg==0.30.0
+alembic==1.13.3
+
 # Pinned to avoid a dependency conflict: google-adk's install resolves this
 # transitive package to a version newer than chromadb's opentelemetry stack,
 # which breaks chromadb's import chain (see IMPLEMENTATION_RULES.md / Day 3 notes).
