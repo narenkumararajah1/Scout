@@ -22,6 +22,12 @@ The active documentation set for Scout's ongoing development.
 
 V2 is the current source of truth. All new planning, requirements, architecture, and decisions are recorded here, and this is the documentation that should guide any new work on the project.
 
+### docs/design/
+
+The permanent UI/UX and Product Design documentation set, established ahead of Scout V3.
+
+Defines how Scout should look, feel, and behave - design intent and standards, not frontend code. Currently placeholder documents being developed one at a time; see [docs/design/README.md](design/README.md).
+
 ---
 
 ## Where to Start
@@ -41,17 +47,36 @@ docs/
 │   ├── ROADMAP.md
 │   ├── DECISIONS.md
 │   └── IMPLEMENTATION_RULES.md
-└── V2/                   Active (current source of truth)
+├── V2/                   Active (current source of truth)
+│   ├── README.md
+│   ├── VISION.md
+│   ├── PROJECT_CONTEXT.md
+│   ├── REQUIREMENTS.md
+│   ├── ARCHITECTURE.md
+│   ├── DATA_MODEL.md
+│   ├── ROADMAP.md
+│   ├── IMPLEMENTATION_RULES.md
+│   ├── DECISIONS.md
+│   └── FEATURE_BACKLOG.md
+└── design/               Active (placeholders being developed, ahead of V3)
     ├── README.md
-    ├── VISION.md
-    ├── PROJECT_CONTEXT.md
-    ├── REQUIREMENTS.md
-    ├── ARCHITECTURE.md
-    ├── DATA_MODEL.md
-    ├── ROADMAP.md
-    ├── IMPLEMENTATION_RULES.md
-    ├── DECISIONS.md
-    └── FEATURE_BACKLOG.md
+    ├── DESIGN_PHILOSOPHY.md
+    ├── DESIGN_SYSTEM.md
+    ├── NAVIGATION.md
+    ├── DASHBOARD.md
+    ├── COMPANY_INTELLIGENCE.md
+    ├── OPPORTUNITY_ANALYSIS.md
+    ├── REPORTS.md
+    ├── EXECUTIVE_INTELLIGENCE.md
+    ├── SALES_PLAYBOOK.md
+    ├── MEETING_PREPARATION.md
+    ├── AI_OUTREACH.md
+    ├── COMPONENT_LIBRARY.md
+    ├── CHARTS_AND_VISUALIZATIONS.md
+    ├── ANIMATIONS_AND_MICROINTERACTIONS.md
+    ├── RESPONSIVENESS.md
+    ├── ACCESSIBILITY.md
+    └── FUTURE_UI_ROADMAP.md
 ```
 
 ---
@@ -62,5 +87,6 @@ docs/
 |---|---|---|
 | `docs/V1/` | Archived | Understanding how the original MVP was designed and built |
 | `docs/V2/` | Active | Everything related to current and future development |
+| `docs/design/` | Active (in progress) | UI/UX and product design standards for Scout, ahead of V3 |
 
-For details on any specific topic — vision, requirements, architecture, data model, roadmap, engineering standards, decisions, or the feature backlog — see the corresponding document under `docs/V2/`, starting from its [README.md](V2/README.md).
+For details on any specific topic — vision, requirements, architecture, data model, roadmap, engineering standards, decisions, or the feature backlog — see the corresponding document under `docs/V2/`, starting from its [README.md](V2/README.md). For design standards, see [docs/design/README.md](design/README.md).
