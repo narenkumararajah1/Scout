@@ -18,10 +18,10 @@ is persisted.
 
 import logging
 
-from backend.llm_client import generate_completion, parse_json_array
+from backend.ai.llm_gateway import generate_completion, parse_json_array
 from backend.models.company import Company
 from backend.models.research import ResearchSession, Signal
-from backend.prompts.research_prompts import (
+from backend.ai.prompts.research_prompts import (
     build_company_technology_prompt,
     build_merge_prompt,
     build_organizational_strategic_prompt,

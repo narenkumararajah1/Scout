@@ -18,11 +18,11 @@ job; ROADMAP.md explicitly separates "Reporting" from "Distribution."
 
 import logging
 
-from backend.llm_client import generate_completion, parse_json_object
+from backend.ai.llm_gateway import generate_completion, parse_json_object
 from backend.models.company import Company
 from backend.models.report import Report
 from backend.models.research import ResearchSession
-from backend.prompts.reporting_prompts import build_report_prompt
+from backend.ai.prompts.reporting_prompts import build_report_prompt
 from backend.repositories.capability_match_repository import list_capability_matches_for_session
 from backend.repositories.opportunity_repository import list_opportunities_for_session
 from backend.repositories.report_repository import create_report

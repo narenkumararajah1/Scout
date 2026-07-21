@@ -6,7 +6,7 @@ merged, deduplicated "unified research package" (Phase 2, Day 9).
 
 from backend.agents.base import BaseAgent
 from backend.config import get_settings
-from backend.llm_client import generate_completion
+from backend.ai.llm_gateway import generate_completion
 from backend.workflow.state import WorkflowState
 
 

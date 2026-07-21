@@ -10,7 +10,7 @@ import logging
 
 from backend.agents.base import BaseAgent
 from backend.config import get_settings
-from backend.llm_client import generate_completion, strip_markdown_json_fence
+from backend.ai.llm_gateway import generate_completion, strip_markdown_json_fence
 from backend.workflow.state import WorkflowState
 
 logger = logging.getLogger(__name__)

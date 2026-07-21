@@ -39,8 +39,8 @@ class Settings(BaseSettings):
     # Anthropic later needs only an env var change, not re-entering a key.
     google_api_key: SecretStr = SecretStr("")
 
-    # Selects which provider above llm_client.py uses - "anthropic"
-    # (default, ADR-005) or "google". backend/llm_client.py's
+    # Selects which provider above llm_gateway.py uses - "anthropic"
+    # (default, ADR-005) or "google". backend/ai/llm_gateway.py's
     # _PROVIDER_CONFIG maps this to the right api key and LiteLLM model
     # prefix, so every agent/service keeps calling generate_completion()
     # exactly as before regardless of which provider is active.
@@ -96,6 +96,13 @@ class Settings(BaseSettings):
     # backward between stages is exactly this one config change; nothing
     # else in the app needs to change or be redeployed.
     migration_mode: str = "sqlite"
+
+    # Manual Analysis AI-orchestration cutover (V3 Phase 4B). One of
+    # "legacy" | "shadow" | "augmented" | "integrated" - see
+    # backend/orchestration/pipeline.py and TECH_DEBT.md. Rolling forward
+    # or backward between stages is exactly this one config change,
+    # mirroring migration_mode's rollback-by-config-alone guarantee above.
+    ai_orchestration_mode: str = "legacy"
 
     log_level: str = "INFO"
     log_file: str = "logs/scout.log"

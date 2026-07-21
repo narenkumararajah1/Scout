@@ -21,8 +21,8 @@ multiple locations").
 
 import logging
 
-from backend.llm_client import generate_completion
-from backend.prompts.conversation_prompts import build_conversation_prompt
+from backend.ai.llm_gateway import generate_completion
+from backend.ai.prompts.conversation_prompts import build_conversation_prompt
 from backend.repositories.capability_match_repository import list_capability_matches
 from backend.repositories.company_repository import list_companies
 from backend.repositories.opportunity_repository import list_opportunities

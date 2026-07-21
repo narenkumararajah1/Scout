@@ -17,11 +17,11 @@ sorts by it, rather than trusting the model's own list ordering.
 
 import logging
 
-from backend.llm_client import generate_completion, parse_json_array
+from backend.ai.llm_gateway import generate_completion, parse_json_array
 from backend.models.company import Company
 from backend.models.opportunity import Opportunity
 from backend.models.research import ResearchSession
-from backend.prompts.opportunity_analysis_prompts import build_opportunity_analysis_prompt
+from backend.ai.prompts.opportunity_analysis_prompts import build_opportunity_analysis_prompt
 from backend.repositories.capability_match_repository import list_capability_matches_for_session
 from backend.repositories.opportunity_repository import create_opportunity
 from backend.repositories.research_repository import list_signals_for_session

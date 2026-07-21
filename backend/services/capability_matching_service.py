@@ -14,11 +14,11 @@ Phases 7-8.
 
 import logging
 
-from backend.llm_client import generate_completion, parse_json_array
+from backend.ai.llm_gateway import generate_completion, parse_json_array
 from backend.models.capability_match import CapabilityMatch
 from backend.models.company import Company
 from backend.models.research import ResearchSession
-from backend.prompts.capability_matching_prompts import build_capability_matching_prompt
+from backend.ai.prompts.capability_matching_prompts import build_capability_matching_prompt
 from backend.repositories.capability_match_repository import create_capability_match
 from backend.repositories.knowledge_repository import search_knowledge
 from backend.repositories.research_repository import list_signals_for_session

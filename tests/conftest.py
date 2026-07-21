@@ -2,7 +2,7 @@ import os
 
 # Must run before any `backend.*` import below: backend.config.get_settings()
 # is process-wide cached (functools.lru_cache), and several modules
-# (backend/llm_client.py, backend/database/chroma.py) read it at import
+# (backend/ai/llm_gateway.py, backend/database/chroma.py) read it at import
 # time. Setting these here, first, points the entire test session at a
 # dedicated SQLite file and ChromaDB directory instead of the ones the
 # live app/dashboard uses.
