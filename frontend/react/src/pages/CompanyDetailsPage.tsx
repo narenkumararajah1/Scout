@@ -1,12 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { ToastContainer } from "../components/ui/Toast";
+import { useAnalyzeCompany } from "../hooks/useAnalyzeCompany";
 import { useCompany } from "../hooks/useCompany";
 import { useCompanyIntelligence } from "../hooks/useCompanyIntelligence";
+import { useCompanyReports } from "../hooks/useCompanyReports";
+import { useCompanyTrends } from "../hooks/useCompanyTrends";
+import { useToasts } from "../hooks/useToasts";
 import { companyService } from "../services/companyService";
 import { getErrorMessage } from "../utils/errors";
 
@@ -14,7 +19,10 @@ export function CompanyDetailsPage() {
   const { companyId } = useParams<{ companyId: string }>();
   const companyQuery = useCompany(companyId);
   const intelligenceQuery = useCompanyIntelligence(companyId);
+  const reportsQuery = useCompanyReports(companyId);
+  const trendsQuery = useCompanyTrends(companyId);
   const queryClient = useQueryClient();
+  const { toasts, pushToast, dismissToast } = useToasts();
 
   const toggleMonitoring = useMutation({
     mutationFn: () => {
@@ -32,6 +40,16 @@ export function CompanyDetailsPage() {
     },
   });
 
+  const analyzeCompany = useAnalyzeCompany(companyId);
+
+  function handleRunAnalysis() {
+    pushToast("Analysis started - this can take a minute.", "progress");
+    analyzeCompany.mutate(undefined, {
+      onSuccess: () => pushToast("Analysis complete - a new report is ready.", "success"),
+      onError: (error) => pushToast(getErrorMessage(error), "error"),
+    });
+  }
+
   if (!companyId) {
     return <ErrorState message="No company selected." />;
   }
@@ -47,8 +65,12 @@ export function CompanyDetailsPage() {
   const company = companyQuery.data;
   const intelligence = intelligenceQuery.data;
 
+  const trends = trendsQuery.data;
+
   return (
     <div className="company-details-page">
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
       <div className="page-header">
         <h1>{company.name}</h1>
         <Badge
@@ -57,6 +79,9 @@ export function CompanyDetailsPage() {
         />
         <button type="button" onClick={() => toggleMonitoring.mutate()} disabled={toggleMonitoring.isPending}>
           {company.monitoring_status === "enabled" ? "Disable monitoring" : "Enable monitoring"}
+        </button>
+        <button type="button" onClick={handleRunAnalysis} disabled={analyzeCompany.isPending}>
+          {analyzeCompany.isPending ? "Running analysis..." : "Run Analysis"}
         </button>
       </div>
 
@@ -153,6 +178,52 @@ export function CompanyDetailsPage() {
               )}
             </section>
           </div>
+        )}
+      </Card>
+
+      <Card title="Trends">
+        {trendsQuery.isLoading ? (
+          <LoadingState message="Loading trends..." />
+        ) : trendsQuery.isError ? (
+          <ErrorState message={getErrorMessage(trendsQuery.error)} />
+        ) : !trends ? (
+          <EmptyState message="No trend data available yet." />
+        ) : (
+          <dl className="company-overview">
+            <dt>Research sessions</dt>
+            <dd>{trends.research_session_count}</dd>
+            <dt>Opportunities</dt>
+            <dd>{trends.opportunity_count}</dd>
+            <dt>Reports</dt>
+            <dd>{trends.report_count}</dd>
+            <dt>Average opportunity confidence</dt>
+            <dd>
+              {trends.average_opportunity_confidence !== null
+                ? `${(trends.average_opportunity_confidence * 100).toFixed(0)}%`
+                : "Unknown"}
+            </dd>
+          </dl>
+        )}
+      </Card>
+
+      <Card title="Reports">
+        {reportsQuery.isLoading ? (
+          <LoadingState message="Loading reports..." />
+        ) : reportsQuery.isError ? (
+          <ErrorState message={getErrorMessage(reportsQuery.error)} />
+        ) : (reportsQuery.data ?? []).length === 0 ? (
+          <EmptyState message="No reports yet - run an analysis to generate one." />
+        ) : (
+          <ul className="report-list">
+            {(reportsQuery.data ?? []).map((report) => (
+              <li key={report.id}>
+                <Link to={`/reports/${report.id}`} className="report-list-item">
+                  <span>Report</span>
+                  <span>{new Date(report.created_at).toLocaleString()}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         )}
       </Card>
     </div>

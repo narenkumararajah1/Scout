@@ -76,3 +76,39 @@ async def test_notifications_filters_unread_only(client, postgres_available):
 
     assert response.status_code == 200
     assert response.json()["data"] == []
+
+
+def test_read_rejects_a_missing_token(client):
+    response = client.post("/api/v1/notifications/does-not-exist/read")
+
+    assert response.status_code == 401
+    assert response.json()["success"] is False
+
+
+async def test_read_returns_404_for_an_unknown_notification(client, postgres_available):
+    headers = await _auth_headers("notif-test-4@example.com")
+
+    response = client.post("/api/v1/notifications/does-not-exist/read", headers=headers)
+
+    assert response.status_code == 404
+    assert response.json()["success"] is False
+
+
+async def test_read_marks_a_notification_as_read(client, postgres_available):
+    await create_company(Company(id="notif-test-company-3", name="NotifTestCo3"))
+    await create_notification(
+        Notification(
+            id="notif-test-notification-3",
+            company_id="notif-test-company-3",
+            type="technology",
+            title="Unread notification",
+        )
+    )
+    headers = await _auth_headers("notif-test-5@example.com")
+
+    response = client.post("/api/v1/notifications/notif-test-notification-3/read", headers=headers)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["data"]["is_read"] is True

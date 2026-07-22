@@ -1,4 +1,4 @@
-# Transitional Architecture (V3 Phase 7A)
+# Transitional Architecture (V3 Phase 7B)
 
 This document tracks the deliberate, temporary gap between what Scout's
 repository structure now looks like and what actually runs the product.
@@ -9,7 +9,106 @@ matches that target. Every item below should be resolved (and this
 section removed) as its corresponding phase lands; new transitional gaps
 opened in later phases should be added here rather than left implicit.
 
-## Current state (end of Phase 7A)
+## Current state (end of Phase 7B)
+
+- **Reports, Analytics, and Notifications are now real pages, built
+  almost entirely on V2 endpoints that already existed** -
+  `AnalyticsPage.tsx` (`GET /analytics/opportunities`),
+  `ReportDetailPage.tsx` (`GET /reports/{id}`,
+  `GET /reports/{id}/deliveries`), and the Company Details page's new
+  Reports/Trends sections (`GET /companies/{id}/reports`,
+  `GET /analytics/companies/{id}/trends`) - all from
+  `backend/routers/{reports,analytics}.py` (V2, Phase 9), unauthenticated,
+  unmodified. The one new backend surface is
+  `POST /api/v1/notifications/{id}/read`
+  (`backend/api/routers/notifications.py`), a thin, auth-protected
+  wrapper around Phase 5's already-built `mark_notification_read()` -
+  no schema change, no migration, no new business logic.
+- **"Run Analysis" on Company Details calls the real, existing
+  `POST /companies/{id}/analyze`** (V2 Phase 9's full Research ->
+  Capability Matching -> Opportunity Analysis -> Reporting pipeline,
+  via `useAnalyzeCompany.ts`) - this is a genuine, potentially slow LLM
+  call chain, not a new capability. Feedback is via the new
+  `Toast`/`useToasts` reusable component
+  (`components/ui/Toast.tsx`, `hooks/useToasts.ts`), matching
+  `docs/design/COMPONENT_LIBRARY.md`'s documented toast types
+  (errors require manual dismissal; success/info/progress auto-dismiss
+  after 4s).
+- **Report distribution is deliberately not exposed in the frontend.**
+  `POST /reports/{id}/distribute` already exists in V2 and sends real
+  email through the recipient system - `reportService.ts` wraps only
+  the three read endpoints (list/get/deliveries), never distribute.
+  Nothing in `docs/v3/` requires a "send" UI (checked `06`-`10`,
+  `14_UI_FUNCTIONAL_REQUIREMENTS.md`); a conflicting claim exists only
+  in `docs/design/IMPLEMENTATION_ROADMAP.md`, which describes the
+  older, paused Next.js plan, not the roadmap this repo is actually
+  executing - flagged as a discrepancy, not resolved, since it wasn't
+  asked to be treated as authoritative.
+- **No charting library was introduced.** Analytics/Trends render as
+  stat cards, tables, and badges - `docs/design/CHARTS_AND_VISUALIZATIONS.md`
+  gives general chart conventions but doesn't mandate a specific chart
+  for opportunity rankings or company trends, and
+  `analytics_service.company_trends()` returns simple counts/averages
+  today, not real time-series data. The fuller Analytics vision in
+  `docs/v3/07_PAGE_ARCHITECTURE.md` (Technology/Hiring Trends,
+  Leadership Timeline, Industry Comparison) needs new backend
+  aggregation endpoints that don't exist yet - out of scope here, per
+  "don't invent backend capabilities."
+- **Notifications are grouped by the existing `type` field**
+  (technology/hiring/leadership/strategic, reused from V2's Signal
+  categories), not the High/Medium/Information/AI-Recommendation/System
+  priority taxonomy `docs/design/NAVIGATION.md` describes - the backend
+  has no priority/severity field to back that with, and Phase 7B adds
+  no new schema. Unread items stay visually distinct (background tint +
+  "New" badge), matching the spirit of that doc without fabricating a
+  field. "Live notifications" (real-time/websocket updates) remain
+  explicitly a documented future enhancement
+  (`docs/v3/14_UI_FUNCTIONAL_REQUIREMENTS.md`), not attempted here.
+- **The Report Detail page shows only the V2 `Report`** (executive
+  summary, company overview, key findings, technology analysis,
+  capability alignment, opportunities, recommendations, talking
+  points) - not the richer V3 `Report` (Sales Playbook, Executive
+  Intelligence, Confidence Scores) that `docs/v3/06_FEATURE_SPECIFICATIONS.md`'s
+  full Report Details spec describes. The V3 Report has no JSON read
+  endpoint yet, only PDF export (Phase 6); viewing it is deferred to
+  Phase 7C, alongside the Sales Enablement UI whose artifacts it
+  assembles.
+- **The Executive Dashboard gained a "Top Opportunities" widget**
+  (`GET /analytics/opportunities?limit=5`, reusing the same endpoint
+  Analytics uses) - each item links to its company via `company_id`
+  only; the endpoint doesn't return a company name, so none is shown.
+
+## Verification notes (Phase 7B)
+
+Backend: same `pgserver` workflow as every prior phase. Alembic chain
+unchanged (`0001` -> `0005`, no new migration needed - this phase added
+no schema). 400/400 tests passed with zero skips against real Postgres
+(397 from Phases 1-7A plus 3 new: 401/404/success for
+`POST /api/v1/notifications/{id}/read`, added to
+`tests/test_notifications_api_router.py`) - zero regressions. Live
+`data/scout.db` confirmed unchanged (still exactly Acme Corp, Hertz,
+Nutanix, OpenAI) before and after; the ephemeral Postgres instance was
+torn down and `pgserver` uninstalled afterward.
+
+Frontend: same limitation as Phase 7A, restated below - no execution
+was possible, only static review.
+
+## Frontend verification limitation (Phase 7B - unresolved, environmental, unchanged from 7A)
+
+This sandbox still has no Node.js, npm, npx, or `tsc` - confirmed again
+this phase. `npm run dev`, `npm run lint`, and `npm run build` have
+never run against this phase's code either. What was done instead: the
+same import-resolution script from Phase 7A (re-run - all relative
+imports across the whole `frontend/react/src/` tree, including every
+new file, resolve to real files on disk) and a manual, file-by-file
+review against `tsconfig.json`'s `strict`/`noUnusedLocals`/
+`noUnusedParameters` settings. Neither substitutes for a real compile,
+lint pass, or browser render, and none of this phase's UI has been
+visually verified. See Phase 7A's local verification steps above -
+they're unchanged; there's nothing Phase 7B-specific to add to them
+beyond exercising the three new pages once the app is actually running.
+
+## Previous state (end of Phase 7A)
 
 - **The React frontend is no longer a placeholder.** `frontend/react/src/`
   now has a real API client layer (`api/client.ts`), a service layer
@@ -292,18 +391,18 @@ Per `docs/v3/16_IMPLEMENTATION_ROADMAP.md`:
 - **Configuring Glean for real, advancing `AI_ORCHESTRATION_MODE`/
   `MIGRATION_MODE` past their defaults** - both independent of Phase 6,
   carried over unchanged from Phases 3B/4B/5.
-- **Phase 7B/7C:** more of the React app - Settings (once there's real
-  profile/integration/preference state to expose), a Sales Enablement
-  UI (Sales Playbook/Meeting Brief/Outreach Draft review screens over
-  Phase 6's services), Reports UI (listing/viewing/triggering the PDF
-  export this phase's frontend still doesn't call), and Manual Analysis
-  triggering (`POST /companies/{id}/analyze`) from the Company Details
-  page. Streamlit is retired only once React reaches feature parity.
-- **Actually running the Phase 7A frontend** - `npm install && npm run
-  dev` (and `npm run lint` / `npm run build`) need to happen on a
-  machine with Node.js before any of this phase's frontend claims move
-  from "internally consistent by inspection" to "verified working." See
-  the dedicated limitation section above.
+- **Phase 7C:** Settings (once there's real profile/integration/
+  preference state to expose), a Sales Enablement UI (Sales Playbook/
+  Meeting Brief/Outreach Draft review screens over Phase 6's services),
+  and viewing the richer V3 Report (currently PDF-export-only). Report
+  distribution and real charts remain explicitly out of scope until a
+  deliberate decision is made to add them (see this phase's entries
+  above). Streamlit is retired only once React reaches feature parity.
+- **Actually running the Phase 7A/7B frontend** - `npm install && npm
+  run dev` (and `npm run lint` / `npm run build`) need to happen on a
+  machine with Node.js before any of this frontend's claims move from
+  "internally consistent by inspection" to "verified working." See the
+  dedicated limitation section above.
 - **V2's `/companies/*` endpoints still take no JWT** - Phase 7A's
   frontend enforces login at the route level client-side only; making
   the backend itself require a token for these endpoints (bringing them

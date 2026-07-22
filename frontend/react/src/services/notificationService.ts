@@ -1,7 +1,7 @@
-// Notification domain operations (V3 Phase 7A). Wraps this phase's new
-// GET /api/v1/notifications (backend/api/routers/notifications.py),
-// backed by Phase 5's notification_repository plus this phase's
-// list_all_notifications() addition.
+// Notification domain operations (V3 Phase 7A/7B). Wraps
+// GET /api/v1/notifications (Phase 7A) and this phase's new
+// POST /api/v1/notifications/{id}/read (backend/api/routers/notifications.py),
+// both backed by Phase 5's notification_repository.
 import { apiRequestData } from "../api/client";
 import type { Notification } from "../types/notification";
 
@@ -21,5 +21,9 @@ export const notificationService = {
     }
     const query = params.toString();
     return apiRequestData<Notification[]>(`/api/v1/notifications${query ? `?${query}` : ""}`);
+  },
+
+  async markNotificationRead(notificationId: string): Promise<Notification> {
+    return apiRequestData<Notification>(`/api/v1/notifications/${notificationId}/read`, { method: "POST" });
   },
 };

@@ -1,11 +1,14 @@
-// Company domain operations (V3 Phase 7A). Wraps V2's unversioned
-// /companies/* endpoints (backend/routers/companies.py, Phase 3) and
+// Company domain operations (V3 Phase 7A/7B). Wraps V2's unversioned
+// /companies/* endpoints (backend/routers/companies.py, Phase 3/9) and
 // this phase's new GET /api/v1/companies/{id}/intelligence
 // (backend/api/routers/companies.py) - the frontend's only V3 addition
-// for companies.
+// for companies. analyzeCompany() (Phase 7B) wraps the existing,
+// already-live POST /companies/{id}/analyze - no change to the
+// analysis pipeline itself.
 import { apiRequest, apiRequestData } from "../api/client";
 import type { Company, CreateCompanyInput } from "../types/company";
 import type { CompanyIntelligence } from "../types/companyIntelligence";
+import type { Report } from "../types/report";
 
 export const companyService = {
   async listCompanies(): Promise<Company[]> {
@@ -30,5 +33,9 @@ export const companyService = {
 
   async getCompanyIntelligence(companyId: string): Promise<CompanyIntelligence> {
     return apiRequestData<CompanyIntelligence>(`/api/v1/companies/${companyId}/intelligence`);
+  },
+
+  async analyzeCompany(companyId: string): Promise<Report> {
+    return apiRequest<Report>(`/companies/${companyId}/analyze`, { method: "POST" });
   },
 };

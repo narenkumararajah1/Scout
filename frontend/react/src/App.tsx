@@ -1,9 +1,12 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "./layouts/AppLayout";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { CompaniesPage } from "./pages/CompaniesPage";
 import { CompanyDetailsPage } from "./pages/CompanyDetailsPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
+import { NotificationsPage } from "./pages/NotificationsPage";
+import { ReportDetailPage } from "./pages/ReportDetailPage";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 
 export default function App() {
@@ -21,6 +24,9 @@ export default function App() {
         <Route index element={<DashboardPage />} />
         <Route path="companies" element={<CompaniesPage />} />
         <Route path="companies/:companyId" element={<CompanyDetailsPage />} />
+        <Route path="analytics" element={<AnalyticsPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="reports/:reportId" element={<ReportDetailPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
