@@ -38,4 +38,8 @@ export const companyService = {
   async analyzeCompany(companyId: string): Promise<Report> {
     return apiRequest<Report>(`/companies/${companyId}/analyze`, { method: "POST" });
   },
+
+  async removeCompany(companyId: string): Promise<void> {
+    await apiRequest<void>(`/companies/${companyId}`, { method: "DELETE" });
+  },
 };

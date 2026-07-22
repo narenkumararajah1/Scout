@@ -26,7 +26,7 @@ async def _auth_headers(email: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_intelligence_rejects_a_missing_token(client):
+def test_intelligence_rejects_a_missing_token(client, require_auth):
     response = client.get("/api/v1/companies/does-not-exist/intelligence")
 
     assert response.status_code == 401

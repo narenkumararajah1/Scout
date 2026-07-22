@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "./layouts/AppLayout";
+import { AdministrationPage } from "./pages/AdministrationPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { AskScoutPage } from "./pages/AskScoutPage";
 import { CompaniesPage } from "./pages/CompaniesPage";
 import { CompanyDetailsPage } from "./pages/CompanyDetailsPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -9,6 +11,7 @@ import { MeetingBriefDetailPage } from "./pages/MeetingBriefDetailPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { OutreachDraftDetailPage } from "./pages/OutreachDraftDetailPage";
 import { ReportDetailPage } from "./pages/ReportDetailPage";
+import { SalesEnablementPage } from "./pages/SalesEnablementPage";
 import { SalesPlaybookDetailPage } from "./pages/SalesPlaybookDetailPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { V3ReportDetailPage } from "./pages/V3ReportDetailPage";
@@ -30,6 +33,9 @@ export default function App() {
         <Route path="companies" element={<CompaniesPage />} />
         <Route path="companies/:companyId" element={<CompanyDetailsPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
+        <Route path="sales-enablement" element={<SalesEnablementPage />} />
+        <Route path="ask-scout" element={<AskScoutPage />} />
+        <Route path="administration" element={<AdministrationPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="reports/:reportId" element={<ReportDetailPage />} />

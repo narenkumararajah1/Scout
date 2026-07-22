@@ -249,7 +249,14 @@ a {
   gap: 0.5rem;
 }
 
+.company-list-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
 .company-list-item {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -257,6 +264,246 @@ a {
   background: #fff;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.company-remove-button {
+  color: #b42318;
+  border-color: #f3c6c1;
+}
+
+.breadcrumb-back {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  color: #565f5c;
+  font-size: 0.9rem;
+}
+
+.breadcrumb-back:hover {
+  color: #1a1a1a;
+  text-decoration: underline;
+}
+
+/* Administration */
+.card-description {
+  color: #6b7280;
+  margin: 0;
+}
+
+.add-recipient-form,
+.recipient-preferences-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 420px;
+  margin-top: 1rem;
+}
+
+.add-recipient-form input,
+.add-recipient-form select,
+.recipient-preferences-form select {
+  padding: 0.5rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
+}
+
+.add-recipient-form fieldset,
+.recipient-preferences-form fieldset {
+  border: 1px solid #e3e5ea;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: normal;
+  text-transform: capitalize;
+}
+
+.recipient-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.recipient-list-item {
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.recipient-list-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.recipient-summary {
+  margin: 0.15rem 0 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.recipient-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.recipient-preferences-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+/* Generation forms (Company Details) */
+.generate-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e3e5ea;
+}
+
+.generate-form select,
+.generate-form input[type="text"] {
+  padding: 0.45rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
+}
+
+.generate-form-outreach {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.generate-form-outreach select,
+.generate-form-outreach textarea {
+  width: 100%;
+  max-width: 420px;
+  padding: 0.45rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+/* Ask Scout */
+.ask-scout-form {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ask-scout-form input {
+  flex: 1;
+  min-width: 240px;
+  padding: 0.55rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
+}
+
+.conversation-history {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.conversation-entry {
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.conversation-question {
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+
+.conversation-answer {
+  margin: 0;
+  color: #4b5162;
+  white-space: pre-wrap;
+}
+
+/* Data table (e.g. workflow run history) */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.data-table th {
+  font-weight: 600;
+  color: #4b5162;
+}
+
+/* Confirm dialog */
+.confirm-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.confirm-dialog {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 24rem;
+  width: calc(100% - 2rem);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.confirm-dialog p {
+  margin: 0 0 1.25rem;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.confirm-dialog-confirm {
+  background: #b3261e;
+  color: #fff;
+  border: none;
+}
+
+.company-search {
+  width: 100%;
+  max-width: 24rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
 }
 
 /* Company details */

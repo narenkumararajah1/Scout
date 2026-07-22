@@ -2,3 +2,10 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# tsc -b build artifacts (tsconfig.node.json is a composite project, so
+# it emits vite.config.js/.d.ts alongside the source in addition to the
+# usual .tsbuildinfo cache)
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts

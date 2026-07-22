@@ -98,8 +98,15 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     throw new ApiError(0, "Unable to reach the Scout API. Check your connection and try again.");
   }
 
+  // 204 No Content never has a body even when the server's content-type
+  // header still says application/json (FastAPI does this) - calling
+  // response.json() on that empty body throws "Unexpected end of JSON
+  // input" instead of returning undefined, so every DELETE endpoint
+  // (removeRecipient, removeCompany, deleteSchedule, ...) must be
+  // excluded from the parse attempt here.
   const contentType = response.headers.get("content-type") ?? "";
-  const payload: unknown = contentType.includes("application/json") ? await response.json() : undefined;
+  const payload: unknown =
+    response.status !== 204 && contentType.includes("application/json") ? await response.json() : undefined;
 
   if (!response.ok) {
     if (response.status === 401) {

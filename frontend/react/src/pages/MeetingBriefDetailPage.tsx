@@ -2,7 +2,7 @@
 // Company Intelligence, Executive Intelligence, and Engagement
 // Strategy's output as already persisted - this page never regenerates
 // analysis, only displays it.
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -31,6 +31,10 @@ export function MeetingBriefDetailPage() {
 
   return (
     <div className="meeting-brief-detail-page">
+      <Link to={`/companies/${brief.company_id}`} className="breadcrumb-back">
+        ← Back to company
+      </Link>
+
       <div className="page-header">
         <h1>{brief.meeting_title ?? "Meeting Brief"}</h1>
         {brief.confidence_score !== null && (

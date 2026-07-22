@@ -4,7 +4,10 @@ const NAV_ITEMS: Array<{ to: string; label: string; end: boolean }> = [
   { to: "/", label: "Dashboard", end: true },
   { to: "/companies", label: "Companies", end: false },
   { to: "/analytics", label: "Analytics", end: false },
+  { to: "/sales-enablement", label: "Sales Enablement", end: false },
+  { to: "/ask-scout", label: "Ask Scout", end: false },
   { to: "/notifications", label: "Notifications", end: false },
+  { to: "/administration", label: "Administration", end: false },
   { to: "/settings", label: "Settings", end: false },
 ];
 

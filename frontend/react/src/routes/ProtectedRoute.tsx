@@ -1,10 +1,15 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
+import { AUTH_REQUIRED } from "../config/authConfig";
 import { LoadingState } from "../components/ui/LoadingState";
 import { useAuth } from "../hooks/useAuth";
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
+
+  if (!AUTH_REQUIRED) {
+    return <>{children}</>;
+  }
 
   if (isLoading) {
     return <LoadingState message="Checking your session..." />;

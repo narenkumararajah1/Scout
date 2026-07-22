@@ -6,11 +6,13 @@ before exporting it. Confirms none of this collides with V2's existing
 """
 
 from backend.database.models import Company, Report
+from backend.models.company import Company as SqliteCompany
+from backend.repositories.company_repository import create_company as create_sqlite_company
 from backend.repositories.postgres.company_repository import create_company
 from backend.repositories.postgres.report_repository import create_v3_report
 from backend.services.auth_service import create_access_token, hash_password
 from backend.repositories.user_repository import create_user
-from tests.conftest import reset_postgres_engine
+from tests.conftest import clear_v2_tables, reset_postgres_engine
 
 
 async def _auth_headers(email: str) -> dict:
@@ -68,7 +70,7 @@ def test_v2_reports_routes_are_unaffected(client):
     assert response.status_code == 404
 
 
-def test_list_rejects_a_missing_token(client):
+def test_list_rejects_a_missing_token(client, require_auth):
     response = client.get("/api/v1/reports?company_id=does-not-exist")
 
     assert response.status_code == 401
@@ -117,3 +119,38 @@ async def test_detail_returns_a_real_report(client, postgres_available):
     data = response.json()["data"]
     assert data["title"] == "ReportsApiCo3 Report"
     assert data["content"]["company_intelligence"]["name"] == "ReportsApiCo3"
+
+
+def test_create_rejects_a_missing_token(client, require_auth):
+    response = client.post("/api/v1/reports", json={"company_id": "does-not-exist"})
+
+    assert response.status_code == 401
+    assert response.json()["success"] is False
+
+
+async def test_create_returns_404_for_an_unknown_company(client, postgres_available):
+    headers = await _auth_headers("reports-api-test-4@example.com")
+
+    response = client.post("/api/v1/reports", json={"company_id": "does-not-exist"}, headers=headers)
+
+    assert response.status_code == 404
+    assert response.json()["success"] is False
+
+
+async def test_create_generates_and_persists_a_report(client, postgres_available):
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="reports-gen-company-1", name="ReportsGenCo"))
+    await create_company(Company(id="reports-gen-company-1", name="ReportsGenCo"))
+    headers = await _auth_headers("reports-api-test-5@example.com")
+
+    response = client.post(
+        "/api/v1/reports",
+        json={"company_id": "reports-gen-company-1", "title": "ReportsGenCo Q3 Report"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["data"]["title"] == "ReportsGenCo Q3 Report"
+    assert body["data"]["content"]["company_intelligence"]["name"] == "ReportsGenCo"

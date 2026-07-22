@@ -1,6 +1,6 @@
-// Sales Playbook domain operations (V3 Phase 7C). Wraps the new
-// read-only GET /api/v1/sales-playbooks endpoints - no generation
-// trigger exists here, matching the backend's read-only scope.
+// Sales Playbook domain operations (V3 Phase 7C read/list/detail;
+// V2->V3 parity pass adds generate(), wrapping the new
+// POST /api/v1/sales-playbooks endpoint.
 import { apiRequestData } from "../api/client";
 import type { SalesPlaybook } from "../types/salesPlaybook";
 
@@ -11,5 +11,12 @@ export const salesPlaybookService = {
 
   async get(playbookId: string): Promise<SalesPlaybook> {
     return apiRequestData<SalesPlaybook>(`/api/v1/sales-playbooks/${playbookId}`);
+  },
+
+  async generate(companyId: string, opportunityId: string): Promise<SalesPlaybook> {
+    return apiRequestData<SalesPlaybook>("/api/v1/sales-playbooks", {
+      method: "POST",
+      body: { company_id: companyId, opportunity_id: opportunityId },
+    });
   },
 };

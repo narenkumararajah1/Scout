@@ -2,7 +2,7 @@
 // actions this page adds: Approve/Archive. Both are pure status
 // transitions - this page has no send/deliver capability whatsoever,
 // matching the backend's architectural invariant exactly.
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { ErrorState } from "../components/ui/ErrorState";
@@ -53,6 +53,10 @@ export function OutreachDraftDetailPage() {
   return (
     <div className="outreach-draft-detail-page">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
+      <Link to={`/companies/${draft.company_id}`} className="breadcrumb-back">
+        ← Back to company
+      </Link>
 
       <div className="page-header">
         <h1>{draft.type}</h1>

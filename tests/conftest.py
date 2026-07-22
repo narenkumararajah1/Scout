@@ -46,6 +46,8 @@ for _test_env_var in (
 ):
     os.environ.setdefault(_test_env_var, "")
 
+from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -64,6 +66,24 @@ from backend.repositories.schedule_repository import init_schedules_table
 def client() -> TestClient:
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture
+def require_auth():
+    """Re-enables the /api/v1 login requirement for one test.
+
+    settings.require_authentication defaults to False (V2->V3 parity
+    pass - the app opens directly into the dashboard while a proper
+    first-run/account experience is designed), so most tests exercise
+    /api/v1 routes without a token, matching real runtime behavior. The
+    handful of tests that specifically prove "a token is still enforced
+    when this flag is on" (i.e. the mechanism isn't just deleted) use
+    this fixture instead.
+    """
+    from backend.config.settings import Settings
+
+    with patch("backend.api.dependencies.get_settings", return_value=Settings(require_authentication=True)):
+        yield
 
 
 async def reset_postgres_engine() -> None:

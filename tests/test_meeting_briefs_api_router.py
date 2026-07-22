@@ -1,14 +1,20 @@
-"""Tests for GET /api/v1/meeting-briefs (V3 Phase 7C) - read-only list
-and detail over Phase 6's already-built meeting_brief_repository. No
-generation happens through this router.
+"""Tests for /api/v1/meeting-briefs (V3 Phase 7C read/list/detail;
+V2->V3 parity pass adds POST generation, wrapping
+backend/services/meeting_preparation_service.generate_meeting_brief()
+unchanged, LLM call mocked).
 """
 
+import json
+from unittest.mock import patch
+
 from backend.database.models import Company, MeetingBrief
+from backend.models.company import Company as SqliteCompany
+from backend.repositories.company_repository import create_company as create_sqlite_company
 from backend.repositories.postgres.company_repository import create_company
 from backend.repositories.postgres.meeting_brief_repository import create_meeting_brief
 from backend.services.auth_service import create_access_token, hash_password
 from backend.repositories.user_repository import create_user
-from tests.conftest import reset_postgres_engine
+from tests.conftest import clear_v2_tables, reset_postgres_engine
 
 
 async def _auth_headers(email: str) -> dict:
@@ -18,7 +24,7 @@ async def _auth_headers(email: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_list_rejects_a_missing_token(client):
+def test_list_rejects_a_missing_token(client, require_auth):
     response = client.get("/api/v1/meeting-briefs?company_id=does-not-exist")
 
     assert response.status_code == 401
@@ -66,3 +72,42 @@ async def test_detail_returns_a_real_brief(client, postgres_available):
 
     assert response.status_code == 200
     assert response.json()["data"]["meeting_title"] == "Q3 Check-in"
+
+
+def test_create_rejects_a_missing_token(client, require_auth):
+    response = client.post("/api/v1/meeting-briefs", json={"company_id": "does-not-exist"})
+
+    assert response.status_code == 401
+    assert response.json()["success"] is False
+
+
+async def test_create_returns_404_for_an_unknown_company(client, postgres_available):
+    headers = await _auth_headers("brief-test-4@example.com")
+
+    response = client.post("/api/v1/meeting-briefs", json={"company_id": "does-not-exist"}, headers=headers)
+
+    assert response.status_code == 404
+    assert response.json()["success"] is False
+
+
+async def test_create_generates_and_persists_a_brief(client, postgres_available):
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="brief-gen-company-1", name="BriefGenCo"))
+    await create_company(Company(id="brief-gen-company-1", name="BriefGenCo"))
+    headers = await _auth_headers("brief-test-5@example.com")
+
+    with patch(
+        "backend.services.meeting_preparation_service.generate_completion",
+        return_value=json.dumps(["Confirm the budget owner."]),
+    ):
+        response = client.post(
+            "/api/v1/meeting-briefs",
+            json={"company_id": "brief-gen-company-1", "meeting_title": "Kickoff"},
+            headers=headers,
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["data"]["meeting_title"] == "Kickoff"
+    assert body["data"]["meeting_objectives"] == ["Confirm the budget owner."]

@@ -1,15 +1,21 @@
 // Displays a V2 Report exactly as generated - reads only, never
 // regenerates or edits intelligence (backend/models/report.py's Report
-// is immutable by design). Distribution (sending this report to
-// recipients) is intentionally not exposed here - see TECH_DEBT.md.
-import { useParams } from "react-router-dom";
+// is immutable by design). Distribution sends this report to every
+// eligible recipient across their preferred channels - a real,
+// irreversible send, gated behind an explicit confirmation dialog.
+import { Link, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { ToastContainer } from "../components/ui/Toast";
+import { useConfirm } from "../hooks/useConfirm";
+import { useDistributeReport } from "../hooks/useDistributeReport";
 import { useReport } from "../hooks/useReport";
 import { useReportDeliveries } from "../hooks/useReportDeliveries";
+import { useToasts } from "../hooks/useToasts";
 import type { Report } from "../types/report";
 import { getErrorMessage } from "../utils/errors";
 
@@ -28,6 +34,27 @@ export function ReportDetailPage() {
   const { reportId } = useParams<{ reportId: string }>();
   const reportQuery = useReport(reportId);
   const deliveriesQuery = useReportDeliveries(reportId);
+  const distributeReport = useDistributeReport(reportId);
+  const { toasts, pushToast, dismissToast } = useToasts();
+  const { confirm, confirmDialog } = useConfirm();
+
+  async function handleDistribute() {
+    if (
+      !(await confirm(
+        "Send this report to every eligible recipient now? This sends real email/Teams messages and can't be undone.",
+      ))
+    ) {
+      return;
+    }
+    pushToast("Sending report...", "progress");
+    distributeReport.mutate(undefined, {
+      onSuccess: (deliveries) => {
+        const sent = deliveries.filter((delivery) => delivery.status === "sent").length;
+        pushToast(`Distributed to ${sent} of ${deliveries.length} delivery attempt(s).`, "success");
+      },
+      onError: (error) => pushToast(getErrorMessage(error), "error"),
+    });
+  }
 
   if (!reportId) {
     return <ErrorState message="No report selected." />;
@@ -46,9 +73,19 @@ export function ReportDetailPage() {
 
   return (
     <div className="report-detail-page">
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      {confirmDialog && <ConfirmDialog {...confirmDialog} />}
+
+      <Link to={`/companies/${report.company_id}`} className="breadcrumb-back">
+        ← Back to company
+      </Link>
+
       <div className="page-header">
         <h1>Report</h1>
         <span className="report-generated-at">Generated {new Date(report.created_at).toLocaleString()}</span>
+        <button type="button" onClick={handleDistribute} disabled={distributeReport.isPending}>
+          {distributeReport.isPending ? "Sending..." : "Distribute Report"}
+        </button>
       </div>
 
       {REPORT_SECTIONS.map(({ key, label }) => {

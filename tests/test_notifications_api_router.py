@@ -19,11 +19,30 @@ async def _auth_headers(email: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_notifications_rejects_a_missing_token(client):
+def test_notifications_rejects_a_missing_token(client, require_auth):
     response = client.get("/api/v1/notifications")
 
     assert response.status_code == 401
     assert response.json()["success"] is False
+
+
+async def test_notifications_works_without_a_token_by_default(client, postgres_available):
+    """settings.require_authentication defaults to False (V2->V3 parity
+    pass - see backend/config/settings.py) - confirms the login bypass
+    actually works, not just that the old "token required" test was
+    updated to re-enable it.
+    """
+    # See reset_postgres_engine()'s docstring - the postgres_available
+    # fixture's own setup already touched the engine under this test's
+    # event loop; TestClient runs the route under a different, internal
+    # loop - reset first. Other tests in this file get this for free via
+    # _auth_headers(), which this one skips since it sends no token.
+    await reset_postgres_engine()
+
+    response = client.get("/api/v1/notifications")
+
+    assert response.status_code == 200
+    assert response.json()["success"] is True
 
 
 async def test_notifications_returns_an_empty_list_when_none_exist(client, postgres_available):
@@ -78,7 +97,7 @@ async def test_notifications_filters_unread_only(client, postgres_available):
     assert response.json()["data"] == []
 
 
-def test_read_rejects_a_missing_token(client):
+def test_read_rejects_a_missing_token(client, require_auth):
     response = client.post("/api/v1/notifications/does-not-exist/read")
 
     assert response.status_code == 401

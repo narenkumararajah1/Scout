@@ -28,7 +28,7 @@ from backend.repositories.recipient_repository import (
 from backend.repositories.report_repository import init_research_reports_table
 from backend.repositories.research_repository import init_research_tables
 from backend.repositories.schedule_repository import init_schedules_table
-from backend.routers import analytics, companies, conversation, health, recipients, reports, system, workflow
+from backend.routers import analytics, companies, conversation, health, recipients, reports, schedule, system, workflow
 from backend.scheduler import start_scheduler, stop_scheduler
 
 configure_logging()
@@ -65,6 +65,7 @@ app.include_router(workflow.router)
 app.include_router(companies.router)
 app.include_router(reports.router)
 app.include_router(recipients.router)
+app.include_router(schedule.router)
 app.include_router(analytics.router)
 app.include_router(system.router)
 app.include_router(conversation.router)

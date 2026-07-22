@@ -21,4 +21,25 @@ export const outreachDraftService = {
   async archive(draftId: string): Promise<OutreachDraft> {
     return apiRequestData<OutreachDraft>(`/api/v1/outreach-drafts/${draftId}/archive`, { method: "POST" });
   },
+
+  async generate(input: {
+    companyId: string;
+    outreachType: string;
+    executiveName: string;
+    talkingPoints: string[];
+    opportunityId?: string;
+    context?: string;
+  }): Promise<OutreachDraft> {
+    return apiRequestData<OutreachDraft>("/api/v1/outreach-drafts", {
+      method: "POST",
+      body: {
+        company_id: input.companyId,
+        outreach_type: input.outreachType,
+        executive_name: input.executiveName,
+        talking_points: input.talkingPoints,
+        opportunity_id: input.opportunityId || undefined,
+        context: input.context || undefined,
+      },
+    });
+  },
 };

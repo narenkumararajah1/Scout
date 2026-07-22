@@ -15,6 +15,13 @@ export const v3ReportService = {
     return apiRequestData<V3Report>(`/api/v1/reports/${reportId}`);
   },
 
+  async generate(companyId: string, title?: string): Promise<V3Report> {
+    return apiRequestData<V3Report>("/api/v1/reports", {
+      method: "POST",
+      body: { company_id: companyId, title: title || undefined },
+    });
+  },
+
   async downloadPdf(reportId: string): Promise<void> {
     const token = getStoredToken();
     const response = await fetch(`/api/v1/reports/${reportId}/export?format=pdf`, {

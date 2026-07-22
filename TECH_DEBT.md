@@ -1,18 +1,211 @@
-# Transitional Architecture (V3 Phase 7C)
+# Transitional Architecture (post-V2->V3 parity pass)
 
 This document tracks the deliberate, temporary gap between what Scout's
 repository structure now looks like and what actually runs the product.
 It exists because `docs/v3/` describes a target architecture that this
 repo is migrating toward incrementally, in place, per
 `docs/v3/16_IMPLEMENTATION_ROADMAP.md` - not a system that already
-matches that target. Phase 7C is the last implementation phase on that
-roadmap - Scout V3 is feature-complete as of this phase, pending the
-end-to-end verification and local frontend testing session that
-follows it. Every item below should be resolved (and this section
+matches that target. Phase 7C was the last implementation phase on that
+roadmap; a full V2->V3 parity review followed it (comparing every V2
+Streamlit capability against V3 feature-for-feature), and this section
+records the implementation pass that closed the gaps that review found.
+Scout V3 is now a genuine superset of V2, feature-complete and verified
+against a real running backend/frontend, not just internally-consistent
+by inspection. Every item below should be resolved (and this section
 removed) as it's addressed; new gaps discovered later should be added
 here rather than left implicit.
 
-## Current state (end of Phase 7C - feature-complete)
+## Current state (V2->V3 parity pass - feature-complete)
+
+A full V2 -> V3 parity review (comparing V2's Streamlit app and V3's
+React app feature-for-feature, including admin-facing capabilities)
+found several real regressions and gaps, all closed in this pass.
+"Reuse existing backend functionality" was followed everywhere it was
+possible to: zero new business logic was written anywhere in this pass
+except the Schedule entity's scheduler wiring (see below), which had no
+existing logic to reuse because nothing had ever read that entity.
+
+- **Login is temporarily bypassed, not removed.** `require_authentication`
+  (`backend/config/settings.py`) defaults to `False`; when off,
+  `get_current_user()` (`backend/api/dependencies.py`) short-circuits to
+  a stub `_DISABLED_AUTH_USER` instead of demanding a JWT, and the
+  frontend's `AUTH_REQUIRED` flag (`config/authConfig.ts`) makes
+  `ProtectedRoute` skip the redirect to `/login` entirely. The JWT
+  issuance endpoint, the `User` repository, and every `Depends(get_current_user)`
+  call site are untouched - flipping both flags back to their
+  authenticated defaults (`true`) is the entire rollback, no code
+  changes. A `require_auth` pytest fixture proves the old behavior still
+  works.
+- **Remove Company, Recipient Management, and Report Distribution -
+  three real V2 capabilities V3 had silently dropped - are back.**
+  Remove Company (`DELETE /companies/{id}`) and Recipient Management
+  (full `/recipients/*` CRUD, including enable/disable and
+  frequency/channel/company preferences) both reuse V2 endpoints that
+  already existed and were simply never called by the React frontend.
+  Report Distribution (`POST /reports/{id}/distribute`) is the same
+  story - `distribution_service.py` was fully built in Phase 10 and
+  unused until now.
+- **The four flagship V3 artifacts (Sales Playbooks, Meeting Briefs,
+  Outreach Drafts, V3 Reports) can now be generated from the UI**, not
+  only viewed. Four new, thin `POST /api/v1/{entity}` endpoints each
+  wrap one already-fully-built Phase 6 service function
+  (`generate_sales_playbook`, `generate_meeting_brief`,
+  `generate_outreach_draft`, `build_and_persist_report`) - no new
+  generation logic, only request parsing and reusing data the frontend
+  had already fetched (an opportunity from `useCompanyTrends`, an
+  executive from `useCompanyIntelligence`) rather than inventing new
+  backend list endpoints to pick them from.
+- **Ask Scout and Workflow History - two more real V2 capabilities -
+  are back.** Ask Scout (`AskScoutPage.tsx`) wraps V2's existing
+  `POST /conversation/ask` unchanged; conversation history is
+  intentionally session-only React state, matching V2 Streamlit's own
+  non-persisted behavior exactly (a parity match, not a gap). Workflow
+  History is a new "Recent Workflow Runs" table on Settings, wrapping
+  V2's existing `GET /workflow/history`.
+- **The Schedule entity is wired to the live scheduler for the first
+  time since it was created in Phase 2.** `schedule_repository.py` has
+  had full CRUD since Phase 2, with a docstring saying outright that
+  nothing read it and the scheduler ran on a fixed
+  `scheduler_interval_hours` .env value regardless. This pass added the
+  one piece of real new logic in the whole parity effort:
+  `backend/scheduler.py` now checks for enabled `Schedule` rows at
+  startup and registers one APScheduler `CronTrigger` job per schedule
+  (`daily` = every day at the configured time; `weekly` = every Monday,
+  since `Schedule` has no day-of-week attribute to pick a different day
+  from) instead of the fixed interval job - falling back to the old
+  interval-based job only when zero schedules exist, so a fresh install
+  behaves exactly as before until an admin configures one. A new
+  `refresh_jobs()` re-derives the live job list from the database
+  without a restart, called by `schedule_service.py` after every
+  create/update/delete/enable/disable so admin changes via the API take
+  effect immediately - confirmed live: creating a "daily at 08:00"
+  schedule through the UI changed `GET /system/status`'s
+  `next_run_time` from the 24-hour-interval fallback to the next 08:00
+  instantly, no restart. `target_company_ids` is stored and
+  configurable through the new `/schedules/*` API but not yet wired
+  into which companies a scheduled run targets - `run_workflow()` has
+  no company-targeting parameter to wire it into, and adding one would
+  be new orchestration business logic beyond this pass's scope
+  ("reuse existing... do not duplicate business logic").
+- **Administration is now a first-class page** (`/administration`),
+  hosting Recipients (full CRUD) and Scheduling (full CRUD) side by
+  side. No separate "distribution config" section exists - a
+  recipient's preferred channels/companies already *are* the
+  distribution configuration (who gets a report, and how), so a second
+  section would have duplicated the same data under a different name.
+- **Navigation and discoverability got a real pass, not just new
+  routes bolted onto the existing sidebar.** Ask Scout, Administration,
+  and a new "Sales Enablement" hub page (`/sales-enablement`) are now
+  top-level sidebar items. Sales Enablement exists specifically because
+  Sales Playbooks/Meeting Briefs/Outreach Drafts/V3 Reports had *zero*
+  top-level presence before this pass - a first-time user had no way to
+  discover they existed short of opening a company and scrolling. Sales
+  Enablement explains what each capability does, then lets a user pick
+  a company and browse what's already been generated via the same
+  per-company endpoints Company Details already uses (zero new backend
+  endpoints - a company picker fanning out to existing per-company
+  `GET` calls was sufficient, so the "new global list endpoints" option
+  considered for this was never actually needed). Generation itself
+  still happens on Company Details, where the opportunity/executive
+  context those forms need already lives; Sales Enablement links there
+  rather than duplicating that UI. Every detail page (Report, Sales
+  Playbook, Meeting Brief, Outreach Draft, V3 Report) has a
+  `← Back to company` breadcrumb; Company Details itself has
+  `← Companies`.
+- **A reusable `ConfirmDialog` (`components/ui/ConfirmDialog.tsx` +
+  `hooks/useConfirm.ts`) replaced every `window.confirm()` call** -
+  Remove Company, Remove Recipient, Delete Schedule, and Distribute
+  Report all now show a themed, promise-based confirmation dialog
+  instead of the browser's native, unstyleable one. Companies also
+  gained a client-side search/filter box (name or industry).
+- **Two real, previously-undetected bugs were found and fixed during
+  this pass's own live browser verification** (not caught by `tsc`,
+  ESLint, or the backend test suite - both only manifest at actual
+  runtime against a real dev server):
+  - `vite.config.ts`'s dev proxy was never extended for this pass's new
+    unversioned endpoints (`/recipients`, `/schedules`, `/workflow`,
+    `/conversation`) - each one silently fell through to the SPA's
+    `index.html` instead of the FastAPI backend, so Recipients,
+    Scheduling, Workflow History, and Ask Scout all failed with
+    react-query's generic "data cannot be undefined" error the first
+    time they were actually clicked. Fixed by adding all four to the
+    proxy list. **Related, and worth flagging for anyone touching
+    `vite.config.ts` again**: `tsconfig.node.json`'s composite project
+    regenerates `vite.config.js`/`vite.config.d.ts` next to the source
+    every time `tsc -b` runs (already gitignored per the prior
+    session's fix, so this was never a commit-hygiene problem) - but
+    Vite's config loader picks the compiled `.js` over the `.ts`
+    source when both exist, so **any edit to `vite.config.ts` is
+    silently ignored by the next dev-server restart until those two
+    generated files are deleted first**. This is exactly what happened
+    mid-session here: the proxy fix above appeared not to work at all
+    on the first two restart attempts, purely because a stale
+    `vite.config.js` from an earlier `tsc -b` run was shadowing it.
+  - `apiRequest` (`api/client.ts`) called `response.json()` on any
+    response whose `content-type` header included `application/json` -
+    but FastAPI sends that header even on a bodyless `204 No Content`
+    response, so every DELETE endpoint (`removeRecipient`,
+    `removeCompany`, `deleteSchedule`, ...) threw `"Failed to execute
+    'json' on 'Response': Unexpected end of JSON input"` on success,
+    even though the delete itself had already succeeded server-side -
+    the UI just never found out and stayed stale. This was a
+    pre-existing bug in shared client code, not something this pass's
+    new endpoints introduced; it simply had never been exercised live
+    before. Fixed by excluding `204` from the JSON-parse attempt.
+
+## Verification notes (V2->V3 parity pass)
+
+Backend: full test suite (325 SQLite-backed tests plus every
+Postgres-gated test) run against a real ephemeral `pgserver` instance,
+migrated `0001` -> `0005` clean - **453/453 passed, zero skips, zero
+regressions**, including new tests for every new endpoint (`/schedules`
+full CRUD, the four generation endpoints' happy path + 404 + 400/401
+cases) and a `backend/scheduler.py` unit test module covering
+`_cron_trigger_for`'s daily/weekly/unrecognized-frequency/unparseable-time
+branches. Ephemeral Postgres torn down and `pgserver` uninstalled
+afterward, per this project's established practice.
+
+Frontend: `tsc -b --force` and `npm run lint` both clean after every
+individual change throughout this pass, plus a final `npm run build`
+producing a real `dist/`. Then a real, live, click-through browser
+verification against the actual dev server and a fresh ephemeral
+Postgres (migrated the same way, `DATABASE_URL` pointed at it,
+`migration_mode` left at its `sqlite` default so the existing SQLite
+company data stayed visible) - not just static review. This is where
+both bugs described above under "Current state" were actually found:
+Recipients, Scheduling, Ask Scout, and Workflow History all initially
+failed live despite passing every static check, and the schedule Delete
+button initially threw a client-side error despite the backend delete
+already having succeeded. Confirmed working live after both fixes:
+login bypass (opens straight to the dashboard), Remove Company (through
+the new `ConfirmDialog`, correctly surfacing the backend's "has
+associated research history" business-rule rejection rather than
+crashing), the Companies search filter, full Recipient CRUD, full
+Schedule CRUD (including the live scheduler picking up a new schedule's
+`next_run_time` with no restart), Ask Scout (a real LLM call listing
+the actual tracked companies), Workflow History's table, the Sales
+Enablement hub's company picker and per-section lists, and the Report
+Distribution confirmation dialog (intentionally cancelled rather than
+confirmed, since confirming sends real email/Teams messages to real
+addresses - a live send was out of scope for a verification pass).
+
+**Not fully exercised live**: an end-to-end generation call (Sales
+Playbook) was attempted and the real LLM call itself succeeded, but
+persisting the result failed on a foreign-key constraint - the
+ephemeral Postgres instance used for this verification session had no
+companies synced into it (`migration_mode` was deliberately left at
+`sqlite` so the existing SQLite company list stayed visible in the UI
+during the rest of the walkthrough). This is an artifact of this
+verification session's setup, not a code defect - the automated backend
+suite above covers this exact path (company + opportunity properly
+seeded in Postgres) with a passing test. Actually exercising a
+generation call live end-to-end would require either a `dual_write`/
+`postgres` `migration_mode` for this session (which would show zero
+companies until they're recreated through the API) or a manual
+SQLite-to-Postgres company sync first - reasonable follow-up for
+whoever verifies this in an environment with persistent Postgres.
+
+## Previous state (end of Phase 7C - feature-complete)
 
 - **Sales Playbook, Meeting Brief, Outreach Draft, and V3 Report are
   now viewable in the frontend**, all as read-only detail pages
@@ -116,45 +309,96 @@ afterward.
 
 Frontend: no execution was possible - see below.
 
-## Frontend verification limitation (Phase 7C - unresolved, environmental, unchanged since 7A)
+## Frontend verification session (resolved) - Node.js became available
 
-This sandbox still has no Node.js, npm, npx, or `tsc`. `npm run dev`,
-`npm run lint`, and `npm run build` have never run against any of this
-project's frontend code, across all three phases. What was done this
-phase, identical in kind to 7A/7B: the same import-resolution script
-re-run across the whole tree (all relative imports, including every new
-file this phase added, resolve to real files on disk) and a manual,
-file-by-file review against `tsconfig.json`'s strict settings -
-including deliberately restructuring `V3ReportDetailPage.tsx` to
-extract plain local `const`s for each optional content section rather
-than relying on TypeScript's narrowing through chained optional
-properties inside nested ternaries, specifically because that narrowing
-behavior couldn't be verified by a real compile here. None of this
-substitutes for `tsc`, ESLint, or a browser render, and no screenshot or
-console log exists for any page in this project.
+Node.js/npm were installed into this sandbox immediately after Phase
+7C, and a full, real frontend verification followed: `npm install`,
+`tsc -b`, `npm run lint`, `npm run dev` against the real FastAPI
+backend (seeded with a real user and one fully-populated demo company
+across every entity - technologies, executives, notifications, a sales
+playbook, a meeting brief, two outreach drafts, a V2 report, and a V3
+report), a real browser click-through of every page, and `npm run
+build`. Every claim in Phases 7A/7B/7C's "internally consistent by
+inspection" language is now upgraded to "verified working" - all three
+phases' worth of manual strict-mode review turned out to be accurate:
+`tsc -b` and `npm run lint` both passed with **zero errors on the
+first real run**, before any fixes.
 
-**Local verification steps** (unchanged in mechanics from Phase 7A,
-repeated here since this is the last phase before a dedicated
-verification session):
+Three real, genuine issues were found and fixed - none of them
+catchable by static review, since all three only manifest at actual
+runtime or actual compile time:
 
-```bash
-cd frontend/react
-npm install
-npm run dev
-```
+- **A real routing bug**: `/companies`, `/reports`, and `/analytics`
+  are both Vite dev-proxy prefixes (V2's unversioned backend routes)
+  *and* client-side route prefixes (`CompaniesPage`, `ReportDetailPage`,
+  `AnalyticsPage`). A direct browser navigation or page refresh on any
+  of these URLs returned the backend's raw JSON instead of the React
+  app, because Vite's proxy matches on path alone and can't distinguish
+  a top-level navigation from the app's own `fetch()` calls. Clicking
+  through the app via its own `<Link>`s never surfaced this (client-side
+  routing never touches the network for those), which is exactly why
+  three full phases of code review missed it. Fixed with a small Vite
+  plugin (`spaRoutesBeforeProxy` in `vite.config.ts`) that registers a
+  `configureServer` middleware *before* Vite installs its own proxy
+  middleware, and rewrites the request to `/` whenever it's a real
+  navigation (`Accept: text/html`) matching one of those prefixes. Note
+  for anyone touching this again: Vite has no CRA-style `bypass` option
+  on its proxy config (that's `http-proxy-middleware`'s API, not
+  Vite's) - a first attempt using it compiled fine and silently did
+  nothing at runtime.
+- **A real build error**: `vite.config.ts` had never had `@types/node`
+  available (never installed, and nothing else in this project's
+  `package.json` needed it) - `tsc -b` failed on `node:http` imports
+  needed to type the proxy-fix middleware correctly. Fixed by adding
+  `@types/node` as a devDependency; `package-lock.json` is now
+  committed too - this project never had one until this session's
+  `npm install` created it.
+- **A build-artifact hygiene gap**: `tsconfig.node.json` is a composite
+  TS project, so `tsc -b` emits `vite.config.js`/`vite.config.d.ts`
+  alongside the source plus `*.tsbuildinfo` cache files - none of which
+  existed before because `tsc -b` had never actually run. Added to
+  `frontend/react/.gitignore`.
 
-With the FastAPI backend also running and at least one real user row in
-Postgres, exercise, in addition to everything listed in Phases 7A/7B's
-notes: Company Details' four new sections (Sales Playbooks, Meeting
-Briefs, Outreach Drafts, V3 Reports) - expect empty states unless
-Phase 6's generation services have been run directly at least once to
-seed real rows; an Outreach Draft's Approve/Archive buttons and their
-resulting status change; a V3 Report's Export PDF button; and Settings'
-account/system status display. Also worth confirming the responsive
-breakpoints actually behave as intended by resizing the browser window
-or using dev tools' device emulation - this was never visually checked.
-Also run `npm run lint` and `npm run build` (`tsc -b && vite build`),
-neither of which has ever executed against this code.
+Every other page/workflow tested clean on the first try, no fixes
+needed: Login, Dashboard (including the Top Opportunities widget),
+Companies list + Add Company form, Company Details (Overview, Company
+Intelligence, Trends, Reports, Sales Playbooks, Meeting Briefs,
+Outreach Drafts, V3 Reports - all eight sections), Analytics,
+Notifications (mark-as-read, unread filtering), Settings
+(account + system status), the V2 Report detail page, the Sales
+Playbook detail page (structured sections rendered correctly, not
+flattened), the Meeting Brief detail page, the Outreach Draft detail
+page (Approve worked, correctly hid the buttons and updated the
+badge), the V3 Report detail page, and PDF export (real file download,
+confirmed via a real `GET .../export?format=pdf` network request).
+Zero console errors across the entire session. The responsive
+breakpoint (768px) was confirmed visually at mobile width - sidebar
+correctly collapses to a wrapping top bar, no horizontal overflow.
+`npm run build` produced a real `dist/` (140 modules, ~244KB JS
+gzipped to ~75KB) with correct asset references in `index.html`.
+
+**One unexplained tooling quirk, not a code bug**: this session's
+`preview_start`/`preview_stop` tooling (used to manage the dev server
+process) did not pick up `vite.config.ts` changes across several
+restart cycles - the same command run directly via a plain shell (`npx
+vite --port <port>`) picked up every change immediately, including an
+automatic restart on further edits via Vite's own file watcher. Worked
+around by running Vite directly for the rest of this verification
+session rather than through that tool. Whatever caused it is specific
+to that tool's process management, not to anything in this project's
+config.
+
+**Still not covered by this session** (genuinely requires a human,
+not just more automated testing): the manual-analysis pipeline's real
+LLM call chain (`Run Analysis` was clicked and did trigger the real
+endpoint, but a live LLM provider credential would be needed to watch
+it all the way through to a new report); actually running Phase 6's
+generation services (`generate_sales_playbook`, `generate_meeting_brief`,
+`generate_outreach_draft`, `build_and_persist_report`) from the UI, since
+no route triggers them anywhere in this project (see "What changes
+this, and when" below); and a visual design/UX review, since this
+project has deliberately treated visual polish as secondary to
+functional correctness throughout.
 
 ## Previous state (end of Phase 7B)
 
@@ -526,48 +770,63 @@ companies by name.
 
 Per `docs/v3/16_IMPLEMENTATION_ROADMAP.md`:
 
-- **Wiring Phase 5/6's AI-generation services into something live** -
-  `sales_playbook_service.generate_sales_playbook()`,
-  `meeting_preparation_service.generate_meeting_brief()`,
-  `outreach_service.generate_outreach_draft()`, and
-  `v3_report_service.build_and_persist_report()` all remain completely
-  unwired from any route across every phase through 7C. This is now the
-  single largest concrete gap between "the backend can do this" and
-  "a user can make it happen from the UI" - every other Phase 5/6
-  capability is now at least viewable. Deciding how/whether to expose
-  generation (a button, an automatic trigger after Manual Analysis, a
-  background job) is explicitly deferred, not attempted by any phase so
-  far.
+- ~~Wiring Phase 5/6's AI-generation services into something live~~ -
+  **done.** All four (`generate_sales_playbook`, `generate_meeting_brief`,
+  `generate_outreach_draft`, `build_and_persist_report`) now have thin
+  `POST /api/v1/{entity}` endpoints and a generation form on Company
+  Details - see "Current state (V2->V3 parity pass)" above.
+- ~~Report distribution~~ - **done.** `POST /reports/{id}/distribute`
+  now has a UI button on the Report detail page, behind a
+  `ConfirmDialog` (a real send side-effect, so it's confirmation-gated
+  rather than one click).
+- **Re-enabling authentication for real** - `require_authentication`/
+  `AUTH_REQUIRED` are both still off by default (V2->V3 parity pass,
+  deliberately - see "Current state" above); flipping both back to
+  `true` is the entire re-enable, but a real first-run/account
+  creation experience (there is currently no signup flow anywhere) is
+  still undesigned, which is presumably why login was bypassed rather
+  than fixed forward in the first place.
+- **`Schedule.target_company_ids` is stored and configurable but not
+  wired into execution** - `run_workflow()` has no company-targeting
+  parameter, so a schedule's target companies are persisted and shown
+  in the Administration UI but every scheduled run still researches
+  whatever the workflow already researches untargeted. Wiring this
+  would mean adding a company parameter to `run_workflow()` and
+  deciding what "no companies selected" should do differently from
+  today's behavior - real new orchestration logic, deliberately left
+  for a later phase per "reuse existing... do not duplicate business
+  logic."
 - **The export route's Postgres dependency** - a graceful degraded
   response (rather than a 500) if Postgres is unreachable would need a
   deliberate decision on what that response should look like; not
   attempted here, consistent with `/api/v1/auth/*`'s identical
   characteristic since Phase 2.
 - **Configuring Glean for real, advancing `AI_ORCHESTRATION_MODE`/
-  `MIGRATION_MODE` past their defaults** - both independent of Phase 6,
-  carried over unchanged from Phases 3B/4B/5.
+  `MIGRATION_MODE` past their defaults** - both independent of this
+  pass, carried over unchanged from Phases 3B/4B/5.
 - **Full Analytics (Technology/Hiring Trends, Leadership Timeline,
   Industry Comparison) and any charting library** - both need new
   backend aggregation work and a deliberate library choice; neither was
-  attempted in Phase 7B or 7C.
-- **Report distribution** (`POST /reports/{id}/distribute`) remains
-  deliberately unexposed in the frontend across 7B and 7C - a real send
-  side-effect through V2's recipient system, out of scope until
-  explicitly requested.
-- **Actually running the frontend at all** - `npm install && npm run
-  dev` (and `npm run lint` / `npm run build`) need to happen on a
-  machine with Node.js before any of this frontend's claims, across all
-  of Phases 7A/7B/7C, move from "internally consistent by inspection"
-  to "verified working." This is the concrete blocker for the
-  end-to-end verification session that follows this phase.
-- **V2's `/companies/*` (and `/reports/*`, `/analytics/*`, `/system/*`)
-  endpoints still take no JWT** - the frontend enforces login at the
-  route level client-side only; making these backend endpoints
-  themselves require a token (bringing them in line with `/api/v1/*`)
-  is a deliberate, not-yet-made decision, not an oversight of any
-  phase.
+  attempted in this pass either.
+- ~~Actually running the frontend at all~~ - **done**, since the
+  previous frontend verification session. This pass's own verification
+  went further: a live click-through against a real running backend
+  and a fresh ephemeral Postgres, not just static checks - see
+  "Verification notes (V2->V3 parity pass)" above.
+- **V2's `/companies/*` (and `/reports/*`, `/analytics/*`, `/system/*`,
+  `/recipients/*`, `/schedules/*`, `/workflow/*`, `/conversation/*`)
+  endpoints still take no JWT** - moot while `require_authentication`
+  defaults to `False`, but relevant again whenever authentication is
+  re-enabled: making these backend endpoints themselves require a token
+  (bringing them in line with `/api/v1/*`) is a deliberate,
+  not-yet-made decision, not an oversight.
 - **A later phase (not yet scheduled):** full token lifecycle - refresh
   tokens, logout/session invalidation.
+- **A real end-to-end generation call was not exercised in a live
+  browser during this pass's own verification** - see "Verification
+  notes (V2->V3 parity pass)" above for why (the ephemeral Postgres
+  used for that session had no companies synced into it) and what a
+  follow-up verification pass would need to actually click through it.
 
 ## Why this file exists
 

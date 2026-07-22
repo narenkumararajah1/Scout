@@ -1,14 +1,38 @@
-"""Tests for GET /api/v1/sales-playbooks (V3 Phase 7C) - read-only list
-and detail over Phase 6's already-built sales_playbook_repository. No
-generation happens through this router.
+"""Tests for /api/v1/sales-playbooks (V3 Phase 7C read/list/detail;
+V2->V3 parity pass adds POST generation, wrapping
+backend/services/sales_playbook_service.generate_sales_playbook()
+unchanged, LLM call mocked).
 """
 
+import json
+from unittest.mock import patch
+
 from backend.database.models import Company, SalesPlaybook
+from backend.models.company import Company as SqliteCompany
+from backend.models.opportunity import Opportunity
+from backend.models.research import ResearchSession
+from backend.repositories.company_repository import create_company as create_sqlite_company
+from backend.repositories.opportunity_repository import create_opportunity
 from backend.repositories.postgres.company_repository import create_company
 from backend.repositories.postgres.sales_playbook_repository import create_sales_playbook
+from backend.repositories.research_repository import create_research_session
 from backend.services.auth_service import create_access_token, hash_password
 from backend.repositories.user_repository import create_user
-from tests.conftest import reset_postgres_engine
+from tests.conftest import clear_v2_tables, reset_postgres_engine
+
+
+def _mock_playbook_response() -> str:
+    return json.dumps(
+        {
+            "strategy_summary": "Lead with platform engineering case studies.",
+            "discovery_questions": ["What's driving the migration timeline?"],
+            "talking_points": ["Ask about their Kubernetes rollout."],
+            "objection_handling": [{"objection": "Too costly", "response": "Phased approach reduces risk."}],
+            "recommended_services": ["Cloud-Native Platform Engineering"],
+            "next_steps": ["Schedule a discovery call."],
+            "risks": ["Budget approval delays"],
+        }
+    )
 
 
 async def _auth_headers(email: str) -> dict:
@@ -18,14 +42,14 @@ async def _auth_headers(email: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_list_rejects_a_missing_token(client):
+def test_list_rejects_a_missing_token(client, require_auth):
     response = client.get("/api/v1/sales-playbooks?company_id=does-not-exist")
 
     assert response.status_code == 401
     assert response.json()["success"] is False
 
 
-def test_detail_rejects_a_missing_token(client):
+def test_detail_rejects_a_missing_token(client, require_auth):
     response = client.get("/api/v1/sales-playbooks/does-not-exist")
 
     assert response.status_code == 401
@@ -84,3 +108,56 @@ async def test_detail_returns_a_real_playbook(client, postgres_available):
 
     assert response.status_code == 200
     assert response.json()["data"]["strategy_summary"] == "Summary."
+
+
+def test_create_rejects_a_missing_token(client, require_auth):
+    response = client.post(
+        "/api/v1/sales-playbooks", json={"company_id": "does-not-exist", "opportunity_id": "does-not-exist"}
+    )
+
+    assert response.status_code == 401
+    assert response.json()["success"] is False
+
+
+async def test_create_returns_404_for_an_unknown_company(client, postgres_available):
+    headers = await _auth_headers("playbook-test-5@example.com")
+
+    response = client.post(
+        "/api/v1/sales-playbooks",
+        json={"company_id": "does-not-exist", "opportunity_id": "does-not-exist"},
+        headers=headers,
+    )
+
+    assert response.status_code == 404
+    assert response.json()["success"] is False
+
+
+async def test_create_generates_and_persists_a_playbook(client, postgres_available):
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="playbook-gen-company-1", name="PlaybookGenCo"))
+    session = create_research_session(ResearchSession(company_id="playbook-gen-company-1"))
+    opportunity = create_opportunity(
+        Opportunity(
+            company_id="playbook-gen-company-1",
+            research_session_id=session.id,
+            title="Cloud Migration Acceleration",
+            description="Accelerate cloud migration.",
+        )
+    )
+    await create_company(Company(id="playbook-gen-company-1", name="PlaybookGenCo"))
+    headers = await _auth_headers("playbook-test-6@example.com")
+
+    with patch(
+        "backend.services.sales_playbook_service.generate_completion", return_value=_mock_playbook_response()
+    ):
+        response = client.post(
+            "/api/v1/sales-playbooks",
+            json={"company_id": "playbook-gen-company-1", "opportunity_id": opportunity.id},
+            headers=headers,
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["data"]["strategy_summary"] == "Lead with platform engineering case studies."
+    assert body["data"]["talking_points"] == ["Ask about their Kubernetes rollout."]

@@ -90,6 +90,16 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_token_expiry_minutes: int = 30
 
+    # Temporarily disables the /api/v1 login requirement (V2->V3 parity
+    # pass) so the app opens directly into the dashboard while a proper
+    # first-run/account experience is designed. The auth system itself
+    # (login endpoint, JWT issuance, User repository) is untouched and
+    # fully functional - this only changes whether backend.api.dependencies
+    # .get_current_user demands a valid token. Flip back to True (the
+    # eventual permanent default) to re-enable it with no other code
+    # changes - see TECH_DEBT.md.
+    require_authentication: bool = False
+
     # Company/Opportunity persistence cutover (V3 Phase 3B). One of
     # "sqlite" | "dual_write" | "shadow_read" | "postgres" - see
     # backend/migration_mode.py and TECH_DEBT.md. Rolling forward or

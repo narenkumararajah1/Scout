@@ -55,7 +55,7 @@ async def test_login_rejects_an_unknown_email(postgres_available):
     assert response.json()["success"] is False
 
 
-async def test_me_returns_the_current_user_for_a_valid_token(postgres_available):
+async def test_me_returns_the_current_user_for_a_valid_token(postgres_available, require_auth):
     await create_user(email="endpoint-test-3@example.com", hashed_password=hash_password("s3cret-password"))
     login_response = await _post(
         "/api/v1/auth/login", json={"email": "endpoint-test-3@example.com", "password": "s3cret-password"}
@@ -68,14 +68,14 @@ async def test_me_returns_the_current_user_for_a_valid_token(postgres_available)
     assert response.json()["data"]["email"] == "endpoint-test-3@example.com"
 
 
-async def test_me_rejects_a_missing_token(postgres_available):
+async def test_me_rejects_a_missing_token(postgres_available, require_auth):
     response = await _get("/api/v1/auth/me")
 
     assert response.status_code == 401
     assert response.json()["success"] is False
 
 
-async def test_me_rejects_an_invalid_token(postgres_available):
+async def test_me_rejects_an_invalid_token(postgres_available, require_auth):
     response = await _get("/api/v1/auth/me", headers={"Authorization": "Bearer not-a-real-token"})
 
     assert response.status_code == 401

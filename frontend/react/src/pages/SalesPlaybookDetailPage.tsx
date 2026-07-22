@@ -2,7 +2,7 @@
 // structured artifact stays structured (each section its own card),
 // never flattened into a single text blob. Read-only: no regeneration
 // trigger exists on this page.
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -33,6 +33,10 @@ export function SalesPlaybookDetailPage() {
 
   return (
     <div className="sales-playbook-detail-page">
+      <Link to={`/companies/${playbook.company_id}`} className="breadcrumb-back">
+        ← Back to company
+      </Link>
+
       <div className="page-header">
         <h1>Sales Playbook</h1>
         {playbook.confidence_score !== null && (

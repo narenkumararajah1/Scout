@@ -7,7 +7,7 @@
 // PDF export (Phase 6) as a download - no other export/share/print
 // capability is fabricated.
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -62,6 +62,10 @@ export function V3ReportDetailPage() {
   return (
     <div className="v3-report-detail-page">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
+      <Link to={`/companies/${report.company_id}`} className="breadcrumb-back">
+        ← Back to company
+      </Link>
 
       <div className="page-header">
         <h1>{report.title ?? "Report"}</h1>
