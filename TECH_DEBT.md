@@ -1,4 +1,4 @@
-# Transitional Architecture (V3 Phase 6)
+# Transitional Architecture (V3 Phase 7A)
 
 This document tracks the deliberate, temporary gap between what Scout's
 repository structure now looks like and what actually runs the product.
@@ -9,7 +9,152 @@ matches that target. Every item below should be resolved (and this
 section removed) as its corresponding phase lands; new transitional gaps
 opened in later phases should be added here rather than left implicit.
 
-## Current state (end of Phase 6)
+## Current state (end of Phase 7A)
+
+- **The React frontend is no longer a placeholder.** `frontend/react/src/`
+  now has a real API client layer (`api/client.ts`), a service layer
+  (`services/{authService,companyService,notificationService}.ts` -
+  components never call `fetch()` directly), an auth context + hooks
+  (`contexts/`, `hooks/`), reusable UI components
+  (`components/ui/{Card,Badge,LoadingState,ErrorState,EmptyState}.tsx`),
+  a layout/navigation shell (`layouts/`), routing
+  (`App.tsx`, `routes/ProtectedRoute.tsx`), and four pages
+  (`pages/{LoginPage,DashboardPage,CompaniesPage,CompanyDetailsPage}.tsx`).
+  Streamlit (`frontend/streamlit/`) is untouched and still the only
+  frontend actually verified to run - see the verification limitation
+  below.
+- **Two new, thin, auth-protected `/api/v1` endpoints, exposing Phase
+  5/6 services unchanged:**
+  `GET /api/v1/companies/{company_id}/intelligence`
+  (`backend/api/routers/companies.py`, calls V2's
+  `company_service.get_company()` plus Phase 5's
+  `company_intelligence_service.build_company_intelligence_profile()`
+  verbatim) and `GET /api/v1/notifications`
+  (`backend/api/routers/notifications.py`). Neither adds new business
+  logic. Both require a valid JWT
+  (`Depends(get_current_user)`, same as Phase 2's `/api/v1/auth/*`).
+- **`list_all_notifications()` added to
+  `backend/repositories/postgres/notification_repository.py`** -
+  every existing function there is company-scoped; the Executive
+  Dashboard has no single company in context. Mirrors V2's
+  `opportunity_repository.list_all_opportunities()` precedent.
+- **A real, load-bearing architectural asymmetry the frontend now has
+  to straddle: V2's `/companies/*` endpoints
+  (`backend/routers/companies.py`, Phase 3) still take no JWT at all**,
+  unlike this phase's own two new `/api/v1` endpoints and Phase 2's
+  `/api/v1/auth/*`. The frontend sends the `Authorization` header on
+  every request regardless (harmless - V2 routes ignore it), and
+  route-level authentication is enforced client-side only
+  (`routes/ProtectedRoute.tsx`) for V2-backed pages like Companies and
+  Company Details. This is not a bug introduced by this phase - V2 was
+  never built with auth - but it means "logging in" today gates the
+  React app's own navigation, not the underlying company data itself.
+  Actually requiring a valid token for `/companies/*` is a backend
+  change out of scope for Phase 7A.
+- **`vite.config.ts` now proxies both `/api/v1` and `/companies`** to
+  the FastAPI backend during local dev - the original Phase 1 scaffold
+  only proxied `/api/v1`, since no V2 endpoint had a frontend consumer
+  yet. `companyService.ts` is the first thing to call an unversioned V2
+  route from the browser.
+- **`GleanKnowledgeItemOut`/`GleanKnowledgeItem` (backend schema and
+  frontend type) have no stable id** - Company Intelligence's Glean
+  results are `KnowledgeItem(source, content, category)` dataclasses
+  (Phase 5, `backend/ai/knowledge_fusion.py`) with nothing resembling a
+  primary key. The Company Details page keys its Glean list items on
+  `${source}-${content}`, which is stable only as long as Glean never
+  returns two identical (source, content) pairs in one response - true
+  today (`NullGleanClient` returns `[]`, and Glean isn't configured
+  anywhere in this project), but would need a real key if Glean is ever
+  enabled and returns duplicates.
+- **Settings, Sales Enablement UI, and Reports UI are intentionally not
+  built** - Phase 7A's approved scope was Authentication, Global
+  Layout, Navigation, Routing, API client layer, Login, Executive
+  Dashboard, Companies, Company Details, and Company Intelligence
+  integration only. Settings in particular was explicitly excluded
+  because no backend profile/integration/preference management exists
+  to expose - fabricating one was ruled out by the approved plan.
+  Manual Analysis triggering (`POST /companies/{id}/analyze`, already
+  live in V2) also isn't wired into any page yet, for the same
+  scope-discipline reason, even though the endpoint already exists and
+  needs no new backend work.
+
+## Frontend verification limitation (Phase 7A - unresolved, environmental)
+
+**This sandbox has no Node.js, npm, or npx** (confirmed in Phase 1 and
+reconfirmed at the start of this phase - `which node npm npx tsc` all
+fail, and `frontend/react/node_modules/` has never been installed).
+This is not new to this phase, but Phase 7A is the first phase where it
+actually blocks meaningful verification, since every prior phase's work
+was backend-only.
+
+Concretely, none of the following were done, and none should be assumed
+true until the steps below are run locally:
+
+- `tsc -b` has never actually run against this code. Every new
+  `.ts`/`.tsx` file was reviewed by hand against `tsconfig.json`'s
+  `strict`, `noUnusedLocals`, and `noUnusedParameters` settings, and a
+  standalone script confirmed every relative import resolves to a real
+  file on disk - but neither of those is a substitute for a real
+  TypeScript compile, which can catch narrower type mismatches (e.g. a
+  React Query generic inferred differently than expected).
+- `npm run lint` (ESLint, `--max-warnings 0`) has never run. One likely
+  finding it would have caught by hand: co-locating `AuthContext` and
+  `AuthProvider` in one file trips
+  `react-refresh/only-export-components` (`.eslintrc.cjs`) - fixed
+  proactively by splitting them into `contexts/AuthContext.ts` (context
+  object only) and `contexts/AuthProvider.tsx` (component only), but
+  other files were not exhaustively checked against every ESLint rule.
+- `npm run dev` (Vite) has never started - no dev server boot, no
+  browser render, no manual click-through of login, navigation,
+  Add Company, enable/disable monitoring, or the Company Intelligence
+  view. Nothing about actual runtime behavior (React Query cache
+  behavior, `react-router-dom` route matching, the token-expiry
+  `authEvents` listener actually firing) has been observed running.
+- No screenshot, console log, or network trace from a real browser
+  session exists for any of this phase's frontend work. Every claim
+  above is "internally consistent by inspection," never "seen working."
+
+**Local verification steps** (to run after `cd frontend/react`):
+
+```bash
+npm install
+npm run dev
+```
+
+Then, with the FastAPI backend also running (`uvicorn backend.main:app
+--reload` from the repo root, so Vite's proxy at `frontend/react/vite.config.ts`
+has something to forward `/api/v1` and `/companies` to) and at least one
+user row in Postgres (`backend/repositories/user_repository.create_user()`,
+or via a real signup path once one exists - Phase 2 never built one, so
+today a user has to be inserted directly), open `http://localhost:5173`
+and confirm: the login form authenticates and redirects to the
+dashboard; the dashboard's company/notification counts match reality;
+Companies lists real companies and Add Company creates one; Company
+Details loads and its Enable/Disable button flips `monitoring_status`;
+Company Intelligence renders empty-state sections for a company with no
+extracted data yet, and populated sections for one that has some. Also
+worth running `npm run lint` and `npm run build` (`tsc -b && vite
+build`) since neither has ever executed against this code.
+
+## Verification notes (Phase 7A)
+
+Backend: same `pgserver` ad hoc approach as every prior phase. The full
+Alembic chain (`0001` -> `0005`) applied cleanly. All 397 tests (386
+from Phases 1-6 plus 11 new: 4 in
+`tests/test_companies_intelligence_api_router.py`, 4 in
+`tests/test_notifications_api_router.py`, 3 added to
+`tests/test_notification_repository.py`) passed with zero skips against
+a real PostgreSQL instance - zero regressions. The live SQLite file
+(`data/scout.db`) was checked before and after and still holds exactly
+the original four companies (Acme Corp, Hertz, Nutanix, OpenAI); the
+`pgserver` instance and its data directory were torn down and the
+package uninstalled afterward, same as every prior phase.
+
+Frontend: see the dedicated limitation section above - no execution was
+possible, only static review (import resolution, manual strict-mode
+type reasoning, ESLint rule reasoning).
+
+## Previous state (end of Phase 6)
 
 - **Four new Postgres entities, one new isolated route, nothing else
   wired into any live path:** `SalesPlaybook`, `MeetingBrief`,
@@ -147,8 +292,23 @@ Per `docs/v3/16_IMPLEMENTATION_ROADMAP.md`:
 - **Configuring Glean for real, advancing `AI_ORCHESTRATION_MODE`/
   `MIGRATION_MODE` past their defaults** - both independent of Phase 6,
   carried over unchanged from Phases 3B/4B/5.
-- **Phase 7 (Frontend Experience):** the React app becomes the real UI;
-  Streamlit is retired only once React reaches feature parity.
+- **Phase 7B/7C:** more of the React app - Settings (once there's real
+  profile/integration/preference state to expose), a Sales Enablement
+  UI (Sales Playbook/Meeting Brief/Outreach Draft review screens over
+  Phase 6's services), Reports UI (listing/viewing/triggering the PDF
+  export this phase's frontend still doesn't call), and Manual Analysis
+  triggering (`POST /companies/{id}/analyze`) from the Company Details
+  page. Streamlit is retired only once React reaches feature parity.
+- **Actually running the Phase 7A frontend** - `npm install && npm run
+  dev` (and `npm run lint` / `npm run build`) need to happen on a
+  machine with Node.js before any of this phase's frontend claims move
+  from "internally consistent by inspection" to "verified working." See
+  the dedicated limitation section above.
+- **V2's `/companies/*` endpoints still take no JWT** - Phase 7A's
+  frontend enforces login at the route level client-side only; making
+  the backend itself require a token for these endpoints (bringing them
+  in line with `/api/v1/*`) is a deliberate, not-yet-made decision, not
+  an oversight of this phase.
 - **A later phase (not yet scheduled):** full token lifecycle - refresh
   tokens, logout/session invalidation.
 
