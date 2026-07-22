@@ -66,6 +66,32 @@ def client() -> TestClient:
         yield test_client
 
 
+async def reset_postgres_engine() -> None:
+    """Disposes and clears backend.database.postgres's cached async
+    engine/session factory, so the next thing that touches it gets a
+    fresh engine bound to whatever event loop is running *then*.
+
+    Needed in two situations, both causing "attached to a different
+    loop" / "another operation is in progress":
+    1. Between tests - pytest-asyncio gives each async test its own
+       event loop by default (handled automatically by the
+       postgres_available fixture below).
+    2. *Within* a single test that both awaits a Postgres-backed
+       repository call directly (under pytest-asyncio's loop) and also
+       calls the `client` fixture's TestClient (which runs the ASGI
+       app - and this route's own Postgres calls - inside its own
+       separate anyio portal loop). Call this explicitly between the
+       two kinds of call in such a test; see
+       tests/test_reports_api_router.py for the pattern.
+    """
+    import backend.database.postgres as postgres_module
+
+    if postgres_module._engine is not None:
+        await postgres_module._engine.dispose()
+    postgres_module._engine = None
+    postgres_module._session_factory = None
+
+
 @pytest.fixture
 async def postgres_available():
     """Skips the test if PostgreSQL isn't reachable at DATABASE_URL - this
@@ -78,25 +104,14 @@ async def postgres_available():
     real deployments), and truncates them after each test.
 
     Also resets backend.database.postgres's cached engine/session factory
-    before and after each test. The app itself is meant to reuse one
-    engine for its whole process lifetime (one event loop under uvicorn),
-    but pytest-asyncio gives each async test its own event loop by
-    default - reusing an engine whose connection pool was created under a
-    previous test's (now-closed) loop raises "attached to a different
-    loop" / "another operation is in progress" on the next test.
+    before and after each test - see reset_postgres_engine()'s docstring.
     """
     from sqlalchemy import text
 
     import backend.database.postgres as postgres_module
     from backend.database.models import Base
 
-    async def _reset_engine() -> None:
-        if postgres_module._engine is not None:
-            await postgres_module._engine.dispose()
-        postgres_module._engine = None
-        postgres_module._session_factory = None
-
-    await _reset_engine()
+    await reset_postgres_engine()
 
     try:
         async with postgres_module.get_session() as session:
@@ -110,18 +125,25 @@ async def postgres_available():
 
     yield
 
+    # Reset first, in case the test's last touch of the engine was via
+    # the `client` fixture's TestClient (a different loop than this
+    # fixture's own) - otherwise this TRUNCATE could itself hit
+    # "attached to a different loop".
+    await reset_postgres_engine()
+
     async with postgres_module.get_session() as session:
         # CASCADE handles every other table's FK dependency on companies
         # automatically, regardless of truncation order.
         await session.execute(
             text(
                 "TRUNCATE TABLE users, companies, executives, opportunities, evidence, "
-                "technologies, business_initiatives, notifications RESTART IDENTITY CASCADE"
+                "technologies, business_initiatives, notifications, sales_playbooks, "
+                "meeting_briefs, outreach_drafts, v3_reports RESTART IDENTITY CASCADE"
             )
         )
         await session.commit()
 
-    await _reset_engine()
+    await reset_postgres_engine()
 
 
 def clear_v2_tables() -> None:

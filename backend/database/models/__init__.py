@@ -10,8 +10,12 @@ from backend.database.models.business_initiative import BusinessInitiative
 from backend.database.models.company import Company
 from backend.database.models.evidence import Evidence
 from backend.database.models.executive import Executive
+from backend.database.models.meeting_brief import MeetingBrief
 from backend.database.models.notification import Notification
 from backend.database.models.opportunity import Opportunity
+from backend.database.models.outreach_draft import OutreachDraft
+from backend.database.models.report import Report
+from backend.database.models.sales_playbook import SalesPlaybook
 from backend.database.models.technology import Technology
 from backend.database.models.user import User
 from backend.database.postgres import Base
@@ -26,4 +30,8 @@ __all__ = [
     "Technology",
     "BusinessInitiative",
     "Notification",
+    "SalesPlaybook",
+    "MeetingBrief",
+    "OutreachDraft",
+    "Report",
 ]

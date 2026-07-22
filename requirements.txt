@@ -24,6 +24,9 @@ alembic==1.13.3
 # separate engine from asyncpg's async one - see backend/database/postgres_sync.py.
 psycopg2-binary==2.9.12
 
+# PDF export (V3 Phase 6). Pure Python, no external binary dependency.
+reportlab==4.2.5
+
 # JWT auth (V3 Phase 2 - ADR-020). bcrypt used directly rather than via
 # passlib: passlib 1.7.4 (unmaintained since 2020) is incompatible with
 # bcrypt>=4.1, which dropped the internal API passlib's self-test reads.

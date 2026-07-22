@@ -1,4 +1,4 @@
-# Transitional Architecture (V3 Phase 5)
+# Transitional Architecture (V3 Phase 6)
 
 This document tracks the deliberate, temporary gap between what Scout's
 repository structure now looks like and what actually runs the product.
@@ -9,114 +9,148 @@ matches that target. Every item below should be resolved (and this
 section removed) as its corresponding phase lands; new transitional gaps
 opened in later phases should be added here rather than left implicit.
 
-## Current state (end of Phase 5)
+## Current state (end of Phase 6)
 
-- **Three new Postgres entities, none wired into any live path:**
-  `Technology`, `BusinessInitiative`, `Notification`
-  (`backend/database/models/{technology,business_initiative,notification}.py`,
-  `migrations/versions/0004_...py`). Technology and BusinessInitiative
-  upsert by `(company_id, name)` - the same fact commonly gets
-  re-extracted across research cycles, and Knowledge Extraction
-  (Phase 4A) has no concept of "this already exists," so that
-  idempotency lives in the repository layer.
-- **Company Intelligence Service is the first real caller of Knowledge
-  Extraction's output.** Phase 4A's `extract_entities()` was explicitly
-  built to never touch persistence; `backend/services/company_intelligence_service.py`
-  is the separate caller that does - persisting extracted
-  Technologies/BusinessInitiatives/Executives and aggregating them (plus
-  recent SQLite Signals, plus Glean if configured) into one profile.
-  Executive persistence reuses Phase 3A's existing
-  `executive_repository.py` functions completely unchanged (that file
-  has no upsert of its own, so the check-then-update-or-create logic
-  lives in this new caller, not in the already-completed Phase 3A file).
-- **Technology Analysis and Executive Intelligence are net-new AI
-  services** - no V2 equivalent existed for either. Both reuse the LLM
-  Gateway, Confidence Engine, and (Executive Intelligence only) Evidence
-  Manager as the citation layer, exactly as Phase 4A/4B's primitives
-  were designed to be reused.
-- **Notifications are generated from V2's existing `Signal` type
-  categories** (`backend/models/research.py`'s `SIGNAL_TYPE_*`
-  constants, read-only against SQLite) via `backend/services/notification_service.py`,
-  persisted into the new `Notification` table. The mapping from V2's 4
-  broad signal categories to V3's more granular notification types is a
-  deliberate simplification (documented in the service's own comments) -
-  technology signals only become a notification when they mention AI
-  specifically, and opportunity alerts fire only above an explicit 0.7
-  confidence threshold, since `docs/v3` doesn't specify one.
-- **Glean is a real, working integration - disabled by default.**
-  `backend/integrations/glean_client.py` provides `GleanClient` (real
-  HTTP calls, degrades to an empty result on any failure) and
-  `NullGleanClient` (returns `[]` immediately, no network call);
-  `get_glean_client()` is the only place that decides which one a
-  caller gets, based on `glean_enabled`/`glean_api_url`/`glean_api_token`
-  (all default off/empty). Every caller's code is identical either way -
-  this is what makes "Scout remains fully functional without Glean" true
-  by construction, not by convention. Glean's results are plain
-  `KnowledgeItem`s, so they slot directly into Phase 4A's Knowledge
-  Fusion as one more source - Fusion's signature never changed to
-  support this.
-- **Nothing from this phase is wired into any live route, agent, or
-  orchestration path.** Same low-risk profile as Phase 4A: net-new,
-  additive capability with no existing behavior to migrate away from -
-  no orchestration-mode config was needed for this phase (unlike
-  3B/4B), since there's nothing live to roll back from.
-- **Opportunity Analysis and Capability Alignment needed no Phase 5
-  work.** V2's `opportunity_analysis_service.py` and
-  `capability_matching_service.py` already substantially satisfy those
-  two roadmap deliverables; what's missing (business_impact, reasoning,
-  case-study-backed alignment detail) is populated by advancing
-  `AI_ORCHESTRATION_MODE` (Phase 4B's job), not new Phase 5 code.
-- **Company/Opportunity migration-mode cutover and AI-orchestration
-  cutover status are both unchanged from Phase 3B/4B** - still deployed
-  at `sqlite`/`legacy` (defaults), untouched by this phase.
-- **Streamlit is still the only active frontend; React is still
-  scaffolded but not integrated; auth still covers login +
-  current-user only** (all unchanged from earlier phases).
+- **Four new Postgres entities, one new isolated route, nothing else
+  wired into any live path:** `SalesPlaybook`, `MeetingBrief`,
+  `OutreachDraft`, and a V3 `Report`
+  (`backend/database/models/{sales_playbook,meeting_brief,outreach_draft,report}.py`,
+  `migrations/versions/0005_...py`). The `Report` table is named
+  `v3_reports` and its service `v3_report_service.py` - both deliberately
+  avoid V2's existing, live, completely unmodified
+  `backend/models/report.py` / `backend/services/report_service.py` /
+  `backend/routers/reports.py` (Phase 9's SQLite report read access).
+- **Sales Playbook is a structured artifact, not a text blob** - each
+  section (strategy summary, discovery questions, talking points,
+  objection handling, recommended services, next steps, risks) is its
+  own persisted column, per the Phase 6 requirement that it be
+  renderable cleanly by a future frontend.
+- **Meeting Preparation reuses Phase 5's Company Intelligence and
+  Executive Intelligence directly** rather than duplicating their
+  logic - `meeting_preparation_service.py`'s only new reasoning is
+  meeting objectives, which doesn't exist anywhere else.
+- **Outreach generation has a hard, tested safety invariant: Scout never
+  sends customer communications.**
+  `backend/repositories/postgres/outreach_draft_repository.py`'s
+  `create_outreach_draft()` force-sets `status = "Draft"` regardless of
+  what's passed in - it is structurally impossible to create a
+  non-Draft outreach item through this repository, not merely a
+  convention the service follows. `backend/services/outreach_service.py`
+  has no dependency on SMTP/Outlook/Gmail/SendGrid/SES/any HTTP client
+  at all, and no function whose name suggests send/deliver/dispatch
+  capability - both checked by static import/AST tests, not just
+  behavioral ones (`tests/test_outreach_service.py`).
+  `mark_draft_approved()`/`mark_draft_archived()` exist only for a
+  future human-reviewer UI; the generation service never calls either.
+- **The V3 Report purely assembles already-persisted data - no LLM call
+  happens during assembly**, verified by a test that mocks
+  `generate_completion` and asserts it's never called. It reads Company
+  Intelligence, Technology Analysis, Executive Intelligence (Phase 5),
+  Opportunity Analysis and Capability Alignment (V2, read-only), and
+  this phase's own Sales Playbook/Meeting Brief/Outreach Drafts. If a
+  section doesn't exist yet for a company, it's simply empty - this
+  service never triggers generation of missing pieces.
+- **PDF export (`backend/services/report_export_service.py`, ReportLab)
+  never touches the LLM Gateway and is genuinely deterministic** - it
+  uses ReportLab's own `invariant=1` mode, which fixes the two fields
+  (`/CreationDate`, the `/ID` trailer) that otherwise vary between two
+  renders of identical content. Verified with a test that sleeps across
+  a wall-clock second boundary and still gets byte-identical output.
+- **One new, isolated, read-only route:**
+  `GET /api/v1/reports/{report_id}/export?format=pdf`
+  (`backend/api/routers/reports.py`, mounted in `main.py` alongside
+  Phase 2's `auth` router). No other CRUD endpoints, per the approved
+  plan. **Requires Postgres to be reachable** - like Phase 2's
+  `/api/v1/auth/*` routes, it has no fallback path and will 500 if
+  `DATABASE_URL` isn't reachable (confirmed during this phase's live
+  verification, where this sandbox has no Postgres). This is consistent
+  with every other Postgres-backed `/api/v1` route so far, not a new
+  gap specific to this phase.
 
-## Verification notes (Phase 5)
+## Verification notes (Phase 6)
 
-Same `pgserver` ad hoc approach as every prior phase - not a project
-dependency, used only during this implementation, then torn down. The
-full Alembic chain (`0001` → `0004`, and the complete downgrade back to
-base) applied cleanly in both directions. All 355 tests (every prior
-phase's plus this phase's new ones) passed with zero skips against a
-real PostgreSQL instance; 284 passed / 71 skipped here in the sandbox
-default (Postgres-gated tests skip cleanly without a reachable
-`DATABASE_URL`, as in normal CI - the Glean null-client/real-client
-tests are fully unconditional, since they need neither Postgres nor a
-real network).
+Same `pgserver` ad hoc approach as every prior phase. The full Alembic
+chain (`0001` → `0005`, and the complete downgrade back to base) applied
+cleanly in both directions. All 386 tests (every prior phase's plus this
+phase's new ones) passed with zero skips against a real PostgreSQL
+instance; 293 passed / 93 skipped here in the sandbox default.
 
-A full end-to-end demonstration was run against real Postgres: seeded a
-Nutanix-shaped company, persisted extracted technologies/executives/
-initiatives, ran Technology Analysis and Executive Intelligence (mocked
-LLM), generated a leadership-change notification from a Signal and an
-opportunity alert from a high-confidence Opportunity, and built a full
-`CompanyIntelligenceProfile` - confirming `glean_knowledge=[]` when
-unconfigured, exactly as designed. The live application was rebooted
-afterward: `/health`, `/companies` (4, unchanged), and `data/scout.db`'s
-MD5 checksum all matched every prior phase's - confirmed untouched.
+This phase's verification caught three real issues:
+
+- **A cross-event-loop bug specific to combining `TestClient` with
+  direct `await` calls on the async Postgres engine in the same test** -
+  the first time in this project a test needed both (every earlier
+  phase's Postgres-backed tests called repositories directly; Phase 6
+  is the first with a live Postgres-backed *route*). `TestClient` runs
+  the ASGI app - and this route's own async DB calls - inside its own
+  internal anyio portal loop, different from pytest-asyncio's loop for
+  the test function itself; whichever one touches the cached engine
+  second raises "attached to a different loop." Fixed by extracting the
+  reset logic already used between tests
+  (`tests/conftest.py`'s `reset_postgres_engine()`) into a function
+  tests can also call *within* a test, between a direct `await` and a
+  `client.get(...)` call - see `tests/test_reports_api_router.py`.
+- **The same SQLite foreign-key setup gap found in Phase 3A recurred**:
+  a test seeded a `CapabilityMatch` referencing a `research_session_id`
+  that didn't correspond to a real row. Same fix - seed a real
+  `ResearchSession` (and, this time, a real SQLite `Company` too, since
+  `capability_matches` also FKs on `company_id`) before creating
+  anything that references it.
+- **An ad hoc verification script accidentally wrote to the live
+  `data/scout.db`.** Every prior phase's demonstration scripts only
+  touched Postgres (via `backend.repositories.postgres.*`); this phase's
+  end-to-end demo deliberately seeded real V2 SQLite data (a
+  `CapabilityMatch`/`Opportunity`) to exercise Sales Playbook generation
+  realistically, using `backend.repositories.company_repository`
+  directly. Because that demo ran as a bare `python3` script rather than
+  under `pytest`, `tests/conftest.py`'s `SQLITE_PATH` test-isolation
+  override was never applied, and the script wrote a real company
+  (`demo-p6-co`) plus a research session and capability match into the
+  actual production SQLite file. **Caught immediately** by this phase's
+  own post-verification check (`/companies` returned 5 instead of the
+  expected 4, and `data/scout.db`'s MD5 had changed) - the same
+  canary check every phase has run. Fixed by deleting the three
+  erroneous rows (children first) and confirming the live app returns
+  exactly the original four companies again. The MD5 no longer matches
+  earlier phases' recorded value even after cleanup - expected and not
+  itself a problem: SQLite's file bytes reflect physical page layout,
+  which an insert-then-delete cycle changes even when the *logical*
+  content ends up identical; row counts and content were verified
+  directly instead. **Process lesson going forward:** any ad hoc
+  verification/demo script that touches SQLite-backed repositories,
+  not just Postgres ones, must explicitly set `SQLITE_PATH`/
+  `CHROMA_PERSIST_DIR` to isolated paths before importing any `backend.*`
+  module - the same thing `tests/conftest.py` does - rather than relying
+  on that isolation only being available under `pytest`.
+
+A full end-to-end demonstration (post-fix) was run against real
+Postgres: generated a Sales Playbook, a Meeting Brief (reusing Executive
+Intelligence), an Outreach Draft (confirmed `status == "Draft"`),
+assembled a V3 Report from everything, and exported it to a real,
+valid PDF. The live application was rebooted afterward and reverified:
+`/health`, and `/companies` returning exactly the correct four
+companies by name.
 
 ## What changes this, and when
 
 Per `docs/v3/16_IMPLEMENTATION_ROADMAP.md`:
 
-- **Wiring Phase 5's services into something live** (not yet done - this
-  phase built and verified them standalone): likely new API routes once
-  a real frontend consumer exists (Phase 7), or hooked into
-  `AI_ORCHESTRATION_MODE`'s `shadow`/`augmented`/`integrated` stages
-  alongside Phase 4B's existing stages.
-- **Configuring Glean for real** (not yet done - `glean_enabled` stays
-  `false` until there's a real Glean instance and token to point at).
-- **Advancing `AI_ORCHESTRATION_MODE`/`MIGRATION_MODE` past their
-  defaults** in a real deployment - independent of Phase 5's work,
-  carried over unchanged from Phases 3B/4B.
-- **Phase 6 (Sales Enablement):** per the roadmap, next up - Sales
-  Playbook, Meeting Preparation, Outreach Generation, Reports, Export
-  functionality.
-- **A later phase (not yet scheduled):** full token lifecycle - refresh
-  tokens, logout/session invalidation.
+- **Wiring Phase 6's services into something live** (not yet done - this
+  phase built and verified them standalone, same as Phase 5): likely new
+  API routes once a real frontend consumer exists (Phase 7), or hooked
+  into `AI_ORCHESTRATION_MODE`'s later stages.
+- **The export route's Postgres dependency** - a graceful degraded
+  response (rather than a 500) if Postgres is unreachable would need a
+  deliberate decision on what that response should look like; not
+  attempted here, consistent with `/api/v1/auth/*`'s identical
+  characteristic since Phase 2.
+- **Configuring Glean for real, advancing `AI_ORCHESTRATION_MODE`/
+  `MIGRATION_MODE` past their defaults** - both independent of Phase 6,
+  carried over unchanged from Phases 3B/4B/5.
 - **Phase 7 (Frontend Experience):** the React app becomes the real UI;
   Streamlit is retired only once React reaches feature parity.
+- **A later phase (not yet scheduled):** full token lifecycle - refresh
+  tokens, logout/session invalidation.
 
 ## Why this file exists
 
