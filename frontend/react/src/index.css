@@ -426,3 +426,67 @@ a {
   font-size: 0.85rem;
   color: #6b7280;
 }
+
+/* Settings */
+.settings-page .company-overview {
+  grid-template-columns: max-content 1fr;
+}
+
+/* Responsive layout (V3 Phase 7C) - breakpoints per
+   docs/design/RESPONSIVENESS.md. Below 768px the sidebar becomes a
+   horizontal, scrollable top bar instead of a fixed-width column, so
+   the app shell never forces horizontal scrolling on the page itself. */
+@media (max-width: 768px) {
+  .app-shell {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .sidebar {
+    width: auto;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .sidebar-brand {
+    margin-bottom: 0;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .page-header {
+    flex-wrap: wrap;
+  }
+
+  .intelligence-sections {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .app-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .app-content {
+    padding: 1rem;
+  }
+
+  .dashboard-summary,
+  .opportunity-list-item-header {
+    grid-template-columns: 1fr;
+  }
+
+  .company-list-item,
+  .report-list-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+}

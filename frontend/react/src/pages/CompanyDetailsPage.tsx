@@ -11,7 +11,11 @@ import { useCompany } from "../hooks/useCompany";
 import { useCompanyIntelligence } from "../hooks/useCompanyIntelligence";
 import { useCompanyReports } from "../hooks/useCompanyReports";
 import { useCompanyTrends } from "../hooks/useCompanyTrends";
+import { useMeetingBriefs } from "../hooks/useMeetingBriefs";
+import { useOutreachDrafts } from "../hooks/useOutreachDrafts";
+import { useSalesPlaybooks } from "../hooks/useSalesPlaybooks";
 import { useToasts } from "../hooks/useToasts";
+import { useV3Reports } from "../hooks/useV3Reports";
 import { companyService } from "../services/companyService";
 import { getErrorMessage } from "../utils/errors";
 
@@ -21,6 +25,10 @@ export function CompanyDetailsPage() {
   const intelligenceQuery = useCompanyIntelligence(companyId);
   const reportsQuery = useCompanyReports(companyId);
   const trendsQuery = useCompanyTrends(companyId);
+  const salesPlaybooksQuery = useSalesPlaybooks(companyId);
+  const meetingBriefsQuery = useMeetingBriefs(companyId);
+  const outreachDraftsQuery = useOutreachDrafts(companyId);
+  const v3ReportsQuery = useV3Reports(companyId);
   const queryClient = useQueryClient();
   const { toasts, pushToast, dismissToast } = useToasts();
 
@@ -219,6 +227,95 @@ export function CompanyDetailsPage() {
               <li key={report.id}>
                 <Link to={`/reports/${report.id}`} className="report-list-item">
                   <span>Report</span>
+                  <span>{new Date(report.created_at).toLocaleString()}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card title="Sales Playbooks">
+        {salesPlaybooksQuery.isLoading ? (
+          <LoadingState message="Loading sales playbooks..." />
+        ) : salesPlaybooksQuery.isError ? (
+          <ErrorState message={getErrorMessage(salesPlaybooksQuery.error)} />
+        ) : (salesPlaybooksQuery.data ?? []).length === 0 ? (
+          <EmptyState message="No sales playbooks yet." />
+        ) : (
+          <ul className="report-list">
+            {(salesPlaybooksQuery.data ?? []).map((playbook) => (
+              <li key={playbook.id}>
+                <Link to={`/sales-playbooks/${playbook.id}`} className="report-list-item">
+                  <span>{playbook.strategy_summary ?? "Sales Playbook"}</span>
+                  <span>{new Date(playbook.created_at).toLocaleString()}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card title="Meeting Briefs">
+        {meetingBriefsQuery.isLoading ? (
+          <LoadingState message="Loading meeting briefs..." />
+        ) : meetingBriefsQuery.isError ? (
+          <ErrorState message={getErrorMessage(meetingBriefsQuery.error)} />
+        ) : (meetingBriefsQuery.data ?? []).length === 0 ? (
+          <EmptyState message="No meeting briefs yet." />
+        ) : (
+          <ul className="report-list">
+            {(meetingBriefsQuery.data ?? []).map((brief) => (
+              <li key={brief.id}>
+                <Link to={`/meeting-briefs/${brief.id}`} className="report-list-item">
+                  <span>{brief.meeting_title ?? "Meeting Brief"}</span>
+                  <span>{new Date(brief.created_at).toLocaleString()}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card title="Outreach Drafts">
+        {outreachDraftsQuery.isLoading ? (
+          <LoadingState message="Loading outreach drafts..." />
+        ) : outreachDraftsQuery.isError ? (
+          <ErrorState message={getErrorMessage(outreachDraftsQuery.error)} />
+        ) : (outreachDraftsQuery.data ?? []).length === 0 ? (
+          <EmptyState message="No outreach drafts yet." />
+        ) : (
+          <ul className="report-list">
+            {(outreachDraftsQuery.data ?? []).map((draft) => (
+              <li key={draft.id}>
+                <Link to={`/outreach-drafts/${draft.id}`} className="report-list-item">
+                  <span>
+                    {draft.type} — {draft.subject ?? "(no subject)"}
+                  </span>
+                  <Badge
+                    label={draft.status}
+                    variant={draft.status === "Approved" ? "success" : draft.status === "Archived" ? "neutral" : "warning"}
+                  />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card title="V3 Reports">
+        {v3ReportsQuery.isLoading ? (
+          <LoadingState message="Loading reports..." />
+        ) : v3ReportsQuery.isError ? (
+          <ErrorState message={getErrorMessage(v3ReportsQuery.error)} />
+        ) : (v3ReportsQuery.data ?? []).length === 0 ? (
+          <EmptyState message="No V3 reports yet." />
+        ) : (
+          <ul className="report-list">
+            {(v3ReportsQuery.data ?? []).map((report) => (
+              <li key={report.id}>
+                <Link to={`/v3-reports/${report.id}`} className="report-list-item">
+                  <span>{report.title ?? "Report"}</span>
                   <span>{new Date(report.created_at).toLocaleString()}</span>
                 </Link>
               </li>

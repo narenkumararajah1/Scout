@@ -1,0 +1,24 @@
+// Outreach Draft domain operations (V3 Phase 7C). Wraps
+// GET /api/v1/outreach-drafts (list/detail) and the two human-reviewer
+// status actions (approve/archive) - never a send action; Scout has no
+// delivery capability anywhere in this codebase.
+import { apiRequestData } from "../api/client";
+import type { OutreachDraft } from "../types/outreachDraft";
+
+export const outreachDraftService = {
+  async listForCompany(companyId: string): Promise<OutreachDraft[]> {
+    return apiRequestData<OutreachDraft[]>(`/api/v1/outreach-drafts?company_id=${companyId}`);
+  },
+
+  async get(draftId: string): Promise<OutreachDraft> {
+    return apiRequestData<OutreachDraft>(`/api/v1/outreach-drafts/${draftId}`);
+  },
+
+  async approve(draftId: string): Promise<OutreachDraft> {
+    return apiRequestData<OutreachDraft>(`/api/v1/outreach-drafts/${draftId}/approve`, { method: "POST" });
+  },
+
+  async archive(draftId: string): Promise<OutreachDraft> {
+    return apiRequestData<OutreachDraft>(`/api/v1/outreach-drafts/${draftId}/archive`, { method: "POST" });
+  },
+};

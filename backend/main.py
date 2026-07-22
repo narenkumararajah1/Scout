@@ -9,8 +9,11 @@ from fastapi.responses import JSONResponse
 from backend.api.error_handlers import register_error_handlers
 from backend.api.routers.auth import router as auth_v1_router
 from backend.api.routers.companies import router as companies_v1_router
+from backend.api.routers.meeting_briefs import router as meeting_briefs_v1_router
 from backend.api.routers.notifications import router as notifications_v1_router
+from backend.api.routers.outreach_drafts import router as outreach_drafts_v1_router
 from backend.api.routers.reports import router as reports_v1_router
+from backend.api.routers.sales_playbooks import router as sales_playbooks_v1_router
 from backend.config import get_settings
 from backend.knowledge_ingestion import ingest_documents
 from backend.utils.logging import configure_logging
@@ -69,6 +72,9 @@ app.include_router(auth_v1_router)
 app.include_router(reports_v1_router)
 app.include_router(companies_v1_router)
 app.include_router(notifications_v1_router)
+app.include_router(sales_playbooks_v1_router)
+app.include_router(meeting_briefs_v1_router)
+app.include_router(outreach_drafts_v1_router)
 
 register_error_handlers(app)
 

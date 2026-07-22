@@ -1,15 +1,162 @@
-# Transitional Architecture (V3 Phase 7B)
+# Transitional Architecture (V3 Phase 7C)
 
 This document tracks the deliberate, temporary gap between what Scout's
 repository structure now looks like and what actually runs the product.
 It exists because `docs/v3/` describes a target architecture that this
 repo is migrating toward incrementally, in place, per
 `docs/v3/16_IMPLEMENTATION_ROADMAP.md` - not a system that already
-matches that target. Every item below should be resolved (and this
-section removed) as its corresponding phase lands; new transitional gaps
-opened in later phases should be added here rather than left implicit.
+matches that target. Phase 7C is the last implementation phase on that
+roadmap - Scout V3 is feature-complete as of this phase, pending the
+end-to-end verification and local frontend testing session that
+follows it. Every item below should be resolved (and this section
+removed) as it's addressed; new gaps discovered later should be added
+here rather than left implicit.
 
-## Current state (end of Phase 7B)
+## Current state (end of Phase 7C - feature-complete)
+
+- **Sales Playbook, Meeting Brief, Outreach Draft, and V3 Report are
+  now viewable in the frontend**, all as read-only detail pages
+  (`pages/{SalesPlaybookDetailPage,MeetingBriefDetailPage,
+  OutreachDraftDetailPage,V3ReportDetailPage}.tsx`) linked from four
+  new Company Details sections. Six new, thin, auth-protected `/api/v1`
+  endpoints expose Phase 6's already-built repositories unchanged:
+  `GET /api/v1/sales-playbooks[?company_id]`/`/{id}`,
+  `GET /api/v1/meeting-briefs[?company_id]`/`/{id}`,
+  `GET /api/v1/outreach-drafts[?company_id]`/`/{id}` (plus
+  `POST .../{id}/approve` and `.../{id}/archive`), and
+  `GET /api/v1/reports[?company_id]`/`/{id}` (V3, alongside the
+  existing PDF export route). None add new business logic; none
+  change the ORM, run a migration, or touch V2.
+- **No generation is exposed anywhere in this phase, deliberately.**
+  `sales_playbook_service.generate_sales_playbook()`,
+  `meeting_preparation_service.generate_meeting_brief()`, and
+  `outreach_service.generate_outreach_draft()` are all real LLM calls
+  (Phase 6) and remain completely unwired from any route - this phase
+  is read-only over whatever already exists in Postgres. The one
+  exception considered and rejected: `v3_report_service.
+  build_and_persist_report()` is pure assembly with **no** LLM call
+  (Phase 6's own docstring: "no new AI generation happens here"), which
+  made it tempting to wire up a "Generate Report" button; it was left
+  out anyway; to stay unambiguously inside "Do not regenerate reports
+  during viewing" and "read-only assembled artifacts" as written,
+  rather than making a unilateral call that a pure-assembly action
+  didn't count as "generation." **Practical consequence**: in an
+  environment where nothing has ever called these four services
+  outside of Phase 6's own tests, all four new Company Details sections
+  will show genuine empty states - this is correct, not a bug, and
+  matches "no demo-only logic or workarounds for missing backend data."
+- **Outreach Draft's Approve/Archive actions are new, and are not
+  generation.** `mark_draft_approved()`/`mark_draft_archived()`
+  (`backend/repositories/postgres/outreach_draft_repository.py`) were
+  built in Phase 6 explicitly "for a future human-reviewer UI" that
+  didn't exist yet - this is that UI. Both are pure status transitions;
+  neither calls the LLM or sends anything. The Draft-only invariant
+  (`create_outreach_draft()` force-sets `status="Draft"`) is completely
+  unmodified and untouched by this phase.
+- **Settings is 100% existing, real data - zero new backend work.**
+  Account info comes from the already-loaded `GET /api/v1/auth/me`
+  result in `AuthContext`; system status comes from V2's existing
+  `GET /system/status` (health + scheduler). No profile editing,
+  preference management, integration management, or API key management
+  exists anywhere in the backend, so none is fabricated in the UI - a
+  disconnected/degraded status is shown as-is (e.g. "Database:
+  Disconnected") rather than hidden.
+- **A real Phase 7B gap was caught and fixed while building this
+  phase**: `vite.config.ts`'s dev proxy only ever forwarded `/api/v1`
+  and `/companies` - `reportService.ts`/`analyticsService.ts` (Phase
+  7B) call `/reports/*` and `/analytics/*` directly, which had no
+  proxy entry and would have 404'd against the Vite dev server the
+  whole time. Added `/reports`, `/analytics`, and `/system` (needed by
+  this phase's Settings page) to the proxy list. This was never caught
+  earlier because the frontend has never actually run in this sandbox
+  - exactly the kind of thing the verification limitation below means
+  can slip through until someone runs `npm run dev` for real.
+- **A real Pydantic bug was caught by the `pgserver` verification, not
+  by writing the schemas correctly the first time**:
+  `SalesPlaybookOut`/`MeetingBriefOut`'s list fields (e.g.
+  `discovery_questions: List[str] = []`) looked fine against
+  hand-written test fixtures that happened to populate every field, but
+  failed real validation the moment a `SalesPlaybook`/`MeetingBrief`
+  row left a nullable JSONB column unset - the ORM attribute is a real
+  `None`, not an absent key, so Pydantic's field default never applies
+  and list-type validation rejects `None` outright. Fixed with a
+  `mode="before"` `field_validator` on both schemas that coerces `None`
+  to `[]` before list validation runs. This is exactly the kind of gap
+  the project's "verify against real Postgres, not just mocks" practice
+  (established since Phase 3A) exists to catch - a purely offline
+  review of the schema code would not have found it.
+- **Responsive layout rules were added** (`index.css`, breakpoints at
+  768px/576px per `docs/design/RESPONSIVENESS.md`'s general scale) -
+  the sidebar collapses to a horizontal, wrapping top bar below 768px,
+  and grid layouts (dashboard summary, intelligence sections) drop to a
+  single column below 576px. None of this has been visually confirmed
+  in a real browser - see the verification limitation below.
+- **Full Analytics vision (Technology/Hiring Trends, Leadership
+  Timeline, Industry Comparison, Business Priority Distribution per
+  `docs/v3/07_PAGE_ARCHITECTURE.md`) and charting remain unimplemented**
+  - unchanged from Phase 7B's own note; still blocked on new backend
+  aggregation work and a deliberate charting-library decision, neither
+  attempted in this final phase either.
+
+## Verification notes (Phase 7C)
+
+Backend: same `pgserver` workflow as every prior phase. Alembic chain
+unchanged (`0001` -> `0005` - this phase added no schema). First full
+run against real Postgres failed 4 tests - the `SalesPlaybookOut`/
+`MeetingBriefOut` bug above, caught precisely because these tests
+create real ORM rows without populating every nullable column, the
+same way a real, partially-generated artifact would look. Fixed, then
+420/420 passed with zero skips (400 from Phases 1-7B plus 20 new: 6 for
+sales playbooks, 4 for meeting briefs, 6 for outreach drafts, 4 for the
+V3 Report list/detail additions to `tests/test_reports_api_router.py`)
+- zero regressions. Live `data/scout.db` confirmed unchanged (still
+exactly Acme Corp, Hertz, Nutanix, OpenAI) before and after; the
+ephemeral Postgres instance was torn down and `pgserver` uninstalled
+afterward.
+
+Frontend: no execution was possible - see below.
+
+## Frontend verification limitation (Phase 7C - unresolved, environmental, unchanged since 7A)
+
+This sandbox still has no Node.js, npm, npx, or `tsc`. `npm run dev`,
+`npm run lint`, and `npm run build` have never run against any of this
+project's frontend code, across all three phases. What was done this
+phase, identical in kind to 7A/7B: the same import-resolution script
+re-run across the whole tree (all relative imports, including every new
+file this phase added, resolve to real files on disk) and a manual,
+file-by-file review against `tsconfig.json`'s strict settings -
+including deliberately restructuring `V3ReportDetailPage.tsx` to
+extract plain local `const`s for each optional content section rather
+than relying on TypeScript's narrowing through chained optional
+properties inside nested ternaries, specifically because that narrowing
+behavior couldn't be verified by a real compile here. None of this
+substitutes for `tsc`, ESLint, or a browser render, and no screenshot or
+console log exists for any page in this project.
+
+**Local verification steps** (unchanged in mechanics from Phase 7A,
+repeated here since this is the last phase before a dedicated
+verification session):
+
+```bash
+cd frontend/react
+npm install
+npm run dev
+```
+
+With the FastAPI backend also running and at least one real user row in
+Postgres, exercise, in addition to everything listed in Phases 7A/7B's
+notes: Company Details' four new sections (Sales Playbooks, Meeting
+Briefs, Outreach Drafts, V3 Reports) - expect empty states unless
+Phase 6's generation services have been run directly at least once to
+seed real rows; an Outreach Draft's Approve/Archive buttons and their
+resulting status change; a V3 Report's Export PDF button; and Settings'
+account/system status display. Also worth confirming the responsive
+breakpoints actually behave as intended by resizing the browser window
+or using dev tools' device emulation - this was never visually checked.
+Also run `npm run lint` and `npm run build` (`tsc -b && vite build`),
+neither of which has ever executed against this code.
+
+## Previous state (end of Phase 7B)
 
 - **Reports, Analytics, and Notifications are now real pages, built
   almost entirely on V2 endpoints that already existed** -
@@ -379,10 +526,18 @@ companies by name.
 
 Per `docs/v3/16_IMPLEMENTATION_ROADMAP.md`:
 
-- **Wiring Phase 6's services into something live** (not yet done - this
-  phase built and verified them standalone, same as Phase 5): likely new
-  API routes once a real frontend consumer exists (Phase 7), or hooked
-  into `AI_ORCHESTRATION_MODE`'s later stages.
+- **Wiring Phase 5/6's AI-generation services into something live** -
+  `sales_playbook_service.generate_sales_playbook()`,
+  `meeting_preparation_service.generate_meeting_brief()`,
+  `outreach_service.generate_outreach_draft()`, and
+  `v3_report_service.build_and_persist_report()` all remain completely
+  unwired from any route across every phase through 7C. This is now the
+  single largest concrete gap between "the backend can do this" and
+  "a user can make it happen from the UI" - every other Phase 5/6
+  capability is now at least viewable. Deciding how/whether to expose
+  generation (a button, an automatic trigger after Manual Analysis, a
+  background job) is explicitly deferred, not attempted by any phase so
+  far.
 - **The export route's Postgres dependency** - a graceful degraded
   response (rather than a 500) if Postgres is unreachable would need a
   deliberate decision on what that response should look like; not
@@ -391,23 +546,26 @@ Per `docs/v3/16_IMPLEMENTATION_ROADMAP.md`:
 - **Configuring Glean for real, advancing `AI_ORCHESTRATION_MODE`/
   `MIGRATION_MODE` past their defaults** - both independent of Phase 6,
   carried over unchanged from Phases 3B/4B/5.
-- **Phase 7C:** Settings (once there's real profile/integration/
-  preference state to expose), a Sales Enablement UI (Sales Playbook/
-  Meeting Brief/Outreach Draft review screens over Phase 6's services),
-  and viewing the richer V3 Report (currently PDF-export-only). Report
-  distribution and real charts remain explicitly out of scope until a
-  deliberate decision is made to add them (see this phase's entries
-  above). Streamlit is retired only once React reaches feature parity.
-- **Actually running the Phase 7A/7B frontend** - `npm install && npm
-  run dev` (and `npm run lint` / `npm run build`) need to happen on a
-  machine with Node.js before any of this frontend's claims move from
-  "internally consistent by inspection" to "verified working." See the
-  dedicated limitation section above.
-- **V2's `/companies/*` endpoints still take no JWT** - Phase 7A's
-  frontend enforces login at the route level client-side only; making
-  the backend itself require a token for these endpoints (bringing them
-  in line with `/api/v1/*`) is a deliberate, not-yet-made decision, not
-  an oversight of this phase.
+- **Full Analytics (Technology/Hiring Trends, Leadership Timeline,
+  Industry Comparison) and any charting library** - both need new
+  backend aggregation work and a deliberate library choice; neither was
+  attempted in Phase 7B or 7C.
+- **Report distribution** (`POST /reports/{id}/distribute`) remains
+  deliberately unexposed in the frontend across 7B and 7C - a real send
+  side-effect through V2's recipient system, out of scope until
+  explicitly requested.
+- **Actually running the frontend at all** - `npm install && npm run
+  dev` (and `npm run lint` / `npm run build`) need to happen on a
+  machine with Node.js before any of this frontend's claims, across all
+  of Phases 7A/7B/7C, move from "internally consistent by inspection"
+  to "verified working." This is the concrete blocker for the
+  end-to-end verification session that follows this phase.
+- **V2's `/companies/*` (and `/reports/*`, `/analytics/*`, `/system/*`)
+  endpoints still take no JWT** - the frontend enforces login at the
+  route level client-side only; making these backend endpoints
+  themselves require a token (bringing them in line with `/api/v1/*`)
+  is a deliberate, not-yet-made decision, not an oversight of any
+  phase.
 - **A later phase (not yet scheduled):** full token lifecycle - refresh
   tokens, logout/session invalidation.
 
