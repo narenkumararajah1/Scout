@@ -26,6 +26,7 @@ import { useToasts } from "../hooks/useToasts";
 import { useV3Reports } from "../hooks/useV3Reports";
 import { companyService } from "../services/companyService";
 import { getErrorMessage } from "../utils/errors";
+import { outreachStatusVariant } from "../utils/outreachDraft";
 
 const OUTREACH_TYPES = ["Email", "Follow-up", "Meeting Request", "LinkedIn Message"];
 
@@ -74,6 +75,7 @@ export function CompanyDetailsPage() {
   const [executiveName, setExecutiveName] = useState("");
   const [talkingPointsText, setTalkingPointsText] = useState("");
   const [outreachOpportunityId, setOutreachOpportunityId] = useState("");
+  const [outreachMeetingBriefId, setOutreachMeetingBriefId] = useState("");
 
   function handleRunAnalysis() {
     pushToast("Analysis started - this can take a minute.", "progress");
@@ -118,10 +120,9 @@ export function CompanyDetailsPage() {
   }
 
   function handleGenerateDraft() {
-    if (!executiveName) {
-      pushToast("Choose an executive first.", "error");
-      return;
-    }
+    // Outreach workflow redesign: generation never requires an
+    // executive - if one isn't chosen, the backend drafts a
+    // high-quality generic outreach instead of blocking.
     const talkingPoints = talkingPointsText
       .split("\n")
       .map((line) => line.trim())
@@ -130,9 +131,10 @@ export function CompanyDetailsPage() {
     generateDraft.mutate(
       {
         outreachType,
-        executiveName,
+        executiveName: executiveName || undefined,
         talkingPoints,
         opportunityId: outreachOpportunityId || undefined,
+        meetingBriefId: outreachMeetingBriefId || undefined,
       },
       {
         onSuccess: () => {
@@ -415,6 +417,10 @@ export function CompanyDetailsPage() {
       </Card>
 
       <Card title="Outreach Drafts">
+        <p className="card-description">
+          Generate a draft first - no executive or contact info needed. Choose who it's for and send it later,
+          from the draft itself.
+        </p>
         <div className="generate-form generate-form-outreach">
           <select value={outreachType} onChange={(event) => setOutreachType(event.target.value)}>
             {OUTREACH_TYPES.map((type) => (
@@ -424,7 +430,7 @@ export function CompanyDetailsPage() {
             ))}
           </select>
           <select value={executiveName} onChange={(event) => setExecutiveName(event.target.value)}>
-            <option value="">Choose an executive...</option>
+            <option value="">Executive (optional)</option>
             {(intelligence?.executives ?? []).map((executive) => (
               <option key={executive.id} value={executive.name}>
                 {executive.name}
@@ -440,8 +446,19 @@ export function CompanyDetailsPage() {
               </option>
             ))}
           </select>
+          <select
+            value={outreachMeetingBriefId}
+            onChange={(event) => setOutreachMeetingBriefId(event.target.value)}
+          >
+            <option value="">Related meeting brief (optional)</option>
+            {(meetingBriefsQuery.data ?? []).map((brief) => (
+              <option key={brief.id} value={brief.id}>
+                {brief.meeting_title ?? "Meeting Brief"}
+              </option>
+            ))}
+          </select>
           <textarea
-            placeholder="Talking points, one per line"
+            placeholder="Talking points, one per line (optional)"
             value={talkingPointsText}
             onChange={(event) => setTalkingPointsText(event.target.value)}
             rows={3}
@@ -466,7 +483,7 @@ export function CompanyDetailsPage() {
                   </span>
                   <Badge
                     label={draft.status}
-                    variant={draft.status === "Approved" ? "success" : draft.status === "Archived" ? "neutral" : "warning"}
+                    variant={outreachStatusVariant(draft.status)}
                   />
                 </Link>
               </li>

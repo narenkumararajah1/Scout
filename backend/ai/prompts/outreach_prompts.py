@@ -1,18 +1,35 @@
-"""Prompts for the Outreach Service (V3 Phase 6).
+"""Prompts for the Outreach Service (V3 Phase 6; V2->V3 parity pass
+loosens executive_name to optional so generation never blocks on
+contact information - see backend/services/outreach_service.py's
+module docstring).
 
-Generation only - see backend/services/outreach_service.py's module
-docstring. These prompts never ask the model to send anything, only to
-draft content for human review.
+Generation only - these prompts never ask the model to send anything,
+only to draft content for human review.
 """
+
+from typing import Optional
 
 
 def build_outreach_prompt(
-    company_name: str, executive_name: str, outreach_type: str, talking_points: list, context: str
+    company_name: str,
+    executive_name: Optional[str],
+    outreach_type: str,
+    talking_points: list,
+    context: str,
 ) -> str:
+    recipient_description = f'"{executive_name}"' if executive_name else "the most relevant executive contact"
     return (
-        f'Draft a {outreach_type} to "{executive_name}" at "{company_name}" for an Innominds sales '
-        "team, for human review before it is ever sent - do not address it as if it will be sent "
-        "automatically.\n\n"
+        f'Draft a {outreach_type} to {recipient_description} at "{company_name}" for an Innominds '
+        "sales team, for human review before it is ever sent - do not address it as if it will be "
+        "sent automatically."
+        + (
+            ""
+            if executive_name
+            else " No specific contact name is known yet, so address it generically (e.g. by role or "
+            "team, not a placeholder like \"[Name]\") - write it so a reviewer can drop in a name "
+            "later without needing to rewrite the greeting."
+        )
+        + "\n\n"
         f"Talking points to draw from:\n{talking_points}\n\n"
         f"Additional context:\n{context or 'None provided.'}\n\n"
         "Respond with ONLY a JSON object, no other text, with exactly these keys:\n"

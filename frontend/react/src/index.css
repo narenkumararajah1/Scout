@@ -626,6 +626,247 @@ a {
   margin: 0;
 }
 
+/* Report readability (prose, numbered/bullet lists, opportunity and
+   capability cards) - presentation only, applied on top of whatever
+   the report/playbook/brief content already says. */
+.card-title {
+  font-weight: 700;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eceef1;
+}
+
+.report-section-intro {
+  color: #6b7280;
+  font-style: italic;
+  margin: 0 0 1rem;
+  line-height: 1.55;
+}
+
+.prose-section p {
+  margin: 0 0 0.85rem;
+  line-height: 1.65;
+  color: #2b2f38;
+}
+
+.prose-section p:last-child {
+  margin-bottom: 0;
+}
+
+.prose-section-lead p:first-child {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #14161c;
+}
+
+.numbered-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.numbered-list-item {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.numbered-list-index {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: #eef1ff;
+  color: #2b59ff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.numbered-list-text {
+  line-height: 1.6;
+  padding-top: 0.2rem;
+}
+
+.bullet-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.bullet-list-item {
+  position: relative;
+  padding-left: 1.1rem;
+  line-height: 1.55;
+}
+
+.bullet-list-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2b59ff;
+}
+
+.bullet-list-compact {
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.bullet-list-compact .bullet-list-item {
+  font-size: 0.9rem;
+  color: #4b5162;
+}
+
+.opportunity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.opportunity-card {
+  border: 1px solid #e3e5ea;
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  background: #fbfbfd;
+}
+
+.opportunity-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.opportunity-card-title {
+  margin: 0;
+  font-size: 1rem;
+  color: #14161c;
+}
+
+.opportunity-card-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.opportunity-card-focus {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+  color: #4b5162;
+  font-size: 0.9rem;
+}
+
+.opportunity-card-description {
+  margin: 0;
+  line-height: 1.6;
+  color: #2b2f38;
+}
+
+.capability-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.capability-card {
+  border-left: 3px solid #2b59ff;
+  padding: 0.25rem 0 0.25rem 0.9rem;
+}
+
+.capability-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+
+.capability-card-name {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #14161c;
+}
+
+.capability-card-description {
+  margin: 0;
+  line-height: 1.6;
+  color: #2b2f38;
+}
+
+.objection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.objection-item {
+  border-radius: 6px;
+  background: #f7f8fa;
+  padding: 0.75rem 0.9rem;
+}
+
+.objection-item-question {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+  color: #14161c;
+}
+
+.objection-item-answer {
+  margin: 0;
+  color: #2b2f38;
+  line-height: 1.55;
+}
+
+.tag-item-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tag-item {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eceef1;
+}
+
+.tag-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.tag-item-name {
+  font-weight: 600;
+  color: #14161c;
+  margin-right: 0.5rem;
+}
+
+.tag-item-badges {
+  display: inline-flex;
+  gap: 0.4rem;
+  vertical-align: middle;
+}
+
+.tag-item-detail {
+  margin: 0.35rem 0 0;
+  color: #4b5162;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .delivery-list,
 .report-list {
   list-style: none;
@@ -677,6 +918,44 @@ a {
 /* Settings */
 .settings-page .company-overview {
   grid-template-columns: max-content 1fr;
+}
+
+/* Outreach Draft review/send (outreach workflow redesign) */
+.outreach-edit-subject {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
+}
+
+.outreach-edit-content {
+  width: 100%;
+  padding: 0.65rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
+  font-family: inherit;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.outreach-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.send-outreach-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 420px;
+}
+
+.send-outreach-form input,
+.send-outreach-form select {
+  padding: 0.5rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
 }
 
 /* Responsive layout (V3 Phase 7C) - breakpoints per

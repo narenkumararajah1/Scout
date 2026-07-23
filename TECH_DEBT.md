@@ -15,6 +15,118 @@ by inspection. Every item below should be resolved (and this section
 removed) as it's addressed; new gaps discovered later should be added
 here rather than left implicit.
 
+## Outreach workflow redesign - generation and delivery are now separate steps
+
+Previously, generating an Outreach Draft required an executive name -
+a real regression against how a user actually wants to work (draft
+first, decide who it's for later). Redesigned into three independent
+steps:
+
+- **Step 1, Generate**: `POST /api/v1/outreach-drafts` no longer
+  requires `executive_name` - `backend/services/outreach_service.py`
+  and `backend/ai/prompts/outreach_prompts.py` both accept it as
+  `Optional[str]`, and when absent, the prompt asks the model to
+  address the draft generically (by role/team, not a "[Name]"
+  placeholder) rather than blocking. The router now also auto-enriches
+  the model's context from the company's latest V2 Report's
+  `executive_summary` and, if the caller passes a `meeting_brief_id`,
+  that Meeting Brief's summary too - both pulled from already-persisted
+  data (`report_repository.list_reports()`,
+  `meeting_brief_repository.get_meeting_brief()`), not new business
+  logic. Company Details' generation form reflects this: the executive
+  select is now explicitly "(optional)", and a new "Related meeting
+  brief (optional)" select was added alongside the existing opportunity
+  one.
+- **Step 2, Review**: the Outreach Draft detail page gained Edit (a
+  subject/content textarea, pre-filled), Save (`PATCH
+  /api/v1/outreach-drafts/{id}` ->
+  `outreach_draft_repository.update_outreach_draft_content()`, content
+  only, never touches status), and Copy (clipboard, frontend-only).
+- **Step 3, Delivery ("Send Through Scout")**: only this step asks for
+  channel/recipient email/executive name, and only this step can
+  actually send. This is a genuine capability reversal, not just a UI
+  change - `backend/services/outreach_service.py`'s docstring
+  previously said "Scout never sends customer communications" as a
+  hard architectural invariant; that's no longer true. The low-level
+  send primitives were extracted from Report Distribution's existing
+  channels (`backend/distribution/email_channel.py`'s new
+  `send_raw_email()`, `teams_channel.py`'s new
+  `post_raw_teams_message()`) rather than duplicated - `send_email()`/
+  `send_teams_message()` (used by `distribution_service.py` for Report
+  Distribution) are now thin wrappers over those same primitives, with
+  their existing behavior/signature completely unchanged. A new
+  `backend/services/outreach_delivery_service.py` calls them with an
+  Outreach Draft's own subject/content instead of a formatted Report,
+  and only calls `outreach_draft_repository.mark_draft_sent()` (new,
+  parallel to `mark_draft_approved()`/`mark_draft_archived()`) after a
+  real delivery attempt actually succeeds - never automatically, and
+  never from generation. Gated behind a `ConfirmDialog` exactly like
+  Report Distribution already is, since it's the same class of
+  real-send action.
+
+**A real send happened during this pass's own verification, worth
+recording plainly**: this environment's `.env` has live SMTP
+credentials configured (unlike the pytest suite, which
+`tests/conftest.py` deliberately blanks these settings for). Clicking
+through "Send Through Scout" live in the browser to verify the feature
+sent a real email via that real SMTP account to a fabricated test
+address (`test-recipient@example.com` - IANA-reserved for
+documentation/testing, RFC 2606, so no real inbox received it, but the
+send itself was genuine). **Before verifying this feature again in any
+environment, check whether `SMTP_HOST`/`TEAMS_WEBHOOK_URL` are
+configured first** - if they are, either use a fixture the surrounding
+test infra already isolates (as the automated test suite does) or
+expect a real send to actually go out.
+
+## Diagnosed: "Meeting Brief generation is not working" (not a code bug)
+
+**Report**: generating a Meeting Brief from Company Details failed for
+some companies.
+
+**Root cause**: not specific to Meeting Briefs, and not a bug in any of
+this repo's application code. Every generation endpoint (Sales
+Playbook, Meeting Brief, Outreach Draft, V3 Report) persists into a
+Postgres table with a foreign key on `company_id` referencing Postgres's
+own `companies` table. That table is only ever populated by
+`scripts/migrate_sqlite_to_postgres.py` (Phase 3A) or by writes made
+while `migration_mode` is `dual_write`/`postgres`/`shadow_read` -
+`migration_mode` defaults to `sqlite`, under which company creation
+(the `/companies` POST V2 has always used) only ever writes to SQLite.
+A fresh Postgres instance stood up for local verification therefore has
+Alembic's *schema* (migrations `0001`-`0005`) but zero *rows* in
+`companies` - generating for any such company fails with
+`ForeignKeyViolationError: ... is not present in table "companies"`,
+caught by the catch-all handler and surfaced to the frontend as the
+generic "An unexpected error occurred." toast. Confirmed this wasn't
+Meeting-Brief-specific by reproducing the identical failure against
+Sales Playbook generation for the same un-migrated company.
+
+**Fix**: ran the existing, already-built, idempotent
+`python -m scripts.migrate_sqlite_to_postgres` against the verification
+Postgres instance - it upserts every SQLite `companies` and
+`opportunities` row into Postgres by id, safe to re-run at any time.
+Zero application code changed; this was a one-time data step for that
+environment, not a patch. Confirmed root-caused (not just
+symptom-patched) by reproducing the exact failure first, then watching
+it disappear immediately after the migration script ran, with no other
+change.
+
+**Verified end-to-end after the fix**, for a company that had failed
+moments before: generation succeeds (via the actual UI button, not just
+the API) -> the row exists in Postgres (`GET /api/v1/meeting-briefs?
+company_id=...`) -> it appears in Company Details' Meeting Briefs
+section -> it appears in the Sales Enablement hub for that company ->
+its detail page renders correctly -> a full page reload
+(`/meeting-briefs/{id}`) still shows it.
+
+**Any real deployment** advancing past `migration_mode: sqlite` (the
+documented, already-planned next step - see "What changes this, and
+when" below) would never hit this, since company writes would already
+be landing in Postgres. Worth remembering for anyone else standing up
+a fresh local/ephemeral Postgres against this repo: run the migration
+script once, right after `alembic upgrade head`, before trying any
+generation flow.
+
 ## Current state (V2->V3 parity pass - feature-complete)
 
 A full V2 -> V3 parity review (comparing V2's Streamlit app and V3's

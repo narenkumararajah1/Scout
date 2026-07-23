@@ -4,10 +4,12 @@
 // trigger exists on this page.
 import { Link, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
+import { BulletList } from "../components/ui/BulletList";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { ProseSection } from "../components/ui/ProseSection";
 import { useSalesPlaybook } from "../hooks/useSalesPlaybook";
 import { getErrorMessage } from "../utils/errors";
 
@@ -46,7 +48,7 @@ export function SalesPlaybookDetailPage() {
 
       <Card title="Strategy Summary">
         {playbook.strategy_summary ? (
-          <p className="report-section-text">{playbook.strategy_summary}</p>
+          <ProseSection text={playbook.strategy_summary} lead />
         ) : (
           <EmptyState message="Not available." />
         )}
@@ -56,11 +58,7 @@ export function SalesPlaybookDetailPage() {
         {playbook.discovery_questions.length === 0 ? (
           <EmptyState message="No discovery questions." />
         ) : (
-          <ul>
-            {playbook.discovery_questions.map((question, index) => (
-              <li key={index}>{question}</li>
-            ))}
-          </ul>
+          <BulletList items={playbook.discovery_questions} />
         )}
       </Card>
 
@@ -68,11 +66,7 @@ export function SalesPlaybookDetailPage() {
         {playbook.talking_points.length === 0 ? (
           <EmptyState message="No talking points." />
         ) : (
-          <ul>
-            {playbook.talking_points.map((point, index) => (
-              <li key={index}>{point}</li>
-            ))}
-          </ul>
+          <BulletList items={playbook.talking_points} />
         )}
       </Card>
 
@@ -80,13 +74,14 @@ export function SalesPlaybookDetailPage() {
         {playbook.objection_handling.length === 0 ? (
           <EmptyState message="No objection handling notes." />
         ) : (
-          <ul>
+          <div className="objection-list">
             {playbook.objection_handling.map((item, index) => (
-              <li key={index}>
-                <strong>{item.objection}</strong> — {item.response}
-              </li>
+              <div key={index} className="objection-item">
+                <p className="objection-item-question">{item.objection}</p>
+                <p className="objection-item-answer">{item.response}</p>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </Card>
 
@@ -94,11 +89,7 @@ export function SalesPlaybookDetailPage() {
         {playbook.recommended_services.length === 0 ? (
           <EmptyState message="No recommended services." />
         ) : (
-          <ul>
-            {playbook.recommended_services.map((service, index) => (
-              <li key={index}>{service}</li>
-            ))}
-          </ul>
+          <BulletList items={playbook.recommended_services} />
         )}
       </Card>
 
@@ -106,11 +97,7 @@ export function SalesPlaybookDetailPage() {
         {playbook.next_steps.length === 0 ? (
           <EmptyState message="No next steps." />
         ) : (
-          <ul>
-            {playbook.next_steps.map((step, index) => (
-              <li key={index}>{step}</li>
-            ))}
-          </ul>
+          <BulletList items={playbook.next_steps} />
         )}
       </Card>
 
@@ -118,11 +105,7 @@ export function SalesPlaybookDetailPage() {
         {playbook.risks.length === 0 ? (
           <EmptyState message="No risks noted." />
         ) : (
-          <ul>
-            {playbook.risks.map((risk, index) => (
-              <li key={index}>{risk}</li>
-            ))}
-          </ul>
+          <BulletList items={playbook.risks} />
         )}
       </Card>
     </div>

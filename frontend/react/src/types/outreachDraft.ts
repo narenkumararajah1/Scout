@@ -1,7 +1,8 @@
 // Mirrors backend/schemas/outreach_draft.py's OutreachDraftOut exactly.
-// `status` is always "Draft" at creation; "Approved"/"Archived" only
-// via the two dedicated approve/archive actions - Scout never sends
-// anything regardless of status.
+// `status` is always "Draft" at creation; "Approved"/"Archived" via the
+// two human-reviewer actions, "Sent" only via a real send through
+// POST /{id}/send (outreach workflow redesign - generation itself never
+// changes status).
 
 export interface OutreachDraft {
   id: string;

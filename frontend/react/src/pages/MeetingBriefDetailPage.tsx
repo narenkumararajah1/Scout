@@ -4,10 +4,12 @@
 // analysis, only displays it.
 import { Link, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
+import { BulletList } from "../components/ui/BulletList";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { ProseSection } from "../components/ui/ProseSection";
 import { useMeetingBrief } from "../hooks/useMeetingBrief";
 import { getErrorMessage } from "../utils/errors";
 
@@ -44,7 +46,7 @@ export function MeetingBriefDetailPage() {
 
       <Card title="Executive Summary">
         {brief.executive_summary ? (
-          <p className="report-section-text">{brief.executive_summary}</p>
+          <ProseSection text={brief.executive_summary} lead />
         ) : (
           <EmptyState message="Not available." />
         )}
@@ -54,11 +56,7 @@ export function MeetingBriefDetailPage() {
         {brief.business_priorities.length === 0 ? (
           <EmptyState message="No business priorities." />
         ) : (
-          <ul>
-            {brief.business_priorities.map((priority, index) => (
-              <li key={index}>{priority}</li>
-            ))}
-          </ul>
+          <BulletList items={brief.business_priorities} />
         )}
       </Card>
 
@@ -81,11 +79,7 @@ export function MeetingBriefDetailPage() {
         {brief.meeting_objectives.length === 0 ? (
           <EmptyState message="No meeting objectives." />
         ) : (
-          <ul>
-            {brief.meeting_objectives.map((objective, index) => (
-              <li key={index}>{objective}</li>
-            ))}
-          </ul>
+          <BulletList items={brief.meeting_objectives} />
         )}
       </Card>
 
@@ -93,11 +87,7 @@ export function MeetingBriefDetailPage() {
         {brief.talking_points.length === 0 ? (
           <EmptyState message="No talking points." />
         ) : (
-          <ul>
-            {brief.talking_points.map((point, index) => (
-              <li key={index}>{point}</li>
-            ))}
-          </ul>
+          <BulletList items={brief.talking_points} />
         )}
       </Card>
 
@@ -105,11 +95,7 @@ export function MeetingBriefDetailPage() {
         {brief.discovery_questions.length === 0 ? (
           <EmptyState message="No discovery questions." />
         ) : (
-          <ul>
-            {brief.discovery_questions.map((question, index) => (
-              <li key={index}>{question}</li>
-            ))}
-          </ul>
+          <BulletList items={brief.discovery_questions} />
         )}
       </Card>
 
@@ -117,11 +103,7 @@ export function MeetingBriefDetailPage() {
         {brief.recommended_services.length === 0 ? (
           <EmptyState message="No recommended services." />
         ) : (
-          <ul>
-            {brief.recommended_services.map((service, index) => (
-              <li key={index}>{service}</li>
-            ))}
-          </ul>
+          <BulletList items={brief.recommended_services} />
         )}
       </Card>
     </div>

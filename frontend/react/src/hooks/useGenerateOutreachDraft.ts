@@ -3,9 +3,10 @@ import { outreachDraftService } from "../services/outreachDraftService";
 
 export interface GenerateOutreachDraftInput {
   outreachType: string;
-  executiveName: string;
+  executiveName?: string;
   talkingPoints: string[];
   opportunityId?: string;
+  meetingBriefId?: string;
   context?: string;
 }
 

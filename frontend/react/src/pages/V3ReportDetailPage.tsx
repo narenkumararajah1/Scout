@@ -9,10 +9,13 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
+import { CapabilityCard } from "../components/ui/CapabilityCard";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { OpportunityCard } from "../components/ui/OpportunityCard";
+import { ProseSection } from "../components/ui/ProseSection";
 import { ToastContainer } from "../components/ui/Toast";
 import { useV3Report } from "../hooks/useV3Report";
 import { useToasts } from "../hooks/useToasts";
@@ -77,7 +80,7 @@ export function V3ReportDetailPage() {
 
       <Card title="Executive Summary">
         {report.executive_summary ? (
-          <p className="report-section-text">{report.executive_summary}</p>
+          <ProseSection text={report.executive_summary} lead />
         ) : (
           <EmptyState message="Not available." />
         )}
@@ -102,11 +105,15 @@ export function V3ReportDetailPage() {
         {technologies.length === 0 ? (
           <EmptyState message="No technologies recorded." />
         ) : (
-          <ul>
+          <ul className="tag-item-list">
             {technologies.map((tech, index) => (
-              <li key={index}>
-                {tech.name}
-                {tech.category ? ` — ${tech.category}` : ""}
+              <li key={index} className="tag-item">
+                <span className="tag-item-name">{tech.name}</span>
+                <span className="tag-item-badges">
+                  {tech.category && <Badge label={tech.category} variant="neutral" />}
+                  {tech.adoption_status && <Badge label={tech.adoption_status} variant="success" />}
+                </span>
+                {tech.business_relevance && <p className="tag-item-detail">{tech.business_relevance}</p>}
               </li>
             ))}
           </ul>
@@ -117,11 +124,18 @@ export function V3ReportDetailPage() {
         {opportunities.length === 0 ? (
           <EmptyState message="No opportunities recorded." />
         ) : (
-          <ul>
+          <div className="opportunity-grid">
             {opportunities.map((opportunity, index) => (
-              <li key={index}>{opportunity.title}</li>
+              <OpportunityCard
+                key={index}
+                title={opportunity.title}
+                priority={opportunity.priority}
+                confidence={opportunity.confidence_score}
+                description={opportunity.description ?? ""}
+                recommendedServices={opportunity.recommended_services}
+              />
             ))}
-          </ul>
+          </div>
         )}
       </Card>
 
@@ -129,11 +143,16 @@ export function V3ReportDetailPage() {
         {capabilityMatches.length === 0 ? (
           <EmptyState message="No capability matches recorded." />
         ) : (
-          <ul>
+          <div className="capability-list">
             {capabilityMatches.map((match, index) => (
-              <li key={index}>{match.capability_name}</li>
+              <CapabilityCard
+                key={index}
+                name={match.capability_name}
+                confidence={match.confidence}
+                description={match.reasoning}
+              />
             ))}
-          </ul>
+          </div>
         )}
       </Card>
 
@@ -141,11 +160,23 @@ export function V3ReportDetailPage() {
         {executives.length === 0 ? (
           <EmptyState message="No executives recorded." />
         ) : (
-          <ul>
+          <ul className="tag-item-list">
             {executives.map((executive, index) => (
-              <li key={index}>
-                {executive.name}
-                {executive.title ? ` — ${executive.title}` : ""}
+              <li key={index} className="tag-item">
+                <span className="tag-item-name">
+                  {executive.name}
+                  {executive.title ? ` — ${executive.title}` : ""}
+                </span>
+                {executive.biography && <p className="tag-item-detail">{executive.biography}</p>}
+                {executive.business_priorities && executive.business_priorities.length > 0 && (
+                  <ul className="bullet-list bullet-list-compact">
+                    {executive.business_priorities.map((priority, priorityIndex) => (
+                      <li key={priorityIndex} className="bullet-list-item">
+                        {priority}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>

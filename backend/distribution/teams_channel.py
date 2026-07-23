@@ -30,22 +30,34 @@ def build_teams_payload(recipient: Recipient, report: Report, company: Company) 
     return {"text": text}
 
 
-def send_teams_message(recipient: Recipient, report: Report, company: Company) -> bool:
-    """Posts `report` to the configured Teams webhook.
+def post_raw_teams_message(text: str) -> bool:
+    """Low-level Teams webhook post, independent of what's being
+    delivered - extracted (V2->V3 parity pass, outreach workflow
+    redesign) so backend/services/outreach_delivery_service.py can post
+    an Outreach Draft's already-composed content without duplicating
+    this webhook-call logic, exactly as send_teams_message() below
+    already does for a Report.
 
     Returns True if posted, False if skipped because no webhook is
     configured. Raises if the POST was attempted but failed (network
-    error, non-2xx response) - the caller (distribution_service) decides
-    how to record that as Delivery History.
+    error, non-2xx response) - the caller decides how to record that.
     """
     settings = get_settings()
     if not settings.teams_webhook_url:
-        logger.info("Teams delivery not configured - skipping recipient %s.", recipient.id)
+        logger.info("Teams delivery not configured - skipping.")
         return False
 
-    payload = build_teams_payload(recipient, report, company)
-    response = requests.post(settings.teams_webhook_url, json=payload, timeout=10)
+    response = requests.post(settings.teams_webhook_url, json={"text": text}, timeout=10)
     response.raise_for_status()
 
-    logger.info("Posted report %s to Teams for recipient %s.", report.id, recipient.id)
+    logger.info("Posted message to Teams.")
     return True
+
+
+def send_teams_message(recipient: Recipient, report: Report, company: Company) -> bool:
+    """Posts `report` to the configured Teams webhook. See
+    post_raw_teams_message() for the return/raise contract - this only
+    builds the Report-specific text and delegates the actual post.
+    """
+    payload = build_teams_payload(recipient, report, company)
+    return post_raw_teams_message(payload["text"])

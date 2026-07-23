@@ -5,29 +5,34 @@
 // irreversible send, gated behind an explicit confirmation dialog.
 import { Link, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
+import { BulletList } from "../components/ui/BulletList";
+import { CapabilityCard } from "../components/ui/CapabilityCard";
 import { Card } from "../components/ui/Card";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { NumberedList } from "../components/ui/NumberedList";
+import { OpportunityCard } from "../components/ui/OpportunityCard";
+import { ProseSection } from "../components/ui/ProseSection";
 import { ToastContainer } from "../components/ui/Toast";
 import { useConfirm } from "../hooks/useConfirm";
 import { useDistributeReport } from "../hooks/useDistributeReport";
 import { useReport } from "../hooks/useReport";
 import { useReportDeliveries } from "../hooks/useReportDeliveries";
 import { useToasts } from "../hooks/useToasts";
-import type { Report } from "../types/report";
 import { getErrorMessage } from "../utils/errors";
+import {
+  parseCapabilityAlignmentText,
+  parseOpportunitiesText,
+  splitNumberedList,
+} from "../utils/reportFormatting";
 
-const REPORT_SECTIONS: Array<{ key: keyof Report; label: string }> = [
+const PROSE_SECTIONS: Array<{ key: "executive_summary" | "company_overview" | "key_findings" | "technology_analysis"; label: string }> = [
   { key: "executive_summary", label: "Executive Summary" },
   { key: "company_overview", label: "Company Overview" },
   { key: "key_findings", label: "Key Findings" },
   { key: "technology_analysis", label: "Technology Analysis" },
-  { key: "capability_alignment", label: "Capability Alignment" },
-  { key: "opportunities_section", label: "Opportunities" },
-  { key: "recommendations", label: "Recommendations" },
-  { key: "talking_points", label: "Talking Points" },
 ];
 
 export function ReportDetailPage() {
@@ -88,14 +93,93 @@ export function ReportDetailPage() {
         </button>
       </div>
 
-      {REPORT_SECTIONS.map(({ key, label }) => {
+      {PROSE_SECTIONS.map(({ key, label }) => {
         const value = report[key];
         return (
           <Card key={key} title={label}>
-            {value ? <p className="report-section-text">{value}</p> : <EmptyState message="Not available." />}
+            {value ? <ProseSection text={value} lead={key === "executive_summary"} /> : <EmptyState message="Not available." />}
           </Card>
         );
       })}
+
+      <Card title="Capability Alignment">
+        {(() => {
+          const value = report.capability_alignment;
+          if (!value) {
+            return <EmptyState message="Not available." />;
+          }
+          const parsed = parseCapabilityAlignmentText(value);
+          if (!parsed) {
+            return <ProseSection text={value} />;
+          }
+          return (
+            <>
+              {parsed.intro && <p className="report-section-intro">{parsed.intro}</p>}
+              <div className="capability-list">
+                {parsed.items.map((item, index) => (
+                  <CapabilityCard
+                    key={index}
+                    name={item.name}
+                    confidence={item.confidence}
+                    description={item.description}
+                  />
+                ))}
+              </div>
+            </>
+          );
+        })()}
+      </Card>
+
+      <Card title="Opportunities">
+        {(() => {
+          const value = report.opportunities_section;
+          if (!value) {
+            return <EmptyState message="Not available." />;
+          }
+          const parsed = parseOpportunitiesText(value);
+          if (!parsed) {
+            return <ProseSection text={value} />;
+          }
+          return (
+            <>
+              {parsed.intro && <p className="report-section-intro">{parsed.intro}</p>}
+              <div className="opportunity-grid">
+                {parsed.items.map((item) => (
+                  <OpportunityCard
+                    key={item.number}
+                    title={item.title}
+                    priority={item.priority}
+                    confidence={item.confidence}
+                    description={item.description}
+                  />
+                ))}
+              </div>
+            </>
+          );
+        })()}
+      </Card>
+
+      <Card title="Recommendations">
+        {(() => {
+          const value = report.recommendations;
+          if (!value) {
+            return <EmptyState message="Not available." />;
+          }
+          const items = splitNumberedList(value);
+          return items ? <NumberedList items={items} /> : <ProseSection text={value} />;
+        })()}
+      </Card>
+
+      <Card title="Talking Points">
+        {(() => {
+          const value = report.talking_points;
+          if (!value) {
+            return <EmptyState message="Not available." />;
+          }
+          const items = splitNumberedList(value);
+          return items ? <BulletList items={items} /> : <ProseSection text={value} />;
+        })()}
+      </Card>
 
       <Card title="Delivery History">
         {deliveriesQuery.isLoading ? (

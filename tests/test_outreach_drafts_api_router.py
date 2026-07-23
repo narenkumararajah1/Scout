@@ -165,3 +165,153 @@ async def test_create_generates_and_persists_a_draft(client, postgres_available)
     assert body["success"] is True
     assert body["data"]["status"] == "Draft"
     assert body["data"]["subject"] == "Following up"
+
+
+async def test_create_generates_a_draft_without_an_executive_name(client, postgres_available):
+    """Outreach workflow redesign: generation must never require an
+    executive - a user should be able to generate a complete draft
+    before deciding who it's for.
+    """
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="draft-gen-company-3", name="DraftGenCo3"))
+    await create_company(Company(id="draft-gen-company-3", name="DraftGenCo3"))
+    headers = await _auth_headers("draft-test-9@example.com")
+
+    with patch(
+        "backend.services.outreach_service.generate_completion",
+        return_value=json.dumps({"subject": "Intro", "content": "Hi there,\n\nGreat to connect."}),
+    ):
+        response = client.post(
+            "/api/v1/outreach-drafts",
+            json={"company_id": "draft-gen-company-3", "outreach_type": "Email"},
+            headers=headers,
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["data"]["status"] == "Draft"
+
+
+async def test_update_saves_edited_subject_and_content(client, postgres_available):
+    await create_company(Company(id="draft-test-company-4", name="DraftTestCo4"))
+    await create_outreach_draft(
+        OutreachDraft(id="draft-test-4", company_id="draft-test-company-4", type="Email", content="Original body.")
+    )
+    headers = await _auth_headers("draft-test-10@example.com")
+
+    response = client.patch(
+        "/api/v1/outreach-drafts/draft-test-4",
+        json={"subject": "Edited subject", "content": "Edited body."},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    body = response.json()["data"]
+    assert body["subject"] == "Edited subject"
+    assert body["content"] == "Edited body."
+    # Editing content must never touch status.
+    assert body["status"] == "Draft"
+
+
+async def test_update_returns_404_for_an_unknown_draft(client, postgres_available):
+    headers = await _auth_headers("draft-test-11@example.com")
+
+    response = client.patch(
+        "/api/v1/outreach-drafts/does-not-exist",
+        json={"content": "Edited body."},
+        headers=headers,
+    )
+
+    assert response.status_code == 404
+    assert response.json()["success"] is False
+
+
+async def test_send_rejects_an_unsupported_channel(client, postgres_available):
+    await create_company(Company(id="draft-test-company-5", name="DraftTestCo5"))
+    await create_outreach_draft(
+        OutreachDraft(id="draft-test-5", company_id="draft-test-company-5", type="Email", content="Body.")
+    )
+    headers = await _auth_headers("draft-test-12@example.com")
+
+    response = client.post(
+        "/api/v1/outreach-drafts/draft-test-5/send",
+        json={"channel": "carrier-pigeon"},
+        headers=headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["success"] is False
+
+
+async def test_send_rejects_email_channel_without_a_recipient(client, postgres_available):
+    await create_company(Company(id="draft-test-company-6", name="DraftTestCo6"))
+    await create_outreach_draft(
+        OutreachDraft(id="draft-test-6", company_id="draft-test-company-6", type="Email", content="Body.")
+    )
+    headers = await _auth_headers("draft-test-13@example.com")
+
+    response = client.post(
+        "/api/v1/outreach-drafts/draft-test-6/send",
+        json={"channel": "email"},
+        headers=headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["success"] is False
+
+
+async def test_send_returns_404_for_an_unknown_draft(client, postgres_available):
+    headers = await _auth_headers("draft-test-14@example.com")
+
+    response = client.post(
+        "/api/v1/outreach-drafts/does-not-exist/send",
+        json={"channel": "email", "recipient_email": "prospect@example.com"},
+        headers=headers,
+    )
+
+    assert response.status_code == 404
+    assert response.json()["success"] is False
+
+
+async def test_send_reports_not_configured_when_smtp_is_blank(client, postgres_available):
+    """Test env's SMTP settings are always blank (tests/conftest.py) -
+    matches backend/distribution/email_channel.py's established
+    skip-don't-fail contract: a real send attempt is skipped, not
+    treated as an error, and the draft's status is left as "Draft".
+    """
+    await create_company(Company(id="draft-test-company-7", name="DraftTestCo7"))
+    await create_outreach_draft(
+        OutreachDraft(id="draft-test-7", company_id="draft-test-company-7", type="Email", content="Body.")
+    )
+    headers = await _auth_headers("draft-test-15@example.com")
+
+    response = client.post(
+        "/api/v1/outreach-drafts/draft-test-7/send",
+        json={"channel": "email", "recipient_email": "prospect@example.com"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert "isn't configured" in body["message"].lower()
+    assert body["data"]["status"] == "Draft"
+
+
+async def test_send_marks_the_draft_sent_when_delivery_succeeds(client, postgres_available):
+    await create_company(Company(id="draft-test-company-8", name="DraftTestCo8"))
+    await create_outreach_draft(
+        OutreachDraft(id="draft-test-8", company_id="draft-test-company-8", type="Email", content="Body.")
+    )
+    headers = await _auth_headers("draft-test-16@example.com")
+
+    with patch("backend.services.outreach_delivery_service.send_raw_email", return_value=True):
+        response = client.post(
+            "/api/v1/outreach-drafts/draft-test-8/send",
+            json={"channel": "email", "recipient_email": "prospect@example.com"},
+            headers=headers,
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["data"]["status"] == "Sent"

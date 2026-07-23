@@ -22,6 +22,7 @@ import { useOutreachDrafts } from "../hooks/useOutreachDrafts";
 import { useSalesPlaybooks } from "../hooks/useSalesPlaybooks";
 import { useV3Reports } from "../hooks/useV3Reports";
 import { getErrorMessage } from "../utils/errors";
+import { outreachStatusVariant } from "../utils/outreachDraft";
 
 export function SalesEnablementPage() {
   const companiesQuery = useCompanies();
@@ -150,7 +151,7 @@ export function SalesEnablementPage() {
                       </span>
                       <Badge
                         label={draft.status}
-                        variant={draft.status === "Approved" ? "success" : draft.status === "Archived" ? "neutral" : "warning"}
+                        variant={outreachStatusVariant(draft.status)}
                       />
                     </Link>
                   </li>
