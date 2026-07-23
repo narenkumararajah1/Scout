@@ -61,14 +61,22 @@ a {
   cursor: not-allowed;
 }
 
-/* App shell */
+/* App shell - sidebar and header stay in place; .app-content is the
+   only scroll region, so navigation never scrolls out of reach on a
+   long page (Company Details, Reports, ...). The shell is pinned to
+   the viewport height with overflow hidden specifically so the scroll
+   happens inside .app-content rather than on the document itself. */
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .sidebar {
   width: 220px;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow-y: auto;
   background: #14161c;
   color: #fff;
   padding: 1.5rem 1rem;
@@ -101,13 +109,63 @@ a {
   color: #fff;
 }
 
+/* Hamburger button and drawer backdrop only ever appear below the
+   768px breakpoint (see the media query below) - hidden here so
+   desktop stays exactly as it was. */
+.sidebar-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  margin-left: auto;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.sidebar-toggle-bar {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: #fff;
+  border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.sidebar-toggle.open .sidebar-toggle-bar:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.sidebar-toggle.open .sidebar-toggle-bar:nth-child(2) {
+  opacity: 0;
+}
+
+.sidebar-toggle.open .sidebar-toggle-bar:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 30;
+}
+
 .app-main {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .app-header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -116,14 +174,84 @@ a {
   border-bottom: 1px solid #e3e5ea;
 }
 
-.app-header-user {
+/* Account controls live only here - a single top-right profile menu,
+   never embedded in page content (Header, replacing the old inline
+   email + logout button). */
+.user-menu {
+  position: relative;
+}
+
+.user-menu-trigger {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 999px;
+}
+
+.user-menu-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: #2b59ff;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 200px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e3e5ea;
+  overflow: hidden;
+  z-index: 30;
+}
+
+.user-menu-dropdown-header {
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+  border-bottom: 1px solid #e3e5ea;
+  overflow-wrap: break-word;
+}
+
+.user-menu-dropdown-items {
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem;
+}
+
+.user-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.65rem;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #1f2430;
+  cursor: pointer;
+}
+
+.user-menu-item:hover {
+  background: #f2f4f8;
 }
 
 .app-content {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: 1.5rem;
 }
 
@@ -959,31 +1087,84 @@ a {
 }
 
 /* Responsive layout (V3 Phase 7C) - breakpoints per
-   docs/design/RESPONSIVENESS.md. Below 768px the sidebar becomes a
-   horizontal, scrollable top bar instead of a fixed-width column, so
-   the app shell never forces horizontal scrolling on the page itself. */
+   docs/design/RESPONSIVENESS.md. Below 768px the sidebar collapses to
+   a slim top bar (brand + hamburger button) and the nav links move
+   into an off-canvas drawer opened by that button - a wrapping
+   horizontal link bar got unwieldy with this many nav items, so the
+   drawer keeps the full-height, single-column list mobile/tablet users
+   already know from GitHub/Notion/Jira rather than a cramped bar. */
 @media (max-width: 768px) {
+  /* The top bar itself stays reachable the same way the desktop
+     sidebar does, just via position: sticky instead of the desktop's
+     fixed-height flex column, since it's no longer tall enough to
+     need its own scroll region. The document itself is the only
+     scroller here (app-shell/app-main/app-content fall back to normal
+     flow); the drawer below is fixed, so it scrolls independently. */
   .app-shell {
     flex-direction: column;
-    min-height: auto;
+    height: auto;
+    overflow: visible;
   }
 
   .sidebar {
+    position: sticky;
+    top: 0;
+    /* Must outrank .sidebar-backdrop (z-index: 30): .sidebar's own
+       position+z-index makes it a stacking context, so its child
+       .sidebar-nav drawer (z-index: 40) only wins against elements
+       inside that context - against the backdrop outside it, what
+       matters is .sidebar's own z-index. Any value below the
+       backdrop's traps the drawer under it, making its links
+       unclickable even though they render visually on top. */
+    z-index: 40;
     width: auto;
+    height: auto;
+    overflow: visible;
     padding: 1rem;
     display: flex;
     align-items: center;
-    gap: 1.5rem;
   }
 
   .sidebar-brand {
     margin-bottom: 0;
   }
 
+  .sidebar-toggle {
+    display: flex;
+  }
+
   .sidebar-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 40;
+    width: 260px;
+    max-width: 80vw;
+    height: 100vh;
+    overflow-y: auto;
+    flex-direction: column;
+    gap: 0.25rem;
+    background: #14161c;
+    padding: 1.5rem 1rem;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+
+  .sidebar-nav.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+  }
+
+  .app-main {
+    height: auto;
+    overflow: visible;
+  }
+
+  .app-content {
+    overflow: visible;
   }
 
   .page-header {

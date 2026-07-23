@@ -1,3 +1,4 @@
+import { UserMenu } from "../components/ui/UserMenu";
 import { useAuth } from "../hooks/useAuth";
 
 export function Header() {
@@ -6,14 +7,7 @@ export function Header() {
   return (
     <header className="app-header">
       <span className="app-header-title">Scout</span>
-      {user && (
-        <div className="app-header-user">
-          <span>{user.email}</span>
-          <button type="button" onClick={logout}>
-            Log out
-          </button>
-        </div>
-      )}
+      {user && <UserMenu user={user} onLogout={logout} />}
     </header>
   );
 }
