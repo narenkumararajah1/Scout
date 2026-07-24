@@ -22,5 +22,12 @@ class Company(BaseModel):
     # "Monitoring Status" (not "Monitoring Enabled"); Phase 3 (Company
     # Management) is where enable/disable behavior actually gets wired in.
     monitoring_status: str = "enabled"
+    # None = active. Set = archived (soft-deleted): the company is hidden
+    # from the default company list but every relationship (research,
+    # opportunities, reports, playbooks, briefs, drafts) stays intact and
+    # restorable - see backend/services/company_service.py's
+    # archive_company/restore_company. Orthogonal to monitoring_status,
+    # which only controls automatic re-research, not visibility/deletion.
+    archived_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

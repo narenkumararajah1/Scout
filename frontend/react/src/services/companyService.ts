@@ -11,8 +11,8 @@ import type { CompanyIntelligence } from "../types/companyIntelligence";
 import type { Report } from "../types/report";
 
 export const companyService = {
-  async listCompanies(): Promise<Company[]> {
-    return apiRequest<Company[]>("/companies");
+  async listCompanies(includeArchived = false): Promise<Company[]> {
+    return apiRequest<Company[]>(`/companies${includeArchived ? "?include_archived=true" : ""}`);
   },
 
   async getCompany(companyId: string): Promise<Company> {
@@ -39,6 +39,16 @@ export const companyService = {
     return apiRequest<Report>(`/companies/${companyId}/analyze`, { method: "POST" });
   },
 
+  async archiveCompany(companyId: string): Promise<Company> {
+    return apiRequest<Company>(`/companies/${companyId}/archive`, { method: "POST" });
+  },
+
+  async restoreCompany(companyId: string): Promise<Company> {
+    return apiRequest<Company>(`/companies/${companyId}/restore`, { method: "POST" });
+  },
+
+  // Permanent deletion - a last resort, only allowed once a company has
+  // already been archived (Priority 5).
   async removeCompany(companyId: string): Promise<void> {
     await apiRequest<void>(`/companies/${companyId}`, { method: "DELETE" });
   },

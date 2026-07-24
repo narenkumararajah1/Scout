@@ -3,6 +3,7 @@
 // never flattened into a single text blob. Read-only: no regeneration
 // trigger exists on this page.
 import { Link, useParams } from "react-router-dom";
+import { AIFeedback } from "../components/ui/AIFeedback";
 import { Badge } from "../components/ui/Badge";
 import { BulletList } from "../components/ui/BulletList";
 import { Card } from "../components/ui/Card";
@@ -108,6 +109,8 @@ export function SalesPlaybookDetailPage() {
           <BulletList items={playbook.risks} />
         )}
       </Card>
+
+      <AIFeedback targetType="sales_playbook" targetId={playbook.id} companyId={playbook.company_id} />
     </div>
   );
 }

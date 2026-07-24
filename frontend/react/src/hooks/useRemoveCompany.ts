@@ -6,8 +6,9 @@ export function useRemoveCompany() {
 
   return useMutation({
     mutationFn: (companyId: string) => companyService.removeCompany(companyId),
-    onSuccess: () => {
+    onSuccess: (_data, companyId) => {
       void queryClient.invalidateQueries({ queryKey: ["companies"] });
+      void queryClient.invalidateQueries({ queryKey: ["company", companyId] });
     },
   });
 }

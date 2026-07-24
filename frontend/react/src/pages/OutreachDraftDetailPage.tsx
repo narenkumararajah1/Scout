@@ -6,6 +6,7 @@
 // dialog exactly like Report Distribution already is).
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { AIFeedback } from "../components/ui/AIFeedback";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
@@ -15,6 +16,7 @@ import { ToastContainer } from "../components/ui/Toast";
 import { useConfirm } from "../hooks/useConfirm";
 import { useOutreachDraft } from "../hooks/useOutreachDraft";
 import { useOutreachDraftActions } from "../hooks/useOutreachDraftActions";
+import { useSystemStatus } from "../hooks/useSystemStatus";
 import { useToasts } from "../hooks/useToasts";
 import { getErrorMessage } from "../utils/errors";
 import { outreachStatusVariant } from "../utils/outreachDraft";
@@ -27,6 +29,7 @@ export function OutreachDraftDetailPage() {
   const { approve, archive, update, send } = useOutreachDraftActions(draftQuery.data?.company_id);
   const { toasts, pushToast, dismissToast } = useToasts();
   const { confirm, confirmDialog } = useConfirm();
+  const statusQuery = useSystemStatus();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editSubject, setEditSubject] = useState("");
@@ -98,10 +101,15 @@ export function OutreachDraftDetailPage() {
       pushToast("Enter a recipient email first.", "error");
       return;
     }
-    const description =
-      channel === "email"
+    // Priority 6 (production safety): wording reflects whether this will
+    // actually leave the building or just log what would have been sent.
+    const delivery = statusQuery.data?.delivery;
+    const isLive = delivery ? (channel === "email" ? delivery.email_live : delivery.teams_live) : true;
+    const description = isLive
+      ? channel === "email"
         ? `Send this draft to ${recipientEmail} by email now? This sends a real message and can't be undone.`
-        : "Post this draft to the configured Teams channel now? This sends a real message and can't be undone.";
+        : "Post this draft to the configured Teams channel now? This sends a real message and can't be undone."
+      : `Send this draft ${channel === "email" ? `to ${recipientEmail} by email` : "to Teams"} now? Delivery is currently in dry-run mode - no real message will be sent.`;
     if (!(await confirm(description))) {
       return;
     }
@@ -238,6 +246,8 @@ export function OutreachDraftDetailPage() {
           <p className="report-section-text">{draft.content}</p>
         )}
       </Card>
+
+      <AIFeedback targetType="outreach_draft" targetId={draft.id} companyId={draft.company_id} />
     </div>
   );
 }

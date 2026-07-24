@@ -51,6 +51,7 @@ def _orm_to_company(row: OrmCompany) -> Company:
         headquarters=row.headquarters,
         website=row.website,
         monitoring_status=row.status,
+        archived_at=row.archived_at,
         created_at=row.created_at,
         updated_at=row.updated_at,
     )
@@ -83,6 +84,7 @@ class PostgresCompanyRepository(CompanyRepositoryInterface):
                 headquarters=company.headquarters,
                 website=company.website,
                 status=company.monitoring_status,
+                archived_at=_as_utc(company.archived_at) if company.archived_at else None,
                 created_at=_as_utc(company.created_at),
                 updated_at=_as_utc(company.updated_at),
             )
@@ -112,6 +114,7 @@ class PostgresCompanyRepository(CompanyRepositoryInterface):
             orm_company.headquarters = company.headquarters
             orm_company.website = company.website
             orm_company.status = company.monitoring_status
+            orm_company.archived_at = _as_utc(company.archived_at) if company.archived_at else None
             orm_company.updated_at = _as_utc(company.updated_at)
             session.commit()
             session.refresh(orm_company)

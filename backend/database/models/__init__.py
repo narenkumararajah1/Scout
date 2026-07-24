@@ -10,6 +10,8 @@ from backend.database.models.business_initiative import BusinessInitiative
 from backend.database.models.company import Company
 from backend.database.models.evidence import Evidence
 from backend.database.models.executive import Executive
+from backend.database.models.generation_feedback import GenerationFeedback
+from backend.database.models.generation_job import GenerationJob
 from backend.database.models.meeting_brief import MeetingBrief
 from backend.database.models.notification import Notification
 from backend.database.models.opportunity import Opportunity
@@ -34,4 +36,6 @@ __all__ = [
     "MeetingBrief",
     "OutreachDraft",
     "Report",
+    "GenerationJob",
+    "GenerationFeedback",
 ]

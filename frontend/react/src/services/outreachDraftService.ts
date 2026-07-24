@@ -5,6 +5,7 @@
 // separate backend calls - generating a draft never requires an
 // executive or recipient, and sending one never regenerates content.
 import { apiRequest, apiRequestData } from "../api/client";
+import type { GenerationJob } from "../types/generationJob";
 import type { OutreachDraft } from "../types/outreachDraft";
 
 interface Envelope<T> {
@@ -43,8 +44,8 @@ export const outreachDraftService = {
     opportunityId?: string;
     meetingBriefId?: string;
     context?: string;
-  }): Promise<OutreachDraft> {
-    return apiRequestData<OutreachDraft>("/api/v1/outreach-drafts", {
+  }): Promise<GenerationJob> {
+    return apiRequestData<GenerationJob>("/api/v1/outreach-drafts", {
       method: "POST",
       body: {
         company_id: input.companyId,

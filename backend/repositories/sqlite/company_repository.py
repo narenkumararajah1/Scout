@@ -5,6 +5,7 @@ Logic moved verbatim from the old backend/repositories/company_repository.py
 dispatcher, and TECH_DEBT.md.
 """
 
+import sqlite3
 from datetime import datetime
 from typing import Optional
 
@@ -29,6 +30,15 @@ def init_companies_table() -> None:
             )
             """
         )
+        # Priority 5 (soft delete/archive): added after this table already
+        # existed in real databases, so CREATE TABLE IF NOT EXISTS alone
+        # won't retrofit it - SQLite has no migration framework here, so
+        # this ALTER is guarded the same way a real migration's "column
+        # already exists" check would be.
+        try:
+            connection.execute("ALTER TABLE companies ADD COLUMN archived_at TEXT")
+        except sqlite3.OperationalError:
+            pass
         connection.commit()
 
 
@@ -38,8 +48,8 @@ class SqliteCompanyRepository(CompanyRepositoryInterface):
             connection.execute(
                 """
                 INSERT INTO companies
-                    (id, name, industry, headquarters, website, monitoring_status, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    (id, name, industry, headquarters, website, monitoring_status, archived_at, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     company.id,
@@ -48,6 +58,7 @@ class SqliteCompanyRepository(CompanyRepositoryInterface):
                     company.headquarters,
                     company.website,
                     company.monitoring_status,
+                    company.archived_at.isoformat() if company.archived_at else None,
                     company.created_at.isoformat(),
                     company.updated_at.isoformat(),
                 ),
@@ -72,7 +83,7 @@ class SqliteCompanyRepository(CompanyRepositoryInterface):
                 """
                 UPDATE companies
                 SET name = ?, industry = ?, headquarters = ?, website = ?,
-                    monitoring_status = ?, updated_at = ?
+                    monitoring_status = ?, archived_at = ?, updated_at = ?
                 WHERE id = ?
                 """,
                 (
@@ -81,6 +92,7 @@ class SqliteCompanyRepository(CompanyRepositoryInterface):
                     company.headquarters,
                     company.website,
                     company.monitoring_status,
+                    company.archived_at.isoformat() if company.archived_at else None,
                     company.updated_at.isoformat(),
                     company.id,
                 ),
@@ -95,6 +107,7 @@ class SqliteCompanyRepository(CompanyRepositoryInterface):
 
 
 def _row_to_company(row) -> Company:
+    archived_at = row["archived_at"] if "archived_at" in row.keys() else None
     return Company(
         id=row["id"],
         name=row["name"],
@@ -102,6 +115,7 @@ def _row_to_company(row) -> Company:
         headquarters=row["headquarters"],
         website=row["website"],
         monitoring_status=row["monitoring_status"],
+        archived_at=datetime.fromisoformat(archived_at) if archived_at else None,
         created_at=datetime.fromisoformat(row["created_at"]),
         updated_at=datetime.fromisoformat(row["updated_at"]),
     )

@@ -41,8 +41,8 @@ def add_company(request: CompanyCreateRequest) -> Company:
 
 
 @router.get("", response_model=list[Company])
-def list_companies() -> list[Company]:
-    return company_service.list_companies()
+def list_companies(include_archived: bool = False) -> list[Company]:
+    return company_service.list_companies(include_archived=include_archived)
 
 
 @router.get("/{company_id}", response_model=Company)
@@ -53,18 +53,46 @@ def get_company(company_id: str) -> Company:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
+@router.post("/{company_id}/archive", response_model=Company)
+def archive_company(company_id: str) -> Company:
+    """Soft-delete (Priority 5): the primary "remove a company" action.
+    Hides the company from the default list while every relationship
+    (research, opportunities, reports, playbooks, briefs, drafts) stays
+    intact and can be undone via restore_company below.
+    """
+    try:
+        company = company_service.archive_company(company_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    logger.info("Archived company %s.", company_id)
+    return company
+
+
+@router.post("/{company_id}/restore", response_model=Company)
+def restore_company(company_id: str) -> Company:
+    try:
+        company = company_service.restore_company(company_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    logger.info("Restored company %s.", company_id)
+    return company
+
+
 @router.delete("/{company_id}", status_code=204)
 def remove_company(company_id: str) -> None:
+    """Permanent deletion - a last resort, only allowed once a company has
+    already been archived (see company_service.remove_company).
+    """
     try:
         company_service.remove_company(company_id)
     except ValueError as exc:
         message = str(exc)
-        # "does not exist" (not found) vs. "cannot be removed" (blocked by
-        # historical data) are both ValueError from the service layer but
-        # map to different HTTP semantics.
+        # "does not exist" (not found) vs. "must be archived"/"cannot be
+        # permanently deleted" (blocked) are all ValueError from the
+        # service layer but map to different HTTP semantics.
         status_code = 404 if "does not exist" in message else 409
         raise HTTPException(status_code=status_code, detail=message) from exc
-    logger.info("Removed company %s.", company_id)
+    logger.info("Permanently deleted company %s.", company_id)
 
 
 @router.post("/{company_id}/enable", response_model=Company)

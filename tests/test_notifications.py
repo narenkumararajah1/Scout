@@ -117,6 +117,25 @@ def test_send_notification_skips_when_no_from_address_is_available():
     assert sent is False
 
 
+def test_send_notification_skips_the_real_send_when_dry_run(caplog):
+    settings = Settings(
+        smtp_host="smtp.example.com",
+        notification_email_from="scout@example.com",
+        notification_email_to="sales@example.com",
+        delivery_dry_run=True,
+    )
+    state = WorkflowState(status="completed", target_company="Acme Corp")
+
+    with patch("backend.notifications.get_settings", return_value=settings), patch(
+        "backend.notifications.smtplib.SMTP"
+    ) as mock_smtp:
+        sent = send_notification(state)
+
+    assert sent is True
+    mock_smtp.assert_not_called()
+    assert "DRY RUN" in caplog.text
+
+
 def test_send_notification_uses_smtp_username_as_from_address_fallback():
     settings = Settings(
         smtp_host="smtp.example.com",

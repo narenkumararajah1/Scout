@@ -20,6 +20,7 @@ import { useConfirm } from "../hooks/useConfirm";
 import { useDistributeReport } from "../hooks/useDistributeReport";
 import { useReport } from "../hooks/useReport";
 import { useReportDeliveries } from "../hooks/useReportDeliveries";
+import { useSystemStatus } from "../hooks/useSystemStatus";
 import { useToasts } from "../hooks/useToasts";
 import { getErrorMessage } from "../utils/errors";
 import {
@@ -42,13 +43,18 @@ export function ReportDetailPage() {
   const distributeReport = useDistributeReport(reportId);
   const { toasts, pushToast, dismissToast } = useToasts();
   const { confirm, confirmDialog } = useConfirm();
+  const statusQuery = useSystemStatus();
 
   async function handleDistribute() {
-    if (
-      !(await confirm(
-        "Send this report to every eligible recipient now? This sends real email/Teams messages and can't be undone.",
-      ))
-    ) {
+    // Priority 6 (production safety): wording reflects whether this
+    // will actually leave the building or just log what would have
+    // been sent, so it's never ambiguous before confirming.
+    const delivery = statusQuery.data?.delivery;
+    const isLive = delivery ? delivery.email_live || delivery.teams_live : true;
+    const description = isLive
+      ? "Send this report to every eligible recipient now? This sends real email/Teams messages and can't be undone."
+      : "Send this report to every eligible recipient now? Delivery is currently in dry-run mode - no real message will be sent.";
+    if (!(await confirm(description))) {
       return;
     }
     pushToast("Sending report...", "progress");

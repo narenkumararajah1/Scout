@@ -13,7 +13,19 @@ export interface SchedulerStatus {
   next_run_time: string | null;
 }
 
+// Priority 6 (production safety) - "clear indication when SMTP is
+// enabled" and "environment banner when using live email".
+export interface DeliveryStatus {
+  environment: string;
+  dry_run: boolean;
+  smtp_configured: boolean;
+  teams_configured: boolean;
+  email_live: boolean;
+  teams_live: boolean;
+}
+
 export interface SystemStatus {
   health: HealthStatus;
   scheduler: SchedulerStatus;
+  delivery: DeliveryStatus;
 }

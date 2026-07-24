@@ -69,10 +69,23 @@ def test_enable_monitoring_returns_404_for_unknown_id(client):
     assert response.status_code == 404
 
 
-def test_remove_company_returns_204_and_deletes_it(client):
+def test_remove_company_returns_409_if_not_archived_first(client):
     clear_v2_tables()
     created = client.post("/companies", json={"name": "Temporary Co"}).json()
     company_id = created["id"]
+
+    delete_response = client.delete(f"/companies/{company_id}")
+
+    assert delete_response.status_code == 409
+    get_response = client.get(f"/companies/{company_id}")
+    assert get_response.status_code == 200
+
+
+def test_remove_company_returns_204_and_deletes_it_once_archived(client):
+    clear_v2_tables()
+    created = client.post("/companies", json={"name": "Temporary Co"}).json()
+    company_id = created["id"]
+    client.post(f"/companies/{company_id}/archive")
 
     delete_response = client.delete(f"/companies/{company_id}")
     assert delete_response.status_code == 204
@@ -84,5 +97,35 @@ def test_remove_company_returns_204_and_deletes_it(client):
 def test_remove_company_returns_404_for_unknown_id(client):
     clear_v2_tables()
     response = client.delete("/companies/does-not-exist")
+
+    assert response.status_code == 404
+
+
+def test_archive_and_restore_company_endpoints(client):
+    clear_v2_tables()
+    created = client.post("/companies", json={"name": "Acme Corp"}).json()
+    company_id = created["id"]
+
+    archive_response = client.post(f"/companies/{company_id}/archive")
+    assert archive_response.status_code == 200
+    assert archive_response.json()["archived_at"] is not None
+
+    list_response = client.get("/companies")
+    assert company_id not in {c["id"] for c in list_response.json()}
+
+    list_with_archived_response = client.get("/companies", params={"include_archived": True})
+    assert company_id in {c["id"] for c in list_with_archived_response.json()}
+
+    restore_response = client.post(f"/companies/{company_id}/restore")
+    assert restore_response.status_code == 200
+    assert restore_response.json()["archived_at"] is None
+
+    list_response_after_restore = client.get("/companies")
+    assert company_id in {c["id"] for c in list_response_after_restore.json()}
+
+
+def test_archive_company_returns_404_for_unknown_id(client):
+    clear_v2_tables()
+    response = client.post("/companies/does-not-exist/archive")
 
     assert response.status_code == 404

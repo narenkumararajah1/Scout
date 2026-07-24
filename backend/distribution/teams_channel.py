@@ -47,6 +47,10 @@ def post_raw_teams_message(text: str) -> bool:
         logger.info("Teams delivery not configured - skipping.")
         return False
 
+    if settings.delivery_dry_run:
+        logger.info("[DRY RUN] Would post message to Teams - no message sent.")
+        return True
+
     response = requests.post(settings.teams_webhook_url, json={"text": text}, timeout=10)
     response.raise_for_status()
 

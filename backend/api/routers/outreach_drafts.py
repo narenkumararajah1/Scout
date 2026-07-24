@@ -23,7 +23,7 @@ through that one path.
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from pydantic import BaseModel, Field
 
 from backend.api.dependencies import get_current_user
@@ -38,12 +38,16 @@ from backend.repositories.postgres.outreach_draft_repository import (
     update_outreach_draft_content,
 )
 from backend.repositories.report_repository import list_reports
+from backend.schemas.generation_job import GenerationJobOut
 from backend.schemas.outreach_draft import OutreachDraftOut
 from backend.services import company_service
+from backend.services.generation_job_service import create_job, execute_job, reject_if_duplicate
 from backend.services.outreach_delivery_service import send_outreach_draft
-from backend.services.outreach_service import generate_outreach_draft
+from backend.services.outreach_service import SUPPORTED_OUTREACH_TYPES, generate_outreach_draft
 
 router = APIRouter(prefix="/api/v1/outreach-drafts", tags=["outreach-drafts"])
+
+JOB_TYPE = "outreach_draft"
 
 
 class GenerateOutreachDraftRequest(BaseModel):
@@ -88,12 +92,35 @@ async def get_outreach_draft_detail(draft_id: str, current_user: User = Depends(
 
 @router.post("")
 async def create_outreach_draft_route(
-    request: GenerateOutreachDraftRequest, current_user: User = Depends(get_current_user)
+    request: GenerateOutreachDraftRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
 ) -> dict:
     try:
         company = company_service.get_company(request.company_id)
     except ValueError as exc:
         raise APIError(404, str(exc)) from exc
+
+    # Validated here, synchronously, rather than left to fail inside the
+    # background job: this is cheap, requires no LLM call, and the
+    # caller deserves an immediate 400 for bad input rather than a job
+    # that silently ends up "failed" a few seconds later.
+    if request.outreach_type not in SUPPORTED_OUTREACH_TYPES:
+        raise APIError(
+            400, f"Unsupported outreach type {request.outreach_type!r}; expected one of {SUPPORTED_OUTREACH_TYPES}"
+        )
+
+    try:
+        existing = await reject_if_duplicate(company.id, JOB_TYPE)
+    except ValueError as exc:
+        raise APIError(429, str(exc)) from exc
+    if existing is not None:
+        data = GenerationJobOut.model_validate(existing).model_dump()
+        return {
+            "success": True,
+            "message": "An outreach draft is already generating for this company.",
+            "data": data,
+        }
 
     # Auto-pulled, not required from the caller: the company's latest
     # Report and (if the caller picked one) a Meeting Brief's summary,
@@ -109,20 +136,21 @@ async def create_outreach_draft_route(
             context_parts.append(f"Meeting brief summary:\n{brief.executive_summary or ''}")
     combined_context = "\n\n".join(part for part in context_parts if part.strip())
 
-    try:
-        draft = await generate_outreach_draft(
+    job = await create_job(JOB_TYPE, company.id, request.model_dump())
+    background_tasks.add_task(
+        execute_job,
+        job.id,
+        lambda: generate_outreach_draft(
             company,
             request.outreach_type,
             request.executive_name,
             request.talking_points,
             opportunity_id=request.opportunity_id,
             context=combined_context,
-        )
-    except ValueError as exc:
-        raise APIError(400, str(exc)) from exc
-
-    data = OutreachDraftOut.model_validate(draft).model_dump()
-    return {"success": True, "message": "Outreach draft generated successfully.", "data": data}
+        ),
+    )
+    data = GenerationJobOut.model_validate(job).model_dump()
+    return {"success": True, "message": "Outreach draft generation started.", "data": data}
 
 
 @router.patch("/{draft_id}")

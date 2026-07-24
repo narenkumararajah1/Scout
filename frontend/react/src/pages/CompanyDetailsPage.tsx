@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
@@ -6,9 +6,11 @@ import { Card } from "../components/ui/Card";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
+import { GenerationStatus } from "../components/ui/GenerationStatus";
 import { LoadingState } from "../components/ui/LoadingState";
 import { ToastContainer } from "../components/ui/Toast";
 import { useAnalyzeCompany } from "../hooks/useAnalyzeCompany";
+import { useArchiveCompany } from "../hooks/useArchiveCompany";
 import { useCompany } from "../hooks/useCompany";
 import { useConfirm } from "../hooks/useConfirm";
 import { useCompanyIntelligence } from "../hooks/useCompanyIntelligence";
@@ -18,15 +20,32 @@ import { useGenerateMeetingBrief } from "../hooks/useGenerateMeetingBrief";
 import { useGenerateOutreachDraft } from "../hooks/useGenerateOutreachDraft";
 import { useGenerateSalesPlaybook } from "../hooks/useGenerateSalesPlaybook";
 import { useGenerateV3Report } from "../hooks/useGenerateV3Report";
+import { useGenerationJob } from "../hooks/useGenerationJob";
 import { useMeetingBriefs } from "../hooks/useMeetingBriefs";
 import { useOutreachDrafts } from "../hooks/useOutreachDrafts";
 import { useRemoveCompany } from "../hooks/useRemoveCompany";
+import { useRestoreCompany } from "../hooks/useRestoreCompany";
 import { useSalesPlaybooks } from "../hooks/useSalesPlaybooks";
 import { useToasts } from "../hooks/useToasts";
 import { useV3Reports } from "../hooks/useV3Reports";
 import { companyService } from "../services/companyService";
+import type { GenerationJob } from "../types/generationJob";
 import { getErrorMessage } from "../utils/errors";
 import { outreachStatusVariant } from "../utils/outreachDraft";
+
+// Priority 1: fires `onCompleted` exactly once, the moment a polled
+// GenerationJob first reaches "completed" - shared by all four
+// generation flows below instead of each duplicating this transition
+// check.
+function useOnJobCompleted(job: GenerationJob | undefined, onCompleted: (job: GenerationJob) => void) {
+  const seenCompletedIds = useRef(new Set<string>());
+  useEffect(() => {
+    if (job && job.status === "completed" && !seenCompletedIds.current.has(job.id)) {
+      seenCompletedIds.current.add(job.id);
+      onCompleted(job);
+    }
+  }, [job, onCompleted]);
+}
 
 const OUTREACH_TYPES = ["Email", "Follow-up", "Meeting Request", "LinkedIn Message"];
 
@@ -62,11 +81,42 @@ export function CompanyDetailsPage() {
   });
 
   const analyzeCompany = useAnalyzeCompany(companyId);
+  const archiveCompany = useArchiveCompany();
+  const restoreCompany = useRestoreCompany();
   const removeCompany = useRemoveCompany();
   const generatePlaybook = useGenerateSalesPlaybook(companyId);
   const generateBrief = useGenerateMeetingBrief(companyId);
   const generateDraft = useGenerateOutreachDraft(companyId);
   const generateReport = useGenerateV3Report(companyId);
+
+  // Priority 1: each generation flow tracks its own job id and polls
+  // it until the background worker finishes; onCompleted below
+  // invalidates that flow's list query once the real artifact exists.
+  const [playbookJobId, setPlaybookJobId] = useState<string>();
+  const [briefJobId, setBriefJobId] = useState<string>();
+  const [draftJobId, setDraftJobId] = useState<string>();
+  const [reportJobId, setReportJobId] = useState<string>();
+  const playbookJob = useGenerationJob(playbookJobId);
+  const briefJob = useGenerationJob(briefJobId);
+  const draftJob = useGenerationJob(draftJobId);
+  const reportJob = useGenerationJob(reportJobId);
+
+  useOnJobCompleted(playbookJob.data, () => {
+    void queryClient.invalidateQueries({ queryKey: ["sales-playbooks", companyId] });
+    pushToast("Sales playbook generated.", "success");
+  });
+  useOnJobCompleted(briefJob.data, () => {
+    void queryClient.invalidateQueries({ queryKey: ["meeting-briefs", companyId] });
+    pushToast("Meeting brief generated.", "success");
+  });
+  useOnJobCompleted(draftJob.data, () => {
+    void queryClient.invalidateQueries({ queryKey: ["outreach-drafts", companyId] });
+    pushToast("Outreach draft generated.", "success");
+  });
+  useOnJobCompleted(reportJob.data, () => {
+    void queryClient.invalidateQueries({ queryKey: ["v3-reports", companyId] });
+    pushToast("Report generated.", "success");
+  });
 
   const [selectedOpportunityId, setSelectedOpportunityId] = useState("");
   const [meetingTitle, setMeetingTitle] = useState("");
@@ -90,18 +140,16 @@ export function CompanyDetailsPage() {
       pushToast("Choose an opportunity first.", "error");
       return;
     }
-    pushToast("Generating sales playbook...", "progress");
     generatePlaybook.mutate(selectedOpportunityId, {
-      onSuccess: () => pushToast("Sales playbook generated.", "success"),
+      onSuccess: (job) => setPlaybookJobId(job.id),
       onError: (error) => pushToast(getErrorMessage(error), "error"),
     });
   }
 
   function handleGenerateBrief() {
-    pushToast("Generating meeting brief...", "progress");
     generateBrief.mutate(meetingTitle || undefined, {
-      onSuccess: () => {
-        pushToast("Meeting brief generated.", "success");
+      onSuccess: (job) => {
+        setBriefJobId(job.id);
         setMeetingTitle("");
       },
       onError: (error) => pushToast(getErrorMessage(error), "error"),
@@ -109,10 +157,9 @@ export function CompanyDetailsPage() {
   }
 
   function handleGenerateReport() {
-    pushToast("Assembling report...", "progress");
     generateReport.mutate(reportTitle || undefined, {
-      onSuccess: () => {
-        pushToast("Report generated.", "success");
+      onSuccess: (job) => {
+        setReportJobId(job.id);
         setReportTitle("");
       },
       onError: (error) => pushToast(getErrorMessage(error), "error"),
@@ -127,7 +174,6 @@ export function CompanyDetailsPage() {
       .split("\n")
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
-    pushToast("Generating outreach draft...", "progress");
     generateDraft.mutate(
       {
         outreachType,
@@ -137,8 +183,8 @@ export function CompanyDetailsPage() {
         meetingBriefId: outreachMeetingBriefId || undefined,
       },
       {
-        onSuccess: () => {
-          pushToast("Outreach draft generated.", "success");
+        onSuccess: (job) => {
+          setDraftJobId(job.id);
           setTalkingPointsText("");
         },
         onError: (error) => pushToast(getErrorMessage(error), "error"),
@@ -146,12 +192,39 @@ export function CompanyDetailsPage() {
     );
   }
 
-  async function handleRemove() {
+  async function handleArchive() {
     const company = companyQuery.data;
     if (!company) {
       return;
     }
-    if (!(await confirm(`Remove ${company.name}? This can't be undone.`))) {
+    if (!(await confirm(`Archive ${company.name}? You can restore it later from the Companies list.`))) {
+      return;
+    }
+    archiveCompany.mutate(company.id, {
+      onSuccess: () => pushToast(`${company.name} archived.`, "success"),
+      onError: (error) => pushToast(getErrorMessage(error), "error"),
+    });
+  }
+
+  function handleRestore() {
+    const company = companyQuery.data;
+    if (!company) {
+      return;
+    }
+    restoreCompany.mutate(company.id, {
+      onSuccess: () => pushToast(`${company.name} restored.`, "success"),
+      onError: (error) => pushToast(getErrorMessage(error), "error"),
+    });
+  }
+
+  async function handlePermanentlyDelete() {
+    const company = companyQuery.data;
+    if (!company) {
+      return;
+    }
+    if (
+      !(await confirm(`Permanently delete ${company.name}? This cannot be undone and all research history will be lost.`))
+    ) {
       return;
     }
     removeCompany.mutate(company.id, {
@@ -188,25 +261,54 @@ export function CompanyDetailsPage() {
 
       <div className="page-header">
         <h1>{company.name}</h1>
-        <Badge
-          label={company.monitoring_status}
-          variant={company.monitoring_status === "enabled" ? "success" : "neutral"}
-        />
-        <button type="button" onClick={() => toggleMonitoring.mutate()} disabled={toggleMonitoring.isPending}>
-          {company.monitoring_status === "enabled" ? "Disable monitoring" : "Enable monitoring"}
-        </button>
-        <button
-          type="button"
-          className="company-remove-button"
-          onClick={handleRemove}
-          disabled={removeCompany.isPending}
-        >
-          Remove company
-        </button>
+        {company.archived_at ? (
+          <Badge label="Archived" variant="neutral" />
+        ) : (
+          <Badge
+            label={company.monitoring_status}
+            variant={company.monitoring_status === "enabled" ? "success" : "neutral"}
+          />
+        )}
+        {!company.archived_at && (
+          <button type="button" onClick={() => toggleMonitoring.mutate()} disabled={toggleMonitoring.isPending}>
+            {company.monitoring_status === "enabled" ? "Disable monitoring" : "Enable monitoring"}
+          </button>
+        )}
+        {company.archived_at ? (
+          <>
+            <button type="button" onClick={handleRestore} disabled={restoreCompany.isPending}>
+              Restore company
+            </button>
+            <button
+              type="button"
+              className="company-remove-button"
+              onClick={handlePermanentlyDelete}
+              disabled={removeCompany.isPending}
+            >
+              Delete Permanently
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            className="company-remove-button"
+            onClick={handleArchive}
+            disabled={archiveCompany.isPending}
+          >
+            Archive company
+          </button>
+        )}
         <button type="button" onClick={handleRunAnalysis} disabled={analyzeCompany.isPending}>
           {analyzeCompany.isPending ? "Running analysis..." : "Run Analysis"}
         </button>
       </div>
+
+      {company.archived_at && (
+        <p className="archived-banner">
+          This company is archived. It's hidden from the default Companies list, but all research, opportunities,
+          reports, and generated content are preserved. Restore it at any time.
+        </p>
+      )}
 
       {toggleMonitoring.isError && <p className="form-error">{getErrorMessage(toggleMonitoring.error)}</p>}
 
@@ -360,10 +462,17 @@ export function CompanyDetailsPage() {
               </option>
             ))}
           </select>
-          <button type="button" onClick={handleGeneratePlaybook} disabled={generatePlaybook.isPending}>
-            {generatePlaybook.isPending ? "Generating..." : "Generate Sales Playbook"}
+          <button
+            type="button"
+            onClick={handleGeneratePlaybook}
+            disabled={generatePlaybook.isPending || playbookJob.data?.status === "running"}
+          >
+            {generatePlaybook.isPending || playbookJob.data?.status === "running"
+              ? "Generating..."
+              : "Generate Sales Playbook"}
           </button>
         </div>
+        <GenerationStatus job={playbookJob.data} onRetry={handleGeneratePlaybook} />
         {salesPlaybooksQuery.isLoading ? (
           <LoadingState message="Loading sales playbooks..." />
         ) : salesPlaybooksQuery.isError ? (
@@ -392,10 +501,15 @@ export function CompanyDetailsPage() {
             value={meetingTitle}
             onChange={(event) => setMeetingTitle(event.target.value)}
           />
-          <button type="button" onClick={handleGenerateBrief} disabled={generateBrief.isPending}>
-            {generateBrief.isPending ? "Generating..." : "Generate Meeting Brief"}
+          <button
+            type="button"
+            onClick={handleGenerateBrief}
+            disabled={generateBrief.isPending || briefJob.data?.status === "running"}
+          >
+            {generateBrief.isPending || briefJob.data?.status === "running" ? "Generating..." : "Generate Meeting Brief"}
           </button>
         </div>
+        <GenerationStatus job={briefJob.data} onRetry={handleGenerateBrief} />
         {meetingBriefsQuery.isLoading ? (
           <LoadingState message="Loading meeting briefs..." />
         ) : meetingBriefsQuery.isError ? (
@@ -463,10 +577,15 @@ export function CompanyDetailsPage() {
             onChange={(event) => setTalkingPointsText(event.target.value)}
             rows={3}
           />
-          <button type="button" onClick={handleGenerateDraft} disabled={generateDraft.isPending}>
-            {generateDraft.isPending ? "Generating..." : "Generate Outreach Draft"}
+          <button
+            type="button"
+            onClick={handleGenerateDraft}
+            disabled={generateDraft.isPending || draftJob.data?.status === "running"}
+          >
+            {generateDraft.isPending || draftJob.data?.status === "running" ? "Generating..." : "Generate Outreach Draft"}
           </button>
         </div>
+        <GenerationStatus job={draftJob.data} onRetry={handleGenerateDraft} />
         {outreachDraftsQuery.isLoading ? (
           <LoadingState message="Loading outreach drafts..." />
         ) : outreachDraftsQuery.isError ? (
@@ -492,7 +611,11 @@ export function CompanyDetailsPage() {
         )}
       </Card>
 
-      <Card title="V3 Reports">
+      <Card title="Full Intelligence Reports">
+        <p className="card-description">
+          A complete rollup of everything gathered on this company - research, opportunities, executives, and
+          any sales playbooks, meeting briefs, or outreach drafts generated so far.
+        </p>
         <div className="generate-form">
           <input
             type="text"
@@ -500,16 +623,21 @@ export function CompanyDetailsPage() {
             value={reportTitle}
             onChange={(event) => setReportTitle(event.target.value)}
           />
-          <button type="button" onClick={handleGenerateReport} disabled={generateReport.isPending}>
-            {generateReport.isPending ? "Generating..." : "Generate V3 Report"}
+          <button
+            type="button"
+            onClick={handleGenerateReport}
+            disabled={generateReport.isPending || reportJob.data?.status === "running"}
+          >
+            {generateReport.isPending || reportJob.data?.status === "running" ? "Generating..." : "Generate Report"}
           </button>
         </div>
+        <GenerationStatus job={reportJob.data} onRetry={handleGenerateReport} />
         {v3ReportsQuery.isLoading ? (
           <LoadingState message="Loading reports..." />
         ) : v3ReportsQuery.isError ? (
           <ErrorState message={getErrorMessage(v3ReportsQuery.error)} />
         ) : (v3ReportsQuery.data ?? []).length === 0 ? (
-          <EmptyState message="No V3 reports yet." />
+          <EmptyState message="No reports yet." />
         ) : (
           <ul className="report-list">
             {(v3ReportsQuery.data ?? []).map((report) => (

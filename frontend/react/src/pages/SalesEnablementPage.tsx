@@ -40,9 +40,10 @@ export function SalesEnablementPage() {
       <h1>Sales Enablement</h1>
       <p className="card-description">
         Scout can generate Sales Playbooks (strategy for a specific opportunity), Meeting Briefs (prep for an
-        upcoming conversation), Outreach Drafts (email/message copy for a reviewer to approve), and V3 Reports
-        (a full assembled summary), on top of the research Reports it's always produced. Pick a company below to
-        browse what's already been generated, or open the company's page to generate something new.
+        upcoming conversation), Outreach Drafts (email/message copy for a reviewer to approve), and Full
+        Intelligence Reports (a full assembled summary), on top of the research Reports it's always produced.
+        Pick a company below to browse what's already been generated, or open the company's page to generate
+        something new.
       </p>
 
       <Card title="Choose a company">
@@ -160,19 +161,19 @@ export function SalesEnablementPage() {
             )}
           </Card>
 
-          <Card title="V3 Reports">
+          <Card title="Full Intelligence Reports">
             {v3ReportsQuery.isLoading ? (
-              <LoadingState message="Loading V3 reports..." />
+              <LoadingState message="Loading reports..." />
             ) : v3ReportsQuery.isError ? (
               <ErrorState message={getErrorMessage(v3ReportsQuery.error)} />
             ) : (v3ReportsQuery.data ?? []).length === 0 ? (
-              <EmptyState message="No V3 reports yet for this company." />
+              <EmptyState message="No reports yet for this company." />
             ) : (
               <ul className="report-list">
                 {(v3ReportsQuery.data ?? []).map((report) => (
                   <li key={report.id}>
                     <Link to={`/v3-reports/${report.id}`} className="report-list-item">
-                      <span>{report.title ?? "V3 Report"}</span>
+                      <span>{report.title ?? "Report"}</span>
                       <span>{new Date(report.created_at).toLocaleString()}</span>
                     </Link>
                   </li>

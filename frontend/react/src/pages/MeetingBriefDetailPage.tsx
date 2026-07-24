@@ -3,6 +3,7 @@
 // Strategy's output as already persisted - this page never regenerates
 // analysis, only displays it.
 import { Link, useParams } from "react-router-dom";
+import { AIFeedback } from "../components/ui/AIFeedback";
 import { Badge } from "../components/ui/Badge";
 import { BulletList } from "../components/ui/BulletList";
 import { Card } from "../components/ui/Card";
@@ -106,6 +107,8 @@ export function MeetingBriefDetailPage() {
           <BulletList items={brief.recommended_services} />
         )}
       </Card>
+
+      <AIFeedback targetType="meeting_brief" targetId={brief.id} companyId={brief.company_id} />
     </div>
   );
 }

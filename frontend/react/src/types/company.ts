@@ -5,6 +5,9 @@ export interface Company {
   headquarters: string | null;
   website: string | null;
   monitoring_status: string;
+  // Priority 5 (soft delete/archive) - null means active; set means
+  // archived. Orthogonal to monitoring_status.
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 }

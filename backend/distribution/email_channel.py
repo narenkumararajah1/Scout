@@ -68,6 +68,10 @@ def send_raw_email(to_address: str, subject: str, body: str) -> bool:
         logger.info("Email delivery not configured - skipping %s.", to_address)
         return False
 
+    if settings.delivery_dry_run:
+        logger.info("[DRY RUN] Would send email to %s (subject: %s) - no message sent.", to_address, subject)
+        return True
+
     message = EmailMessage()
     message["Subject"] = subject
     message["From"] = from_address

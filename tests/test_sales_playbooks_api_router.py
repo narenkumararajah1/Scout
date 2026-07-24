@@ -132,7 +132,10 @@ async def test_create_returns_404_for_an_unknown_company(client, postgres_availa
     assert response.json()["success"] is False
 
 
-async def test_create_generates_and_persists_a_playbook(client, postgres_available):
+async def test_create_starts_a_pending_generation_job(client, postgres_available):
+    # Priority 1: POST returns a GenerationJob, not the finished
+    # playbook - see test_meeting_briefs_api_router.py's identical test
+    # for why this only asserts "pending", not eventual completion.
     clear_v2_tables()
     create_sqlite_company(SqliteCompany(id="playbook-gen-company-1", name="PlaybookGenCo"))
     session = create_research_session(ResearchSession(company_id="playbook-gen-company-1"))
@@ -157,7 +160,7 @@ async def test_create_generates_and_persists_a_playbook(client, postgres_availab
         )
 
     assert response.status_code == 200
-    body = response.json()
-    assert body["success"] is True
-    assert body["data"]["strategy_summary"] == "Lead with platform engineering case studies."
-    assert body["data"]["talking_points"] == ["Ask about their Kubernetes rollout."]
+    job = response.json()["data"]
+    assert job["job_type"] == "sales_playbook"
+    assert job["status"] == "pending"
+    assert job["result_id"] is None

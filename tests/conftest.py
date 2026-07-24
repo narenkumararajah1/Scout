@@ -46,6 +46,15 @@ for _test_env_var in (
 ):
     os.environ.setdefault(_test_env_var, "")
 
+# Priority 6 (production safety): this dev instance's real .env sets
+# DELIVERY_DRY_RUN=true (see .env's comment) precisely so the live SMTP
+# credentials above can't send for real during manual testing - but that
+# would silently turn every "send configured -> actually sends" test
+# below into a false pass (dry-run always returns True without calling
+# smtplib/requests), so tests get an explicit, real default instead,
+# same precedence reasoning as the loop above.
+os.environ.setdefault("DELIVERY_DRY_RUN", "false")
+
 from unittest.mock import patch
 
 import pytest

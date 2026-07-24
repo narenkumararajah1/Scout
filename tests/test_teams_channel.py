@@ -63,6 +63,19 @@ def test_send_teams_message_posts_to_webhook_when_configured():
     assert "Acme Corp" in call_args[1]["json"]["text"]
 
 
+def test_send_teams_message_skips_the_real_post_when_dry_run(caplog):
+    settings = Settings(teams_webhook_url="https://outlook.office.com/webhook/abc123", delivery_dry_run=True)
+
+    with patch(
+        "backend.distribution.teams_channel.get_settings", return_value=settings
+    ), patch("backend.distribution.teams_channel.requests.post") as mock_post:
+        sent = send_teams_message(_recipient(), _report(), _company())
+
+    assert sent is True
+    mock_post.assert_not_called()
+    assert "DRY RUN" in caplog.text
+
+
 def test_send_teams_message_raises_on_non_2xx_response():
     settings = Settings(teams_webhook_url="https://outlook.office.com/webhook/abc123")
 

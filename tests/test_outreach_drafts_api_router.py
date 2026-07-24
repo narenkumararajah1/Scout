@@ -139,7 +139,10 @@ async def test_create_rejects_an_unsupported_outreach_type(client, postgres_avai
     assert response.json()["success"] is False
 
 
-async def test_create_generates_and_persists_a_draft(client, postgres_available):
+async def test_create_starts_a_pending_generation_job(client, postgres_available):
+    # Priority 1: POST returns a GenerationJob, not the finished draft -
+    # see test_meeting_briefs_api_router.py's identical test for why
+    # this only asserts "pending", not eventual completion.
     clear_v2_tables()
     create_sqlite_company(SqliteCompany(id="draft-gen-company-2", name="DraftGenCo2"))
     await create_company(Company(id="draft-gen-company-2", name="DraftGenCo2"))
@@ -161,10 +164,10 @@ async def test_create_generates_and_persists_a_draft(client, postgres_available)
         )
 
     assert response.status_code == 200
-    body = response.json()
-    assert body["success"] is True
-    assert body["data"]["status"] == "Draft"
-    assert body["data"]["subject"] == "Following up"
+    job = response.json()["data"]
+    assert job["job_type"] == "outreach_draft"
+    assert job["status"] == "pending"
+    assert job["result_id"] is None
 
 
 async def test_create_generates_a_draft_without_an_executive_name(client, postgres_available):
@@ -188,9 +191,9 @@ async def test_create_generates_a_draft_without_an_executive_name(client, postgr
         )
 
     assert response.status_code == 200
-    body = response.json()
-    assert body["success"] is True
-    assert body["data"]["status"] == "Draft"
+    job = response.json()["data"]
+    assert job["status"] == "pending"
+    assert job["result_id"] is None
 
 
 async def test_update_saves_edited_subject_and_content(client, postgres_available):

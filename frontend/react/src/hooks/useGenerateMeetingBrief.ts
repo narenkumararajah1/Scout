@@ -1,13 +1,11 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { meetingBriefService } from "../services/meetingBriefService";
 
+// Priority 1: returns a GenerationJob, not the finished brief - the
+// caller polls it with useGenerationJob and invalidates the
+// ["meeting-briefs", companyId] list once that job completes.
 export function useGenerateMeetingBrief(companyId: string | undefined) {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (meetingTitle?: string) => meetingBriefService.generate(companyId as string, meetingTitle),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["meeting-briefs", companyId] });
-    },
   });
 }

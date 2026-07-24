@@ -1,13 +1,11 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { salesPlaybookService } from "../services/salesPlaybookService";
 
+// Priority 1: returns a GenerationJob, not the finished playbook - the
+// caller polls it with useGenerationJob and invalidates the
+// ["sales-playbooks", companyId] list once that job completes.
 export function useGenerateSalesPlaybook(companyId: string | undefined) {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (opportunityId: string) => salesPlaybookService.generate(companyId as string, opportunityId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["sales-playbooks", companyId] });
-    },
   });
 }

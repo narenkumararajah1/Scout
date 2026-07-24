@@ -36,6 +36,9 @@ class Company(Base):
     business_segments: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
     # Maps directly from V2's monitoring_status ("enabled"/"disabled").
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="enabled")
+    # Priority 5 (soft delete/archive) - see backend/models/company.py's
+    # archived_at for the full explanation; orthogonal to `status` above.
+    archived_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

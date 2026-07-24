@@ -57,6 +57,15 @@ def send_notification(state: WorkflowState) -> bool:
 
     subject, body = build_notification(state)
 
+    if settings.delivery_dry_run:
+        logger.info(
+            "[DRY RUN] Would send email notification for workflow %s to %s (subject: %s) - no message sent.",
+            state.workflow_id,
+            settings.notification_email_to,
+            subject,
+        )
+        return True
+
     message = EmailMessage()
     message["Subject"] = subject
     message["From"] = from_address

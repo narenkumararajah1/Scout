@@ -60,6 +60,16 @@ class Settings(BaseSettings):
     # Used starting Phase 4 Day 18 (APScheduler automated execution).
     scheduler_interval_hours: int = 24
 
+    # Rate limiting for AI generation (review Priority 7). Priority 1's
+    # GenerationJob dedup (find_active_job/reject_if_duplicate) already
+    # blocks a second click while one generation is still in flight; this
+    # closes the remaining gap - regenerating the same artifact again and
+    # again in quick succession, each time only after the previous one
+    # already completed - without a new dependency (no Celery/Redis/
+    # slowapi), using the GenerationJob table already on hand. See
+    # backend/services/generation_job_service.py's reject_if_duplicate.
+    generation_cooldown_seconds: int = 30
+
     # Used starting Phase 4 Day 18 (Reporting Agent email notifications).
     # Empty until real SMTP credentials are supplied; notification sending
     # is skipped (not attempted) when smtp_host or notification_email_to
@@ -72,6 +82,20 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = True
     notification_email_from: str = ""
     notification_email_to: str = ""
+
+    # Production safety (review Priority 6): when True, every send
+    # function below (backend/notifications.py, backend/distribution/
+    # email_channel.py, backend/distribution/teams_channel.py) logs what
+    # it would have sent and returns as if it succeeded, without ever
+    # opening an SMTP connection or POSTing to a Teams webhook. Defaults
+    # to False (unchanged behavior) rather than flipping on automatically
+    # by environment, since this dev instance's real, already-configured
+    # SMTP credentials were deliberately set up to test the send flow -
+    # this is an explicit, visible opt-in switch, not a silent behavior
+    # change. See GET /system/status's "delivery" section and
+    # SettingsPage.tsx for the "clear indication when SMTP is enabled"
+    # this is paired with.
+    delivery_dry_run: bool = False
 
     # Used starting Phase 10 (Distribution). A single, deployment-wide
     # Microsoft Teams incoming webhook URL - Recipient's "teams" channel

@@ -44,6 +44,48 @@ export function SettingsPage() {
         )}
       </Card>
 
+      <Card title="Delivery Safety">
+        {statusQuery.isLoading ? (
+          <LoadingState />
+        ) : statusQuery.isError ? (
+          <ErrorState message={getErrorMessage(statusQuery.error)} />
+        ) : statusQuery.data ? (
+          <>
+            {(statusQuery.data.delivery.email_live || statusQuery.data.delivery.teams_live) && (
+              <p className="delivery-live-banner">
+                Live delivery is enabled ({statusQuery.data.delivery.environment}). Sending a real email or Teams
+                message from Outreach or Report Distribution will actually leave the building.
+              </p>
+            )}
+            <dl className="company-overview">
+              <dt>Environment</dt>
+              <dd>{statusQuery.data.delivery.environment}</dd>
+              <dt>Mode</dt>
+              <dd>
+                <Badge
+                  label={statusQuery.data.delivery.dry_run ? "Dry run" : "Live"}
+                  variant={statusQuery.data.delivery.dry_run ? "neutral" : "warning"}
+                />
+              </dd>
+              <dt>Email (SMTP)</dt>
+              <dd>
+                <Badge
+                  label={statusQuery.data.delivery.smtp_configured ? "Configured" : "Not configured"}
+                  variant={statusQuery.data.delivery.smtp_configured ? "success" : "neutral"}
+                />
+              </dd>
+              <dt>Microsoft Teams</dt>
+              <dd>
+                <Badge
+                  label={statusQuery.data.delivery.teams_configured ? "Configured" : "Not configured"}
+                  variant={statusQuery.data.delivery.teams_configured ? "success" : "neutral"}
+                />
+              </dd>
+            </dl>
+          </>
+        ) : null}
+      </Card>
+
       <Card title="System Status">
         {statusQuery.isLoading ? (
           <LoadingState />

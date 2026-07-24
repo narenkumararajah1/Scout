@@ -5,10 +5,15 @@ before exporting it. Confirms none of this collides with V2's existing
 /reports/* routes.
 """
 
-from backend.database.models import Company, Report
+import uuid
+from unittest.mock import patch
+
+from backend.config import Settings
+from backend.database.models import Company, GenerationJob, Report
 from backend.models.company import Company as SqliteCompany
 from backend.repositories.company_repository import create_company as create_sqlite_company
 from backend.repositories.postgres.company_repository import create_company
+from backend.repositories.postgres.generation_job_repository import create_job
 from backend.repositories.postgres.report_repository import create_v3_report
 from backend.services.auth_service import create_access_token, hash_password
 from backend.repositories.user_repository import create_user
@@ -137,7 +142,13 @@ async def test_create_returns_404_for_an_unknown_company(client, postgres_availa
     assert response.json()["success"] is False
 
 
-async def test_create_generates_and_persists_a_report(client, postgres_available):
+async def test_create_starts_a_pending_generation_job(client, postgres_available):
+    # Priority 1: POST returns a GenerationJob, not the finished report -
+    # see test_meeting_briefs_api_router.py's identical test for why
+    # this only asserts "pending", not eventual completion. Report
+    # generation has no LLM call at all (pure assembly - see this
+    # router's module docstring), so it goes through the same job/poll
+    # path purely for a consistent frontend UX, not because it's slow.
     clear_v2_tables()
     create_sqlite_company(SqliteCompany(id="reports-gen-company-1", name="ReportsGenCo"))
     await create_company(Company(id="reports-gen-company-1", name="ReportsGenCo"))
@@ -150,7 +161,32 @@ async def test_create_generates_and_persists_a_report(client, postgres_available
     )
 
     assert response.status_code == 200
-    body = response.json()
-    assert body["success"] is True
-    assert body["data"]["title"] == "ReportsGenCo Q3 Report"
-    assert body["data"]["content"]["company_intelligence"]["name"] == "ReportsGenCo"
+    job = response.json()["data"]
+    assert job["job_type"] == "report"
+    assert job["status"] == "pending"
+    assert job["result_id"] is None
+
+
+async def test_create_returns_429_during_the_cooldown_window(client, postgres_available):
+    """Priority 7 rate limiting: a report was just generated for this
+    company - generating another immediately after is blocked even
+    though nothing is still pending/running (Priority 1's dedup check
+    alone wouldn't catch this)."""
+    clear_v2_tables()
+    company_id = str(uuid.uuid4())
+    create_sqlite_company(SqliteCompany(id=company_id, name="ReportsCooldownCo"))
+    await create_company(Company(id=company_id, name="ReportsCooldownCo"))
+    await create_job(GenerationJob(id=str(uuid.uuid4()), job_type="report", status="completed", company_id=company_id))
+    headers = await _auth_headers(f"reports-api-test-{uuid.uuid4()}@example.com")
+    settings = Settings(generation_cooldown_seconds=30)
+    await reset_postgres_engine()
+
+    with patch("backend.services.generation_job_service.get_settings", return_value=settings):
+        response = client.post(
+            "/api/v1/reports",
+            json={"company_id": company_id},
+            headers=headers,
+        )
+
+    assert response.status_code == 429
+    assert "wait" in response.json()["message"]

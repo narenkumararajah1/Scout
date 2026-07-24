@@ -82,6 +82,23 @@ def test_send_email_sends_via_smtp_when_configured():
     assert sent_message["From"] == "scout@example.com"
 
 
+def test_send_email_skips_the_real_send_when_dry_run(caplog):
+    settings = Settings(
+        smtp_host="smtp.example.com",
+        notification_email_from="scout@example.com",
+        delivery_dry_run=True,
+    )
+
+    with patch(
+        "backend.distribution.email_channel.get_settings", return_value=settings
+    ), patch("backend.distribution.email_channel.smtplib.SMTP") as mock_smtp:
+        sent = send_email(_recipient(), _report(), _company())
+
+    assert sent is True
+    mock_smtp.assert_not_called()
+    assert "DRY RUN" in caplog.text
+
+
 def test_send_email_raises_when_smtp_connection_fails():
     settings = Settings(smtp_host="smtp.example.com", notification_email_from="scout@example.com")
 

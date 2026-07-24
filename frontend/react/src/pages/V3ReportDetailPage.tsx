@@ -8,6 +8,7 @@
 // capability is fabricated.
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { AIFeedback } from "../components/ui/AIFeedback";
 import { Badge } from "../components/ui/Badge";
 import { CapabilityCard } from "../components/ui/CapabilityCard";
 import { Card } from "../components/ui/Card";
@@ -220,6 +221,8 @@ export function V3ReportDetailPage() {
           </ul>
         )}
       </Card>
+
+      <AIFeedback targetType="report" targetId={reportId as string} companyId={report.company_id} />
     </div>
   );
 }

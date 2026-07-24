@@ -1,9 +1,12 @@
-// V3 Report domain operations (V3 Phase 7C). Wraps the new read-only
+// Report domain operations (V3 Phase 7C). Wraps the read-only
 // GET /api/v1/reports list/detail endpoints, plus Phase 6's PDF export
 // route (a raw file download, so it navigates the browser directly
-// rather than going through apiRequest's JSON parsing). No generation
-// trigger exists here - viewing/exporting only.
+// rather than going through apiRequest's JSON parsing). generate()
+// returns a GenerationJob rather than blocking on the finished report
+// (Priority 1) - see useGenerationJob for how the caller picks up the
+// result once it completes.
 import { apiRequestData, getStoredToken } from "../api/client";
+import type { GenerationJob } from "../types/generationJob";
 import type { V3Report } from "../types/v3Report";
 
 export const v3ReportService = {
@@ -15,8 +18,8 @@ export const v3ReportService = {
     return apiRequestData<V3Report>(`/api/v1/reports/${reportId}`);
   },
 
-  async generate(companyId: string, title?: string): Promise<V3Report> {
-    return apiRequestData<V3Report>("/api/v1/reports", {
+  async generate(companyId: string, title?: string): Promise<GenerationJob> {
+    return apiRequestData<GenerationJob>("/api/v1/reports", {
       method: "POST",
       body: { company_id: companyId, title: title || undefined },
     });

@@ -7,7 +7,7 @@ for scripts/migrate_sqlite_to_postgres.py to carry over for this entity.
 
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from backend.database.models import Executive
 from backend.database.postgres import get_session
@@ -29,6 +29,21 @@ async def get_executive(executive_id: str) -> Optional[Executive]:
 async def list_executives_for_company(company_id: str) -> list[Executive]:
     async with get_session() as session:
         result = await session.execute(select(Executive).where(Executive.company_id == company_id))
+        return list(result.scalars().all())
+
+
+async def search_executives(query: str, limit: int = 5) -> list[Executive]:
+    """Case-insensitive substring match on name or title (Priority 3 -
+    Global Search). Simple ILIKE is enough at this data volume; revisit
+    with a real text-search index if that ever changes.
+    """
+    pattern = f"%{query}%"
+    async with get_session() as session:
+        result = await session.execute(
+            select(Executive)
+            .where(or_(Executive.name.ilike(pattern), Executive.title.ilike(pattern)))
+            .limit(limit)
+        )
         return list(result.scalars().all())
 
 

@@ -72,6 +72,26 @@ a {
   overflow: hidden;
 }
 
+.skip-link {
+  /* fixed, not absolute - .app-shell has overflow: hidden (it pins the
+     scroll region to .app-content), which would clip an off-canvas
+     absolutely-positioned element instead of just hiding it. */
+  position: fixed;
+  top: -100%;
+  left: 0.5rem;
+  z-index: 100;
+  background: #fff;
+  color: #1a1a1a;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+}
+
 .sidebar {
   width: 220px;
   flex-shrink: 0;
@@ -172,6 +192,92 @@ a {
   padding: 1rem 1.5rem;
   background: #fff;
   border-bottom: 1px solid #e3e5ea;
+}
+
+/* Global Search (Priority 3) - available from every page via the
+   persistent header. Cmd/Ctrl+K focuses it; Escape closes it. */
+.global-search {
+  position: relative;
+  flex: 1;
+  max-width: 480px;
+  margin: 0 1.5rem;
+}
+
+.global-search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.global-search-input:focus {
+  outline: none;
+  border-color: #2b59ff;
+  box-shadow: 0 0 0 2px rgba(43, 89, 255, 0.15);
+}
+
+.global-search-results {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #e3e5ea;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 30;
+  padding: 0.5rem;
+}
+
+.global-search-status {
+  padding: 0.75rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.global-search-group + .global-search-group {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e3e5ea;
+}
+
+.global-search-group-label {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #6b7280;
+}
+
+.global-search-result {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.global-search-result:hover,
+.global-search-result.active {
+  background: #f2f4f8;
+}
+
+.global-search-result-label {
+  font-size: 0.9rem;
+  color: #1f2430;
+}
+
+.global-search-result-sublabel {
+  font-size: 0.8rem;
+  color: #6b7280;
 }
 
 /* Account controls live only here - a single top-right profile menu,
@@ -312,6 +418,26 @@ a {
   font-size: 0.85rem;
 }
 
+.archived-banner {
+  background: #f3f4f6;
+  border: 1px solid #d0d3d9;
+  border-radius: 6px;
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  color: #565f5c;
+  margin-bottom: 1rem;
+}
+
+.delivery-live-banner {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 6px;
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  color: #9a3412;
+  margin-bottom: 1rem;
+}
+
 /* Dashboard */
 .dashboard-summary {
   display: grid;
@@ -397,6 +523,15 @@ a {
 .company-remove-button {
   color: #b42318;
   border-color: #f3c6c1;
+}
+
+.companies-show-archived {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: #565f5c;
+  cursor: pointer;
 }
 
 .breadcrumb-back {
@@ -511,6 +646,78 @@ a {
 .generate-form-outreach {
   align-items: flex-start;
   flex-direction: column;
+}
+
+.generation-status {
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
+
+.generation-status button {
+  margin-left: 0.75rem;
+}
+
+.ai-feedback {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ai-feedback-label {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.ai-feedback-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ai-feedback-button {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.85rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ai-feedback-button:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.ai-feedback-thanks {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.ai-feedback-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 420px;
+}
+
+.ai-feedback-note textarea {
+  padding: 0.45rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.ai-feedback-note-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ai-feedback-error {
+  font-size: 0.8rem;
+  color: #b91c1c;
 }
 
 .generate-form-outreach select,

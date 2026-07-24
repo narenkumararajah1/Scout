@@ -7,15 +7,20 @@ import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { useArchiveCompany } from "../hooks/useArchiveCompany";
 import { useCompanies } from "../hooks/useCompanies";
 import { useConfirm } from "../hooks/useConfirm";
 import { useRemoveCompany } from "../hooks/useRemoveCompany";
+import { useRestoreCompany } from "../hooks/useRestoreCompany";
 import { companyService } from "../services/companyService";
 import { getErrorMessage } from "../utils/errors";
 
 export function CompaniesPage() {
-  const companiesQuery = useCompanies();
+  const [showArchived, setShowArchived] = useState(false);
+  const companiesQuery = useCompanies(showArchived);
   const queryClient = useQueryClient();
+  const archiveCompany = useArchiveCompany();
+  const restoreCompany = useRestoreCompany();
   const removeCompany = useRemoveCompany();
   const { confirm, confirmDialog } = useConfirm();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -23,16 +28,37 @@ export function CompaniesPage() {
   const [industry, setIndustry] = useState("");
   const [headquarters, setHeadquarters] = useState("");
   const [website, setWebsite] = useState("");
-  const [removeError, setRemoveError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  async function handleRemove(companyId: string, companyName: string) {
-    if (!(await confirm(`Remove ${companyName}? This can't be undone.`))) {
+  async function handleArchive(companyId: string, companyName: string) {
+    if (!(await confirm(`Archive ${companyName}? You can restore it later from the archived companies view.`))) {
       return;
     }
-    setRemoveError(null);
+    setActionError(null);
+    archiveCompany.mutate(companyId, {
+      onError: (error) => setActionError(getErrorMessage(error)),
+    });
+  }
+
+  function handleRestore(companyId: string) {
+    setActionError(null);
+    restoreCompany.mutate(companyId, {
+      onError: (error) => setActionError(getErrorMessage(error)),
+    });
+  }
+
+  async function handlePermanentlyDelete(companyId: string, companyName: string) {
+    if (
+      !(await confirm(
+        `Permanently delete ${companyName}? This cannot be undone and all research history will be lost.`,
+      ))
+    ) {
+      return;
+    }
+    setActionError(null);
     removeCompany.mutate(companyId, {
-      onError: (error) => setRemoveError(getErrorMessage(error)),
+      onError: (error) => setActionError(getErrorMessage(error)),
     });
   }
 
@@ -74,6 +100,14 @@ export function CompaniesPage() {
       {confirmDialog && <ConfirmDialog {...confirmDialog} />}
       <div className="page-header">
         <h1>Companies</h1>
+        <label className="companies-show-archived">
+          <input
+            type="checkbox"
+            checked={showArchived}
+            onChange={(event) => setShowArchived(event.target.checked)}
+          />
+          Show archived
+        </label>
         <button type="button" onClick={() => setIsFormOpen((open) => !open)}>
           {isFormOpen ? "Cancel" : "Add Company"}
         </button>
@@ -106,7 +140,7 @@ export function CompaniesPage() {
         </Card>
       )}
 
-      {removeError && <p className="form-error">{removeError}</p>}
+      {actionError && <p className="form-error">{actionError}</p>}
 
       {companies.length > 0 && (
         <input
@@ -134,19 +168,43 @@ export function CompaniesPage() {
               <Link to={`/companies/${company.id}`} className="company-list-item">
                 <span>{company.name}</span>
                 <span>{company.industry ?? "-"}</span>
-                <Badge
-                  label={company.monitoring_status}
-                  variant={company.monitoring_status === "enabled" ? "success" : "neutral"}
-                />
+                {company.archived_at ? (
+                  <Badge label="Archived" variant="neutral" />
+                ) : (
+                  <Badge
+                    label={company.monitoring_status}
+                    variant={company.monitoring_status === "enabled" ? "success" : "neutral"}
+                  />
+                )}
               </Link>
-              <button
-                type="button"
-                className="company-remove-button"
-                onClick={() => handleRemove(company.id, company.name)}
-                disabled={removeCompany.isPending}
-              >
-                Remove
-              </button>
+              {company.archived_at ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleRestore(company.id)}
+                    disabled={restoreCompany.isPending}
+                  >
+                    Restore
+                  </button>
+                  <button
+                    type="button"
+                    className="company-remove-button"
+                    onClick={() => handlePermanentlyDelete(company.id, company.name)}
+                    disabled={removeCompany.isPending}
+                  >
+                    Delete Permanently
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="company-remove-button"
+                  onClick={() => handleArchive(company.id, company.name)}
+                  disabled={archiveCompany.isPending}
+                >
+                  Archive
+                </button>
+              )}
             </li>
           ))}
         </ul>

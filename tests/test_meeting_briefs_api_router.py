@@ -90,7 +90,14 @@ async def test_create_returns_404_for_an_unknown_company(client, postgres_availa
     assert response.json()["success"] is False
 
 
-async def test_create_generates_and_persists_a_brief(client, postgres_available):
+async def test_create_starts_a_pending_generation_job(client, postgres_available):
+    # Priority 1: POST no longer returns the finished brief - it returns
+    # a GenerationJob, created and dispatched to a background task
+    # without waiting for the (mocked, but still asynchronously
+    # dispatched) LLM call to finish. Actual completion is covered by
+    # execute_job's own direct unit tests in test_jobs_api_router.py -
+    # asserting on real background-task timing through TestClient would
+    # be testing Starlette's scheduling, not this endpoint's contract.
     clear_v2_tables()
     create_sqlite_company(SqliteCompany(id="brief-gen-company-1", name="BriefGenCo"))
     await create_company(Company(id="brief-gen-company-1", name="BriefGenCo"))
@@ -107,7 +114,46 @@ async def test_create_generates_and_persists_a_brief(client, postgres_available)
         )
 
     assert response.status_code == 200
+    job = response.json()["data"]
+    assert job["job_type"] == "meeting_brief"
+    assert job["company_id"] == "brief-gen-company-1"
+    assert job["status"] == "pending"
+    assert job["result_id"] is None
+
+    job_response = client.get(f"/api/v1/jobs/{job['id']}", headers=headers)
+    assert job_response.status_code == 200
+    assert job_response.json()["data"]["id"] == job["id"]
+
+
+async def test_create_rejects_a_second_concurrent_request_for_the_same_company(client, postgres_available):
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="brief-gen-company-2", name="BriefGenCo2"))
+    await create_company(Company(id="brief-gen-company-2", name="BriefGenCo2"))
+    headers = await _auth_headers("brief-test-6@example.com")
+
+    import uuid
+
+    from backend.database.models import GenerationJob
+    from backend.repositories.postgres.generation_job_repository import create_job
+
+    active_job_id = str(uuid.uuid4())
+    await create_job(
+        GenerationJob(
+            id=active_job_id,
+            job_type="meeting_brief",
+            status="running",
+            company_id="brief-gen-company-2",
+        )
+    )
+    await reset_postgres_engine()
+
+    response = client.post(
+        "/api/v1/meeting-briefs",
+        json={"company_id": "brief-gen-company-2", "meeting_title": "Kickoff"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
     body = response.json()
-    assert body["success"] is True
-    assert body["data"]["meeting_title"] == "Kickoff"
-    assert body["data"]["meeting_objectives"] == ["Confirm the budget owner."]
+    assert body["data"]["id"] == active_job_id
+    assert "already generating" in body["message"]
