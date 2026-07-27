@@ -38,6 +38,31 @@ def company_trends(company: Company) -> dict:
     scored = [o for o in opportunities if o.confidence_score is not None]
     average_confidence = sum(o.confidence_score for o in scored) / len(scored) if scored else None
 
+    # Roadmap Phase 5 (Visual Intelligence) - "Opportunity Trends" and
+    # "Timeline of Scout Intelligence" charts. Both are pure
+    # re-sortings of data already fetched above - no new AI call, no
+    # new query. Opportunity is immutable per analysis run (ADR-018),
+    # so every past run's Opportunity rows are still here, giving a
+    # real history rather than a single snapshot.
+    opportunity_history = [
+        {
+            "date": opportunity.generated_date,
+            "title": opportunity.title,
+            "confidence_score": opportunity.confidence_score,
+            "priority": opportunity.priority,
+        }
+        for opportunity in sorted(opportunities, key=lambda o: o.generated_date)
+    ]
+    timeline = sorted(
+        [{"date": session.execution_time, "type": "research", "label": "Research session"} for session in sessions]
+        + [
+            {"date": opportunity.generated_date, "type": "opportunity", "label": opportunity.title}
+            for opportunity in opportunities
+        ]
+        + [{"date": report.created_at, "type": "report", "label": "Report generated"} for report in reports],
+        key=lambda event: event["date"],
+    )
+
     return {
         "company_id": company.id,
         "company_name": company.name,
@@ -50,6 +75,8 @@ def company_trends(company: Company) -> dict:
         )[:5],
         "research_sessions": sessions,
         "reports": reports,
+        "opportunity_history": opportunity_history,
+        "timeline": timeline,
     }
 
 

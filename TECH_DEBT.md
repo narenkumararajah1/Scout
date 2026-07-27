@@ -15,13 +15,13 @@ by inspection. Every item below should be resolved (and this section
 removed) as it's addressed; new gaps discovered later should be added
 here rather than left implicit.
 
-## Scout V3 Enhancement Roadmap - Phases 1-4
+## Scout V3 Enhancement Roadmap - Phases 1-5
 
 A new roadmap (`Scout V3 Enhancement Roadmap`, external to this repo)
 is now the source of truth for evolving Scout from a sales-intelligence
 tool into an "AI Sales Strategist." Auth/RBAC/multi-tenancy/SSO stay
-deferred per that roadmap's explicit instructions. Phases 5-6 (Visual
-Intelligence charts, basic Relationship Intelligence) are still ahead.
+deferred per that roadmap's explicit instructions. Phase 6 (basic
+Relationship Intelligence) is still ahead.
 
 **Phase 1 - Report System Unification.** The two report systems (V2's
 SQLite-backed `Report`/`research_reports` and V3's Postgres-backed
@@ -159,6 +159,55 @@ tests) plus frontend `tsc`/`lint`/`build` all pass clean; the 6 new
 Postgres-gated unit tests (meeting brief fields, why-innominds mapping,
 AI sales coach x2, sales-coach router x2) skip locally for the same
 pre-existing reason as Phase 3's.
+
+**Phase 5 - Visual Intelligence.** Added `recharts` as the frontend's
+first charting library. Every chart is a client-side view over data the
+app already fetches - no new AI calls, and only one small backend
+addition (`company_trends()` gained `opportunity_history` and
+`timeline`, both pure re-sortings of the sessions/opportunities/reports
+it already queries; Opportunity is immutable per analysis run per
+ADR-018, so every past run's rows are still in the database, giving a
+real history rather than a fabricated one).
+
+- **Executive Intelligence Dashboard** (`AnalyticsPage.tsx`) gained an
+  "Opportunity Distribution" bar chart at the top, bucketing every
+  displayed opportunity's `recommended_services` into the roadmap's own
+  named practice categories (AI, Cloud, Platform Engineering, Data,
+  Security, Digital Experience, Other) via a new deterministic
+  keyword classifier (`frontend/react/src/utils/opportunityCategory.ts`)
+  - no backend change, no new AI call.
+- **V3 Report detail page** (`V3ReportDetailPage.tsx`) gained three
+  charts, all computed from the report's own already-persisted
+  `content` JSON: Technology Stack (grouped by the category Knowledge
+  Extraction already assigned), Opportunity Distribution (same
+  classifier as above), and Opportunity Score & Confidence (priority +
+  confidence per opportunity, side by side).
+- **Company Details "Trends" card** gained an Opportunity Trends line
+  chart (confidence/priority across every past analysis run for this
+  company) and a Timeline of Scout Intelligence (a compact visual event
+  list - research sessions, opportunities discovered, reports generated
+  - merged and sorted server-side, not a recharts chart since discrete
+  events read better as markers than as a plotted metric).
+
+Explicitly deferred - would need new data this repo doesn't collect,
+not just new charts: Business Metrics Dashboard (revenue/employees/
+market cap), Geographic Presence maps, Executive Influence Map (needs
+item 9's relationship data, still ahead), Industry Benchmark Charts
+(needs item 7's competitor data, already deferred). Interactive Reports
+(expand/drill/filter) is explicitly "Long-Term" in the roadmap itself.
+
+Verified against this environment's real dev Postgres instance: a real
+V3 Report was generated for Hertz and all three of its charts rendered
+correctly with real category/score data (including a correct empty
+state for Technology Stack, since no technologies are recorded for that
+company); the Executive Intelligence Dashboard's distribution chart and
+the Company Details trend chart/timeline both rendered correctly
+against real, multi-run historical data already in the database. Full
+backend suite (358 tests, 168 skipped for the same pre-existing
+Postgres-isolation reason as before) plus frontend `tsc`/`lint`/`build`
+all pass clean. `npm install recharts` added no new vulnerabilities -
+`npm audit` still reports only the same pre-existing dev-tooling
+findings (eslint/vite/react-router/etc.) from before this pass.
 
 ## Outreach workflow redesign - generation and delivery are now separate steps
 

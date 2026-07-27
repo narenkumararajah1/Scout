@@ -12,6 +12,8 @@ import { AIFeedback } from "../components/ui/AIFeedback";
 import { Badge } from "../components/ui/Badge";
 import { CapabilityCard } from "../components/ui/CapabilityCard";
 import { Card } from "../components/ui/Card";
+import { CategoryBarChart } from "../components/charts/CategoryBarChart";
+import { OpportunityScoreChart } from "../components/charts/OpportunityScoreChart";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
@@ -21,6 +23,7 @@ import { ToastContainer } from "../components/ui/Toast";
 import { useV3Report } from "../hooks/useV3Report";
 import { useToasts } from "../hooks/useToasts";
 import { v3ReportService } from "../services/v3ReportService";
+import { countByCategory } from "../utils/opportunityCategory";
 import { getErrorMessage } from "../utils/errors";
 
 export function V3ReportDetailPage() {
@@ -50,6 +53,24 @@ export function V3ReportDetailPage() {
   const salesPlaybooks = report.content?.sales_playbooks ?? [];
   const meetingBriefs = report.content?.meeting_briefs ?? [];
   const outreachDrafts = report.content?.outreach_drafts ?? [];
+
+  // Roadmap Phase 5 (Visual Intelligence) - both charts below are pure
+  // client-side re-groupings of data already embedded in this same
+  // report's content, computed fresh each render (no new fetch, no new
+  // backend field). Technology Stack groups by the category Knowledge
+  // Extraction already assigned each technology (verbatim, no
+  // reclassification); Opportunity Distribution buckets each
+  // opportunity's recommended services into the roadmap's own named
+  // practice categories via countByCategory's keyword matching.
+  const technologyCategoryCounts = new Map<string, number>();
+  for (const tech of technologies) {
+    const category = tech.category ?? "Uncategorized";
+    technologyCategoryCounts.set(category, (technologyCategoryCounts.get(category) ?? 0) + 1);
+  }
+  const technologyStack = Array.from(technologyCategoryCounts.entries())
+    .map(([category, count]) => ({ category, count }))
+    .sort((a, b) => b.count - a.count);
+  const opportunityDistribution = countByCategory(opportunities.flatMap((o) => o.recommended_services));
 
   async function handleExport() {
     setIsExporting(true);
@@ -100,6 +121,18 @@ export function V3ReportDetailPage() {
             <dd>{companyIntelligence.business_initiatives.join(", ") || "None"}</dd>
           </dl>
         )}
+      </Card>
+
+      <Card title="Technology Stack">
+        <CategoryBarChart data={technologyStack} emptyMessage="No technologies recorded." />
+      </Card>
+
+      <Card title="Opportunity Distribution">
+        <CategoryBarChart data={opportunityDistribution} emptyMessage="No opportunities recorded." />
+      </Card>
+
+      <Card title="Opportunity Score & Confidence">
+        <OpportunityScoreChart data={opportunities} />
       </Card>
 
       <Card title="Technology Landscape">

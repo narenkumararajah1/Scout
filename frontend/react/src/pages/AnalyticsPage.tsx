@@ -1,17 +1,20 @@
 // Executive Intelligence Dashboard (roadmap Phase 3, item 3). Presents
 // backend/services/analytics_service.py's executive_dashboard() exactly
-// as returned - no new aggregation on the frontend, no charting library
-// (stat cards/tables only), matching the existing Phase 7B convention.
-// Replaces the old flat opportunity-rankings list: opportunities are now
-// grouped by company, each with its confidence/priority explanation
-// (already-persisted CapabilityMatch.reasoning + Signal type counts -
-// zero new AI calls) and one-click Recommended Actions, reusing the
-// same safe/rate-limited GenerationJob endpoints Scout Copilot's
-// suggested actions already trigger (roadmap Phase 2).
+// as returned - no new aggregation on the backend. Replaces the old flat
+// opportunity-rankings list: opportunities are now grouped by company,
+// each with its confidence/priority explanation (already-persisted
+// CapabilityMatch.reasoning + Signal type counts - zero new AI calls)
+// and one-click Recommended Actions, reusing the same safe/rate-limited
+// GenerationJob endpoints Scout Copilot's suggested actions already
+// trigger (roadmap Phase 2). Roadmap Phase 5 (Visual Intelligence) adds
+// an Opportunity Distribution chart at the top - "every page should
+// answer a question visually before answering it with text" - computed
+// client-side from this same already-fetched data, no new backend field.
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
+import { CategoryBarChart } from "../components/charts/CategoryBarChart";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
@@ -22,6 +25,7 @@ import { meetingBriefService } from "../services/meetingBriefService";
 import { outreachDraftService } from "../services/outreachDraftService";
 import { v3ReportService } from "../services/v3ReportService";
 import type { ExecutiveDashboardOpportunity } from "../types/executiveDashboard";
+import { countByCategory } from "../utils/opportunityCategory";
 import { getErrorMessage } from "../utils/errors";
 
 const SIGNAL_TYPE_LABELS: Record<string, string> = {
@@ -47,6 +51,9 @@ const ACTION_LABELS: Record<ActionType, string> = {
 export function AnalyticsPage() {
   const dashboardQuery = useExecutiveDashboard(50);
   const companies = dashboardQuery.data?.companies ?? [];
+  const opportunityDistribution = countByCategory(
+    companies.flatMap((company) => company.opportunities.flatMap((o) => o.recommended_services)),
+  );
   const { toasts, pushToast, dismissToast } = useToasts();
   const [triggeringAction, setTriggeringAction] = useState<string | null>(null);
 
@@ -130,16 +137,21 @@ export function AnalyticsPage() {
       ) : companies.length === 0 ? (
         <EmptyState message="No opportunities yet." />
       ) : (
-        companies.map((company) => (
-          <Card
-            key={company.company_id}
-            title={<Link to={`/companies/${company.company_id}`}>{company.company_name}</Link>}
-          >
-            <ul className="opportunity-list">
-              {company.opportunities.map((opportunity) => renderOpportunity(company.company_id, opportunity))}
-            </ul>
+        <>
+          <Card title="Opportunity Distribution">
+            <CategoryBarChart data={opportunityDistribution} />
           </Card>
-        ))
+          {companies.map((company) => (
+            <Card
+              key={company.company_id}
+              title={<Link to={`/companies/${company.company_id}`}>{company.company_name}</Link>}
+            >
+              <ul className="opportunity-list">
+                {company.opportunities.map((opportunity) => renderOpportunity(company.company_id, opportunity))}
+              </ul>
+            </Card>
+          ))}
+        </>
       )}
     </div>
   );

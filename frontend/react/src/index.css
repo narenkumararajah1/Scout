@@ -1023,6 +1023,70 @@ a {
   gap: 1.5rem;
 }
 
+/* Visual Intelligence (Phase 5) */
+.chart-section-title {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.chart-section-title:first-of-type {
+  margin-top: 0.75rem;
+}
+
+.intelligence-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 1rem;
+  border-left: 2px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.intelligence-timeline-item {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.intelligence-timeline-marker {
+  position: absolute;
+  left: -1.31rem;
+  top: 0.2rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #4f46e5;
+}
+
+.intelligence-timeline-research .intelligence-timeline-marker {
+  background: #f59e0b;
+}
+
+.intelligence-timeline-report .intelligence-timeline-marker {
+  background: #10b981;
+}
+
+.intelligence-timeline-type {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.intelligence-timeline-label {
+  color: #1f2937;
+}
+
+.intelligence-timeline-date {
+  color: #9ca3af;
+  margin-left: auto;
+  font-size: 0.8rem;
+}
+
 .intelligence-sections h3 {
   margin: 0 0 0.5rem;
   font-size: 0.95rem;

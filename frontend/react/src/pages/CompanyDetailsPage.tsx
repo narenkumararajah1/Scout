@@ -4,10 +4,12 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { BulletList } from "../components/ui/BulletList";
 import { Card } from "../components/ui/Card";
+import { OpportunityTrendChart } from "../components/charts/OpportunityTrendChart";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { GenerationStatus } from "../components/ui/GenerationStatus";
+import { IntelligenceTimeline } from "../components/ui/IntelligenceTimeline";
 import { LoadingState } from "../components/ui/LoadingState";
 import { ToastContainer } from "../components/ui/Toast";
 import { useAnalyzeCompany } from "../hooks/useAnalyzeCompany";
@@ -454,20 +456,26 @@ export function CompanyDetailsPage() {
         ) : !trends ? (
           <EmptyState message="No trend data available yet." />
         ) : (
-          <dl className="company-overview">
-            <dt>Research sessions</dt>
-            <dd>{trends.research_session_count}</dd>
-            <dt>Opportunities</dt>
-            <dd>{trends.opportunity_count}</dd>
-            <dt>Reports</dt>
-            <dd>{trends.report_count}</dd>
-            <dt>Average opportunity confidence</dt>
-            <dd>
-              {trends.average_opportunity_confidence !== null
-                ? `${(trends.average_opportunity_confidence * 100).toFixed(0)}%`
-                : "Unknown"}
-            </dd>
-          </dl>
+          <>
+            <dl className="company-overview">
+              <dt>Research sessions</dt>
+              <dd>{trends.research_session_count}</dd>
+              <dt>Opportunities</dt>
+              <dd>{trends.opportunity_count}</dd>
+              <dt>Reports</dt>
+              <dd>{trends.report_count}</dd>
+              <dt>Average opportunity confidence</dt>
+              <dd>
+                {trends.average_opportunity_confidence !== null
+                  ? `${(trends.average_opportunity_confidence * 100).toFixed(0)}%`
+                  : "Unknown"}
+              </dd>
+            </dl>
+            <h4 className="chart-section-title">Opportunity Trends</h4>
+            <OpportunityTrendChart data={trends.opportunity_history} />
+            <h4 className="chart-section-title">Timeline of Scout Intelligence</h4>
+            <IntelligenceTimeline events={trends.timeline} />
+          </>
         )}
       </Card>
 

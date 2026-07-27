@@ -94,6 +94,39 @@ def test_company_trends_handles_company_with_no_activity():
     assert trends["top_opportunities"] == []
 
 
+def test_company_trends_includes_opportunity_history_and_timeline():
+    """Roadmap Phase 5 (Visual Intelligence) - opportunity_history and
+    timeline are pure re-sortings of data company_trends() already
+    fetches (sessions/opportunities/reports), for the Company Details
+    trend chart and intelligence timeline.
+    """
+    clear_v2_tables()
+    company, session = _make_company_with_session()
+    create_opportunity(
+        Opportunity(
+            company_id=company.id,
+            research_session_id=session.id,
+            title="Opp A",
+            priority=8,
+            confidence_score=0.9,
+        )
+    )
+    create_report(Report(company_id=company.id, research_session_id=session.id))
+
+    trends = analytics_service.company_trends(company)
+
+    assert len(trends["opportunity_history"]) == 1
+    assert trends["opportunity_history"][0]["title"] == "Opp A"
+    assert trends["opportunity_history"][0]["confidence_score"] == 0.9
+
+    timeline_types = [event["type"] for event in trends["timeline"]]
+    assert "research" in timeline_types
+    assert "opportunity" in timeline_types
+    assert "report" in timeline_types
+    dates = [event["date"] for event in trends["timeline"]]
+    assert dates == sorted(dates)
+
+
 def test_executive_dashboard_groups_opportunities_by_company_with_reasoning_and_signal_counts():
     clear_v2_tables()
     company, session = _make_company_with_session()

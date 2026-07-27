@@ -13,6 +13,19 @@ export interface ResearchSessionSummary {
   status: string;
 }
 
+export interface OpportunityHistoryPoint {
+  date: string;
+  title: string;
+  confidence_score: number | null;
+  priority: number | null;
+}
+
+export interface TimelineEvent {
+  date: string;
+  type: "research" | "opportunity" | "report";
+  label: string;
+}
+
 export interface CompanyTrends {
   company_id: string;
   company_name: string;
@@ -23,4 +36,6 @@ export interface CompanyTrends {
   top_opportunities: Opportunity[];
   research_sessions: ResearchSessionSummary[];
   reports: Report[];
+  opportunity_history: OpportunityHistoryPoint[];
+  timeline: TimelineEvent[];
 }
