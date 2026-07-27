@@ -26,6 +26,7 @@ identical. ADR-020: manual analysis always persists - see that decision
 for why no non-persisting/preview mode exists.
 """
 
+import asyncio
 import logging
 
 from backend.config import get_settings
@@ -43,7 +44,9 @@ from backend.orchestration.stages import (
     ReportingStage,
     ResearchStage,
 )
+from backend.repositories.research_repository import list_signals_for_session
 from backend.services.capability_matching_service import match_capabilities
+from backend.services.notification_service import generate_notifications_for_signals, generate_opportunity_alert
 from backend.services.opportunity_analysis_service import analyze_opportunities
 from backend.services.reporting_service import generate_report
 from backend.services.research_service import research_company
@@ -73,6 +76,28 @@ def _build_pipeline() -> Pipeline:
     )
 
 
+async def _generate_notifications(context: PipelineContext) -> None:
+    """Wires the previously-dead notification generator (backend/services/
+    notification_service.py - built and tested but never called, see
+    TECH_DEBT.md) into the one live analysis entrypoint. Best-effort: a
+    notification failure must never fail the analysis run itself, since
+    the report has already been generated and persisted by this point.
+    """
+    try:
+        if context.research_session is not None:
+            signals = await asyncio.to_thread(list_signals_for_session, context.research_session.id)
+            await generate_notifications_for_signals(context.company.id, signals)
+
+        for opportunity in context.opportunities:
+            await generate_opportunity_alert(opportunity)
+    except Exception:
+        logger.exception(
+            "Notification generation failed for company %s (%s); analysis result is unaffected.",
+            context.company.name,
+            context.company.id,
+        )
+
+
 async def run_manual_analysis_pipeline(company: Company) -> PipelineResult:
     """Runs the full pipeline per settings.ai_orchestration_mode and
     returns every stage's output - confidence scores, evidence
@@ -88,6 +113,8 @@ async def run_manual_analysis_pipeline(company: Company) -> PipelineResult:
 
     context = PipelineContext(company=company, mode=mode)
     context = await _build_pipeline().run(context)
+
+    await _generate_notifications(context)
 
     logger.info("Manual analysis completed for company %s (%s).", company.name, company.id)
 

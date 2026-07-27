@@ -19,6 +19,9 @@ class MeetingBriefOut(BaseModel):
     discovery_questions: List[str] = []
     recommended_services: List[str] = []
     meeting_objectives: List[str] = []
+    recent_developments: List[str] = []
+    risks: List[str] = []
+    related_opportunities: List[str] = []
     confidence_score: Optional[float] = None
     created_at: datetime
 
@@ -34,6 +37,9 @@ class MeetingBriefOut(BaseModel):
         "discovery_questions",
         "recommended_services",
         "meeting_objectives",
+        "recent_developments",
+        "risks",
+        "related_opportunities",
         mode="before",
     )
     @classmethod

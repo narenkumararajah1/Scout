@@ -31,7 +31,7 @@ from backend.schemas.generation_job import GenerationJobOut
 from backend.schemas.sales_playbook import SalesPlaybookOut
 from backend.services import company_service
 from backend.services.generation_job_service import create_job, execute_job, reject_if_duplicate
-from backend.services.sales_playbook_service import generate_sales_playbook
+from backend.services.sales_playbook_service import build_why_innominds_explanation, generate_sales_playbook
 
 router = APIRouter(prefix="/api/v1/sales-playbooks", tags=["sales-playbooks"])
 
@@ -59,6 +59,7 @@ async def get_sales_playbook_detail(playbook_id: str, current_user: User = Depen
         raise APIError(404, f"Sales playbook {playbook_id} does not exist.")
 
     data = SalesPlaybookOut.model_validate(playbook).model_dump()
+    data["why_innominds"] = await build_why_innominds_explanation(playbook)
     return {"success": True, "message": "Sales playbook retrieved successfully.", "data": data}
 
 

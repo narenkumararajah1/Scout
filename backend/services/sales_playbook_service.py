@@ -19,12 +19,13 @@ import asyncio
 import uuid
 
 from backend.ai.confidence_engine import EvidenceItem, calculate_confidence
-from backend.ai.evidence_manager import store_evidence
+from backend.ai.evidence_manager import get_evidence_for_entity, store_evidence
 from backend.ai.llm_gateway import generate_completion, parse_json_object
 from backend.ai.prompts.sales_playbook_prompts import build_sales_playbook_prompt
 from backend.database.models import SalesPlaybook
 from backend.models.opportunity import Opportunity
 from backend.repositories.capability_match_repository import get_capability_match
+from backend.repositories.opportunity_repository import get_opportunity
 from backend.repositories.postgres.sales_playbook_repository import create_sales_playbook
 
 _EXPECTED_FIELDS = [
@@ -89,3 +90,24 @@ async def generate_sales_playbook(company_id: str, company_name: str, opportunit
         )
 
     return created
+
+
+async def build_why_innominds_explanation(playbook: SalesPlaybook) -> dict:
+    """Roadmap Phase 4, item 14 - "Explain Why Innominds?": maps
+    Customer Need -> Relevant Innominds Practices -> Relevant Experience
+    -> Suggested Sales Motion. Every piece already exists (the
+    opportunity itself, this playbook's recommended_services/next_steps,
+    and the evidence this same generation call already stored above) -
+    this is a read-only assembly, no new AI call.
+    """
+    opportunity = (
+        await asyncio.to_thread(get_opportunity, playbook.opportunity_id) if playbook.opportunity_id else None
+    )
+    evidence = await get_evidence_for_entity("sales_playbook", playbook.id)
+
+    return {
+        "customer_need": (opportunity.description or opportunity.title) if opportunity else None,
+        "relevant_practices": playbook.recommended_services or [],
+        "relevant_experience": [item.content for item in evidence],
+        "suggested_sales_motion": playbook.next_steps or [],
+    }

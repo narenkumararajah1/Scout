@@ -15,6 +15,151 @@ by inspection. Every item below should be resolved (and this section
 removed) as it's addressed; new gaps discovered later should be added
 here rather than left implicit.
 
+## Scout V3 Enhancement Roadmap - Phases 1-4
+
+A new roadmap (`Scout V3 Enhancement Roadmap`, external to this repo)
+is now the source of truth for evolving Scout from a sales-intelligence
+tool into an "AI Sales Strategist." Auth/RBAC/multi-tenancy/SSO stay
+deferred per that roadmap's explicit instructions. Phases 5-6 (Visual
+Intelligence charts, basic Relationship Intelligence) are still ahead.
+
+**Phase 1 - Report System Unification.** The two report systems (V2's
+SQLite-backed `Report`/`research_reports` and V3's Postgres-backed
+`Report`/`v3_reports`) were confirmed still fully separate at every
+layer despite an earlier session's cosmetic label rename. Rather than
+merging the backend data models (V2's Report is load-bearing for the
+scheduler, Run Analysis, and email/Teams distribution - a working
+system this roadmap says not to redesign), a new frontend hook,
+`useIntelligenceReports` (`frontend/react/src/hooks/useIntelligenceReports.ts`),
+composes both existing report hooks into one normalized, sorted list.
+Company Details and Sales Enablement now each show a single
+"Intelligence Reports" section instead of two.
+
+**Phase 2 - Core AI Experience (Scout Copilot).** Ask Scout
+(`backend/services/conversation_service.py`, `backend/routers/conversation.py`,
+`frontend/react/src/pages/AskScoutPage.tsx`) gained: optional
+page-context scoping (`?companyId=` deep link or an in-page picker),
+resent conversation history (last 5 turns, client-side only - no new
+session store), Markdown-rendered answers (`react-markdown` +
+`remark-gfm`), related-company chips when unscoped, and one-click
+"suggested actions" that directly trigger Meeting Brief / Outreach
+Draft / Report generation through the existing, already-safe/rate-limited
+`GenerationJob` endpoints when a company is in focus. This narrows
+ADR-014 ("Ask Scout never triggers other workflows") specifically for
+safe, reversible, already-rate-limited *generation* actions only - it
+still never sends a real email/Teams message or archives/deletes
+anything.
+
+**Phase 3 - Dashboard & Intelligence.** Three previously-disconnected
+pieces got wired up, all reusing already-persisted data with zero new
+AI calls:
+
+- **Executive Intelligence Dashboard** (`backend/services/analytics_service.py`'s
+  `executive_dashboard()`, `GET /analytics/executive-dashboard`,
+  `frontend/react/src/pages/AnalyticsPage.tsx`) replaces the old flat
+  opportunity-rankings list with opportunities grouped by company, each
+  showing its confidence/priority *explanation* (already-persisted
+  `CapabilityMatch.reasoning` + `Signal.type` counts - the Confidence
+  Engine's output was previously computed but never surfaced together)
+  and one-click Recommended Actions (Meeting Brief / Outreach Draft /
+  Report), reusing Phase 2's same generation pattern.
+- **Home Dashboard Intelligence Feed** - `backend/services/notification_service.py`'s
+  two generator functions (`generate_notifications_for_signals`,
+  `generate_opportunity_alert`) were fully built and tested since Phase
+  5 but had zero production callers (confirmed via grep). They're now
+  called from `backend/orchestration/manual_analysis.py`'s
+  `run_manual_analysis_pipeline()` (a new `_generate_notifications()`
+  helper, best-effort/try-except so a notification failure never fails
+  an otherwise-successful analysis run) after every analysis, using the
+  signals/opportunities already produced in that same run. The
+  Dashboard now resolves each notification's company name (a `Link` to
+  that company) and shows a one-line "Morning Brief" summary sentence.
+- **What Changed Since Last Visit** - a new Postgres-only `CompanyView`
+  table (`backend/database/models/company_view.py`, migration
+  `0009_create_company_views.py`, keyed by `company_id` alone - same
+  pattern as `Notification`, since `company_id` is shared verbatim
+  between the SQLite/Postgres Company stores regardless of
+  `migration_mode`) tracks a single `last_viewed_at` timestamp per
+  company (single-user product, no per-user distinction needed yet).
+  `backend/services/company_view_service.py`'s
+  `get_changes_since_last_visit()` diffs notifications/opportunities/
+  reports against the previous visit's timestamp; exposed via
+  `POST /api/v1/companies/{id}/visit`. Company Details calls this once
+  per page open (`frontend/react/src/hooks/useCompanyVisit.ts` - not a
+  plain `useQuery`, since the endpoint isn't idempotent) and shows a
+  banner only when something's actually new.
+
+All three were verified against this environment's real (dev) Postgres
+instance - migration `0009` had to be applied by hand
+(`alembic upgrade head`) since it predates this pass, after which the
+visit endpoint, notification generation, and the dashboard's grouped
+opportunities all confirmed correctly end-to-end in a real browser
+session, including a live-created test notification propagating to
+both the Dashboard feed and a company's "since last visit" banner.
+Backend tests for all three pieces are Postgres-gated
+(`postgres_available` fixture) and skip in this sandboxed environment
+(no local Postgres reachable from the test process's own hardcoded test
+DB URL, a pre-existing condition unrelated to this pass - 162 skips
+before and after); the full non-Postgres suite (356 tests) plus
+frontend `tsc`/`lint`/`build` all pass clean.
+
+**Phase 4 - Executive Experience.** All three items reuse
+already-persisted data or already-built services; only the AI Sales
+Coach adds a genuinely new synthesis call.
+
+- **Executive Briefing Mode (item 11)** - `MeetingBrief` gained three
+  columns (migration `0010`): `recent_developments` (read straight from
+  the research session's own Signals, no new AI call),
+  `risks` (one new small LLM prompt, `build_risks_prompt` in
+  `backend/ai/prompts/meeting_preparation_prompts.py`, same shape as the
+  existing `meeting_objectives` prompt), and `related_opportunities` (a
+  snapshot of the company's opportunity titles via the existing
+  `list_opportunities`). `MeetingBriefDetailPage.tsx` was reordered/
+  relabeled to match the roadmap's exact contents list: Company
+  Snapshot, Executive Summary, Recent Developments, Risks,
+  Opportunities, Executive Profiles, Meeting Objectives, Talking
+  Points, Discovery Questions, Recommended Actions (with one-click
+  Outreach Draft/Report buttons, reusing Phase 2's action pattern). No
+  rename of the underlying entity/routes - same reasoning as Phase 1's
+  "presentation-layer-only" report merge.
+- **Explain "Why Innominds?" (item 14)** - `backend/services/sales_playbook_service.py`'s
+  new `build_why_innominds_explanation()` assembles Customer Need
+  (the opportunity's own title/description) -> Relevant Innominds
+  Practices (`SalesPlaybook.recommended_services`) -> Relevant
+  Experience (this playbook's own Evidence records, already stored at
+  generation time via `store_evidence`) -> Suggested Sales Motion
+  (`SalesPlaybook.next_steps`) - zero new AI calls, purely a read-only
+  assembly of data this same generation call already persisted. Exposed
+  as a `why_innominds` field on `GET /api/v1/sales-playbooks/{id}` and
+  rendered as a numbered map on `SalesPlaybookDetailPage.tsx`.
+- **AI Sales Coach (item 10)** - genuinely new:
+  `backend/services/ai_sales_coach_service.py`'s `what_would_you_do()`
+  answers "If you were the Account Executive, what would you do next?"
+  with one consolidated LLM call (`backend/ai/prompts/sales_coach_prompts.py`)
+  over Company Intelligence (executives, business priorities), the
+  top-ranked opportunity, and recent signals. Deliberately modeled like
+  Ask Scout, not like Meeting Brief/Sales Playbook: a synchronous
+  `GET /api/v1/companies/{id}/sales-coach`, nothing persisted, no
+  `GenerationJob` - the roadmap frames this as a live answer on "every
+  company page," not a saved artifact. Frontend: an opt-in "Get
+  Recommendation" button on Company Details (never fires automatically,
+  since it's a real LLM call each time).
+
+Verified against this environment's real dev Postgres instance:
+migration `0010` applied by hand, then a real Meeting Brief was
+generated end-to-end for Hertz (confirmed `recent_developments`/
+`risks`/`related_opportunities` all populated with real, on-topic
+content), a real Sales Playbook's `why_innominds` map was confirmed
+correct field-by-field against its own persisted Evidence, and the AI
+Sales Coach endpoint returned a coherent, on-topic recommendation
+without any executives on record (fell back to a role description as
+designed). All three confirmed rendering correctly in a live browser
+session against the real backend. Full non-Postgres backend suite (357
+tests) plus frontend `tsc`/`lint`/`build` all pass clean; the 6 new
+Postgres-gated unit tests (meeting brief fields, why-innominds mapping,
+AI sales coach x2, sales-coach router x2) skip locally for the same
+pre-existing reason as Phase 3's.
+
 ## Outreach workflow redesign - generation and delivery are now separate steps
 
 Previously, generating an Outreach Draft required an executive name -

@@ -19,3 +19,17 @@ def build_meeting_objectives_prompt(company_name: str, meeting_title: str, busin
         "If there isn't enough information to define objectives, return an empty array rather than "
         "inventing details."
     )
+
+
+def build_risks_prompt(company_name: str, business_priorities: list, recent_developments: list) -> str:
+    return (
+        f'Identify risks an Innominds sales team should be aware of before meeting with "{company_name}".\n\n'
+        f"Known business priorities:\n{json.dumps(business_priorities)}\n\n"
+        f"Recent developments:\n{json.dumps(recent_developments)}\n\n"
+        "Risks might include: budget constraints, competing vendor relationships, internal reorganizations, "
+        "a stalled initiative, or a recent negative event.\n\n"
+        "Respond with ONLY a JSON array of short risk strings, no other text, e.g.:\n"
+        '["Recently announced layoffs may have frozen new vendor spending.", "..."]\n\n'
+        "If there isn't enough information to identify real risks, return an empty array rather than "
+        "inventing details."
+    )

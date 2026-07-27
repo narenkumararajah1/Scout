@@ -1,13 +1,15 @@
 // Sales Enablement hub (V2->V3 parity pass, Project Decisions #5/#7/#8).
-// Sales Playbooks, Meeting Briefs, Outreach Drafts, and V3 Reports were
-// flagship V3 capabilities with no top-level presence - a first-time
-// user had no way to discover they existed short of opening a company
-// and scrolling. This page surfaces what each capability is and, once
-// a company is picked, lists that company's items via the same
-// per-company endpoints Company Details already uses (no new backend
-// work). Generation stays on Company Details, where the opportunity/
-// executive context those forms need already lives - this page links
-// there rather than duplicating it.
+// Sales Playbooks, Meeting Briefs, Outreach Drafts, and Intelligence
+// Reports were flagship V3 capabilities with no top-level presence - a
+// first-time user had no way to discover they existed short of opening
+// a company and scrolling. This page surfaces what each capability is
+// and, once a company is picked, lists that company's items via the
+// same per-company endpoints Company Details already uses (no new
+// backend work) - Reports uses useIntelligenceReports, which merges V2
+// and V3 report queries into one list (roadmap Phase 1: Report System
+// Unification). Generation stays on Company Details, where the
+// opportunity/executive context those forms need already lives - this
+// page links there rather than duplicating it.
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
@@ -16,11 +18,10 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
 import { useCompanies } from "../hooks/useCompanies";
-import { useCompanyReports } from "../hooks/useCompanyReports";
+import { useIntelligenceReports } from "../hooks/useIntelligenceReports";
 import { useMeetingBriefs } from "../hooks/useMeetingBriefs";
 import { useOutreachDrafts } from "../hooks/useOutreachDrafts";
 import { useSalesPlaybooks } from "../hooks/useSalesPlaybooks";
-import { useV3Reports } from "../hooks/useV3Reports";
 import { getErrorMessage } from "../utils/errors";
 import { outreachStatusVariant } from "../utils/outreachDraft";
 
@@ -29,21 +30,19 @@ export function SalesEnablementPage() {
   const [companyId, setCompanyId] = useState<string | undefined>(undefined);
   const companies = companiesQuery.data ?? [];
 
-  const reportsQuery = useCompanyReports(companyId);
+  const reportsQuery = useIntelligenceReports(companyId);
   const salesPlaybooksQuery = useSalesPlaybooks(companyId);
   const meetingBriefsQuery = useMeetingBriefs(companyId);
   const outreachDraftsQuery = useOutreachDrafts(companyId);
-  const v3ReportsQuery = useV3Reports(companyId);
 
   return (
     <div className="sales-enablement-page">
       <h1>Sales Enablement</h1>
       <p className="card-description">
         Scout can generate Sales Playbooks (strategy for a specific opportunity), Meeting Briefs (prep for an
-        upcoming conversation), Outreach Drafts (email/message copy for a reviewer to approve), and Full
-        Intelligence Reports (a full assembled summary), on top of the research Reports it's always produced.
-        Pick a company below to browse what's already been generated, or open the company's page to generate
-        something new.
+        upcoming conversation), Outreach Drafts (email/message copy for a reviewer to approve), and Intelligence
+        Reports (a full assembled summary). Pick a company below to browse what's already been generated, or
+        open the company's page to generate something new.
       </p>
 
       <Card title="Choose a company">
@@ -72,20 +71,20 @@ export function SalesEnablementPage() {
 
       {companyId && (
         <>
-          <Card title="Reports">
+          <Card title="Intelligence Reports">
             {reportsQuery.isLoading ? (
               <LoadingState message="Loading reports..." />
             ) : reportsQuery.isError ? (
               <ErrorState message={getErrorMessage(reportsQuery.error)} />
-            ) : (reportsQuery.data ?? []).length === 0 ? (
+            ) : reportsQuery.data.length === 0 ? (
               <EmptyState message="No reports yet for this company." />
             ) : (
               <ul className="report-list">
-                {(reportsQuery.data ?? []).map((report) => (
+                {reportsQuery.data.map((report) => (
                   <li key={report.id}>
-                    <Link to={`/reports/${report.id}`} className="report-list-item">
-                      <span>Report</span>
-                      <span>{new Date(report.created_at).toLocaleString()}</span>
+                    <Link to={report.to} className="report-list-item">
+                      <span>{report.title}</span>
+                      <span>{new Date(report.date).toLocaleString()}</span>
                     </Link>
                   </li>
                 ))}
@@ -154,27 +153,6 @@ export function SalesEnablementPage() {
                         label={draft.status}
                         variant={outreachStatusVariant(draft.status)}
                       />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-
-          <Card title="Full Intelligence Reports">
-            {v3ReportsQuery.isLoading ? (
-              <LoadingState message="Loading reports..." />
-            ) : v3ReportsQuery.isError ? (
-              <ErrorState message={getErrorMessage(v3ReportsQuery.error)} />
-            ) : (v3ReportsQuery.data ?? []).length === 0 ? (
-              <EmptyState message="No reports yet for this company." />
-            ) : (
-              <ul className="report-list">
-                {(v3ReportsQuery.data ?? []).map((report) => (
-                  <li key={report.id}>
-                    <Link to={`/v3-reports/${report.id}`} className="report-list-item">
-                      <span>{report.title ?? "Report"}</span>
-                      <span>{new Date(report.created_at).toLocaleString()}</span>
                     </Link>
                   </li>
                 ))}

@@ -110,6 +110,41 @@ export function SalesPlaybookDetailPage() {
         )}
       </Card>
 
+      {playbook.why_innominds && (
+        <Card title="Why Innominds?">
+          <ol className="why-innominds-map">
+            <li>
+              <span className="why-innominds-label">Customer Need</span>
+              <p>{playbook.why_innominds.customer_need ?? "Not available."}</p>
+            </li>
+            <li>
+              <span className="why-innominds-label">Relevant Innominds Practices</span>
+              {playbook.why_innominds.relevant_practices.length === 0 ? (
+                <EmptyState message="Not available." />
+              ) : (
+                <BulletList items={playbook.why_innominds.relevant_practices} />
+              )}
+            </li>
+            <li>
+              <span className="why-innominds-label">Relevant Experience</span>
+              {playbook.why_innominds.relevant_experience.length === 0 ? (
+                <EmptyState message="Not available." />
+              ) : (
+                <BulletList items={playbook.why_innominds.relevant_experience} />
+              )}
+            </li>
+            <li>
+              <span className="why-innominds-label">Suggested Sales Motion</span>
+              {playbook.why_innominds.suggested_sales_motion.length === 0 ? (
+                <EmptyState message="Not available." />
+              ) : (
+                <BulletList items={playbook.why_innominds.suggested_sales_motion} />
+              )}
+            </li>
+          </ol>
+        </Card>
+      )}
+
       <AIFeedback targetType="sales_playbook" targetId={playbook.id} companyId={playbook.company_id} />
     </div>
   );

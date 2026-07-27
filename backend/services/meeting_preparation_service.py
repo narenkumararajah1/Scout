@@ -16,16 +16,21 @@ import uuid
 from typing import Optional
 
 from backend.ai.llm_gateway import generate_completion, parse_json_array
-from backend.ai.prompts.meeting_preparation_prompts import build_meeting_objectives_prompt
+from backend.ai.prompts.meeting_preparation_prompts import build_meeting_objectives_prompt, build_risks_prompt
 from backend.database.models import MeetingBrief
 from backend.models.company import Company
+from backend.repositories.opportunity_repository import list_opportunities
 from backend.repositories.postgres.meeting_brief_repository import create_meeting_brief
+from backend.repositories.research_repository import list_signals_for_session
 from backend.services.company_intelligence_service import build_company_intelligence_profile
 from backend.services.executive_intelligence_service import generate_engagement_strategy
 
 
 async def generate_meeting_brief(
-    company: Company, meeting_title: Optional[str] = None, research_summary: str = ""
+    company: Company,
+    meeting_title: Optional[str] = None,
+    research_summary: str = "",
+    research_session_id: Optional[str] = None,
 ) -> MeetingBrief:
     profile = await build_company_intelligence_profile(company)
 
@@ -48,10 +53,26 @@ async def generate_meeting_brief(
         discovery_questions.extend(strategy.discovery_questions)
         recommended_services.extend(strategy.relevant_services)
 
+    # Roadmap Phase 4 (Executive Briefing Mode) - "Recent Developments"
+    # reuses the research session's own Signals directly, no new AI call.
+    recent_developments: list = []
+    if research_session_id:
+        signals = await asyncio.to_thread(list_signals_for_session, research_session_id)
+        recent_developments = [signal.title for signal in signals]
+
+    # "Opportunities" - a snapshot of this company's already-persisted
+    # opportunity titles, same reasoning as recent_developments above.
+    opportunities = await asyncio.to_thread(list_opportunities, company.id)
+    related_opportunities = [opportunity.title for opportunity in opportunities]
+
     title = meeting_title or f"Meeting with {company.name}"
     objectives_prompt = build_meeting_objectives_prompt(company.name, title, business_priorities)
     objectives_response = await asyncio.to_thread(generate_completion, objectives_prompt)
     meeting_objectives = parse_json_array(objectives_response, "Meeting Preparation Service")
+
+    risks_prompt = build_risks_prompt(company.name, business_priorities, recent_developments)
+    risks_response = await asyncio.to_thread(generate_completion, risks_prompt)
+    risks = parse_json_array(risks_response, "Meeting Preparation Service")
 
     brief = MeetingBrief(
         id=str(uuid.uuid4()),
@@ -64,5 +85,8 @@ async def generate_meeting_brief(
         discovery_questions=discovery_questions,
         recommended_services=recommended_services,
         meeting_objectives=meeting_objectives,
+        recent_developments=recent_developments,
+        risks=risks,
+        related_opportunities=related_opportunities,
     )
     return await create_meeting_brief(brief)

@@ -74,3 +74,94 @@ def test_v2_companies_routes_are_unaffected(client):
     response = client.get("/companies/does-not-exist")
 
     assert response.status_code == 404
+
+
+def test_visit_rejects_a_missing_token(client, require_auth):
+    response = client.post("/api/v1/companies/does-not-exist/visit")
+
+    assert response.status_code == 401
+    assert response.json()["success"] is False
+
+
+async def test_visit_returns_404_for_an_unknown_company(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("visit-test-1@example.com")
+
+    response = client.post("/api/v1/companies/does-not-exist/visit", headers=headers)
+
+    assert response.status_code == 404
+    assert response.json()["success"] is False
+
+
+async def test_visit_reports_first_visit_for_a_never_viewed_company(client, postgres_available):
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="visit-test-company-1", name="VisitTestCo1"))
+    await create_postgres_company(PostgresCompany(id="visit-test-company-1", name="VisitTestCo1"))
+    headers = await _auth_headers("visit-test-2@example.com")
+
+    response = client.post("/api/v1/companies/visit-test-company-1/visit", headers=headers)
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["first_visit"] is True
+    assert data["new_notifications"] == []
+
+
+async def test_visit_reports_no_changes_on_a_second_consecutive_visit(client, postgres_available):
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="visit-test-company-2", name="VisitTestCo2"))
+    await create_postgres_company(PostgresCompany(id="visit-test-company-2", name="VisitTestCo2"))
+    headers = await _auth_headers("visit-test-3@example.com")
+
+    client.post("/api/v1/companies/visit-test-company-2/visit", headers=headers)
+    response = client.post("/api/v1/companies/visit-test-company-2/visit", headers=headers)
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["first_visit"] is False
+    assert data["new_opportunity_count"] == 0
+    assert data["new_report_count"] == 0
+
+
+def test_sales_coach_rejects_a_missing_token(client, require_auth):
+    response = client.get("/api/v1/companies/does-not-exist/sales-coach")
+
+    assert response.status_code == 401
+    assert response.json()["success"] is False
+
+
+async def test_sales_coach_returns_404_for_an_unknown_company(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("sales-coach-test-1@example.com")
+
+    response = client.get("/api/v1/companies/does-not-exist/sales-coach", headers=headers)
+
+    assert response.status_code == 404
+    assert response.json()["success"] is False
+
+
+async def test_sales_coach_returns_a_structured_recommendation(client, postgres_available):
+    import json
+    from unittest.mock import patch
+
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="sales-coach-company-1", name="SalesCoachCo1"))
+    headers = await _auth_headers("sales-coach-test-2@example.com")
+
+    mock_response = json.dumps(
+        {
+            "who_to_contact": "Jane Doe, CTO",
+            "best_talking_points": ["Ask about the Kubernetes rollout."],
+            "best_timing": "Now",
+            "risks": [],
+            "suggested_sequence": ["Send an intro email"],
+            "why": "Strong platform engineering fit.",
+        }
+    )
+    with patch("backend.services.ai_sales_coach_service.generate_completion", return_value=mock_response):
+        response = client.get("/api/v1/companies/sales-coach-company-1/sales-coach", headers=headers)
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["who_to_contact"] == "Jane Doe, CTO"
+    assert data["suggested_sequence"] == ["Send an intro email"]

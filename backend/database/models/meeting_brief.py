@@ -23,5 +23,13 @@ class MeetingBrief(Base):
     discovery_questions: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
     recommended_services: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
     meeting_objectives: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
+    # Roadmap Phase 4 ("Executive Briefing Mode") additions - recent_developments
+    # is read directly from the research session's own Signals (no new AI
+    # call); risks is a new, small LLM synthesis, same pattern as
+    # meeting_objectives; related_opportunities is a snapshot of this
+    # company's opportunity titles at generation time.
+    recent_developments: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
+    risks: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
+    related_opportunities: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
     confidence_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

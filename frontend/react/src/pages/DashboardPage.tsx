@@ -19,10 +19,24 @@ export function DashboardPage() {
   const topOpportunities = opportunitiesQuery.data ?? [];
   const monitoredCount = companies.filter((company) => company.monitoring_status === "enabled").length;
   const unreadCount = notifications.filter((notification) => !notification.is_read).length;
+  const companyNameById = new Map(companies.map((company) => [company.id, company.name]));
+  const unreadCompanyCount = new Set(
+    notifications.filter((notification) => !notification.is_read).map((notification) => notification.company_id),
+  ).size;
+
+  const morningBrief =
+    !notificationsQuery.isLoading && !notificationsQuery.isError && unreadCount > 0
+      ? `${unreadCount} new signal${unreadCount === 1 ? "" : "s"} across ${unreadCompanyCount} compan${
+          unreadCompanyCount === 1 ? "y" : "ies"
+        } need${unreadCompanyCount === 1 ? "s" : ""} your attention today.`
+      : !notificationsQuery.isLoading && !notificationsQuery.isError
+        ? "No new signals since your last visit - you're all caught up."
+        : null;
 
   return (
     <div className="dashboard-page">
       <h1>Executive Dashboard</h1>
+      {morningBrief && <p className="morning-brief">{morningBrief}</p>}
 
       <div className="dashboard-summary">
         <Card title="Companies monitored">
@@ -70,6 +84,14 @@ export function DashboardPage() {
                   {!notification.is_read && <Badge label="New" variant="success" />}
                 </div>
                 {notification.summary && <p className="notification-summary">{notification.summary}</p>}
+                <div className="notification-item-footer">
+                  <Link to={`/companies/${notification.company_id}`}>
+                    {companyNameById.get(notification.company_id) ?? "View company"}
+                  </Link>
+                  {notification.recommended_action && (
+                    <span className="notification-recommended-action">{notification.recommended_action}</span>
+                  )}
+                </div>
               </li>
             ))}
           </ul>

@@ -7,7 +7,9 @@ Reuses V2's existing Signal type categories (backend/models/research.py)
 as the generation trigger - read-only against SQLite, writes only to the
 new Postgres Notification table.
 
-Not called by any existing agent, service, or router - see TECH_DEBT.md.
+Called from backend/orchestration/manual_analysis.py's
+_generate_notifications() after every analysis run (roadmap Phase 3 -
+Home Dashboard Intelligence Feed).
 """
 
 from __future__ import annotations

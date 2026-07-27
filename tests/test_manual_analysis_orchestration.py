@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from backend.models.company import Company
+from backend.models.opportunity import Opportunity
 from backend.models.report import Report
 from backend.models.research import ResearchSession
 from backend.orchestration.manual_analysis import run_manual_analysis
@@ -67,3 +68,62 @@ def test_run_manual_analysis_propagates_a_stage_failure():
     ):
         with pytest.raises(ValueError, match="requires opportunities"):
             asyncio.run(run_manual_analysis(company))
+
+
+def test_run_manual_analysis_wires_up_notification_generation():
+    """Roadmap Phase 3 (Home Dashboard Intelligence Feed) - the
+    previously-dead notification_service functions must now be called
+    from the one live analysis entrypoint, using the signals/opportunities
+    already produced in this same run rather than a separate fetch.
+    """
+    company = Company(name="Acme Corp")
+    session = ResearchSession(company_id=company.id, status="completed")
+    report = Report(company_id=company.id, research_session_id=session.id)
+    opportunity = Opportunity(company_id=company.id, research_session_id=session.id, title="Big Opp")
+
+    with patch(
+        "backend.orchestration.manual_analysis.research_company", return_value=session
+    ), patch(
+        "backend.orchestration.manual_analysis.match_capabilities", return_value=[]
+    ), patch(
+        "backend.orchestration.manual_analysis.analyze_opportunities", return_value=[opportunity]
+    ), patch(
+        "backend.orchestration.manual_analysis.generate_report", return_value=report
+    ), patch(
+        "backend.orchestration.manual_analysis.list_signals_for_session", return_value=["signal-stub"]
+    ) as mock_list_signals, patch(
+        "backend.orchestration.manual_analysis.generate_notifications_for_signals"
+    ) as mock_generate_notifications, patch(
+        "backend.orchestration.manual_analysis.generate_opportunity_alert"
+    ) as mock_generate_alert:
+        asyncio.run(run_manual_analysis(company))
+
+    mock_list_signals.assert_called_once_with(session.id)
+    mock_generate_notifications.assert_called_once_with(company.id, ["signal-stub"])
+    mock_generate_alert.assert_called_once_with(opportunity)
+
+
+def test_run_manual_analysis_survives_a_notification_generation_failure():
+    """Notification generation is best-effort - a failure there must
+    never take down an otherwise-successful analysis run, since the
+    Report has already been generated and persisted by that point.
+    """
+    company = Company(name="Acme Corp")
+    session = ResearchSession(company_id=company.id, status="completed")
+    expected_report = Report(company_id=company.id, research_session_id=session.id)
+
+    with patch(
+        "backend.orchestration.manual_analysis.research_company", return_value=session
+    ), patch(
+        "backend.orchestration.manual_analysis.match_capabilities", return_value=[]
+    ), patch(
+        "backend.orchestration.manual_analysis.analyze_opportunities", return_value=[]
+    ), patch(
+        "backend.orchestration.manual_analysis.generate_report", return_value=expected_report
+    ), patch(
+        "backend.orchestration.manual_analysis.list_signals_for_session",
+        side_effect=RuntimeError("notification backend unavailable"),
+    ):
+        result = asyncio.run(run_manual_analysis(company))
+
+    assert result is expected_report

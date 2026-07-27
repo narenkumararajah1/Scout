@@ -15,7 +15,7 @@ from backend.repositories.capability_match_repository import create_capability_m
 from backend.repositories.company_repository import create_company as create_sqlite_company
 from backend.repositories.postgres.company_repository import create_company
 from backend.repositories.research_repository import create_research_session
-from backend.services.sales_playbook_service import generate_sales_playbook
+from backend.services.sales_playbook_service import build_why_innominds_explanation, generate_sales_playbook
 from tests.conftest import clear_v2_tables
 
 
@@ -67,3 +67,42 @@ async def test_generate_sales_playbook_persists_structured_sections(postgres_ava
     assert playbook.talking_points == ["Ask about their Kubernetes rollout."]
     assert playbook.risks == ["Budget approval delays"]
     assert playbook.confidence_score is not None
+
+
+async def test_build_why_innominds_explanation_maps_need_to_practice_to_experience_to_motion(postgres_available):
+    """Roadmap Phase 4, item 14 - every piece of this map (Customer
+    Need, Relevant Innominds Practices, Relevant Experience, Suggested
+    Sales Motion) should come from data this same generation call
+    already persisted, with zero new AI calls.
+    """
+    clear_v2_tables()
+    await create_company(Company(id="sp-svc-company-2", name="SpSvcCo2"))
+    create_sqlite_company(SqliteCompany(id="sp-svc-company-2", name="SpSvcCo2"))
+    session = create_research_session(ResearchSession(company_id="sp-svc-company-2"))
+    match = create_capability_match(
+        CapabilityMatch(
+            company_id="sp-svc-company-2",
+            research_session_id=session.id,
+            capability_id="cap-2",
+            capability_name="Cloud-Native Platform Engineering",
+            confidence=0.9,
+            reasoning="Strong alignment with their AWS migration.",
+        )
+    )
+    opportunity = Opportunity(
+        company_id="sp-svc-company-2",
+        research_session_id=session.id,
+        title="Cloud Migration",
+        description="Accelerate cloud migration to AWS.",
+        capability_match_ids=[match.id],
+    )
+
+    with patch("backend.services.sales_playbook_service.generate_completion", return_value=_mock_response()):
+        playbook = await generate_sales_playbook("sp-svc-company-2", "SpSvcCo2", opportunity)
+
+    explanation = await build_why_innominds_explanation(playbook)
+
+    assert explanation["customer_need"] == "Accelerate cloud migration to AWS."
+    assert explanation["relevant_practices"] == ["Cloud-Native Platform Engineering"]
+    assert explanation["relevant_experience"] == ["Strong alignment with their AWS migration."]
+    assert explanation["suggested_sales_motion"] == ["Schedule a discovery call."]

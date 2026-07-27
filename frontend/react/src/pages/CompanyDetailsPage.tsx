@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
+import { BulletList } from "../components/ui/BulletList";
 import { Card } from "../components/ui/Card";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -14,20 +15,21 @@ import { useArchiveCompany } from "../hooks/useArchiveCompany";
 import { useCompany } from "../hooks/useCompany";
 import { useConfirm } from "../hooks/useConfirm";
 import { useCompanyIntelligence } from "../hooks/useCompanyIntelligence";
-import { useCompanyReports } from "../hooks/useCompanyReports";
 import { useCompanyTrends } from "../hooks/useCompanyTrends";
+import { useCompanyVisit } from "../hooks/useCompanyVisit";
 import { useGenerateMeetingBrief } from "../hooks/useGenerateMeetingBrief";
 import { useGenerateOutreachDraft } from "../hooks/useGenerateOutreachDraft";
 import { useGenerateSalesPlaybook } from "../hooks/useGenerateSalesPlaybook";
 import { useGenerateV3Report } from "../hooks/useGenerateV3Report";
 import { useGenerationJob } from "../hooks/useGenerationJob";
+import { useIntelligenceReports } from "../hooks/useIntelligenceReports";
 import { useMeetingBriefs } from "../hooks/useMeetingBriefs";
 import { useOutreachDrafts } from "../hooks/useOutreachDrafts";
 import { useRemoveCompany } from "../hooks/useRemoveCompany";
 import { useRestoreCompany } from "../hooks/useRestoreCompany";
+import { useSalesCoach } from "../hooks/useSalesCoach";
 import { useSalesPlaybooks } from "../hooks/useSalesPlaybooks";
 import { useToasts } from "../hooks/useToasts";
-import { useV3Reports } from "../hooks/useV3Reports";
 import { companyService } from "../services/companyService";
 import type { GenerationJob } from "../types/generationJob";
 import { getErrorMessage } from "../utils/errors";
@@ -54,12 +56,13 @@ export function CompanyDetailsPage() {
   const navigate = useNavigate();
   const companyQuery = useCompany(companyId);
   const intelligenceQuery = useCompanyIntelligence(companyId);
-  const reportsQuery = useCompanyReports(companyId);
   const trendsQuery = useCompanyTrends(companyId);
   const salesPlaybooksQuery = useSalesPlaybooks(companyId);
   const meetingBriefsQuery = useMeetingBriefs(companyId);
   const outreachDraftsQuery = useOutreachDrafts(companyId);
-  const v3ReportsQuery = useV3Reports(companyId);
+  const reportsQuery = useIntelligenceReports(companyId);
+  const visitChanges = useCompanyVisit(companyId);
+  const salesCoach = useSalesCoach(companyId);
   const queryClient = useQueryClient();
   const { toasts, pushToast, dismissToast } = useToasts();
   const { confirm, confirmDialog } = useConfirm();
@@ -301,6 +304,9 @@ export function CompanyDetailsPage() {
         <button type="button" onClick={handleRunAnalysis} disabled={analyzeCompany.isPending}>
           {analyzeCompany.isPending ? "Running analysis..." : "Run Analysis"}
         </button>
+        <Link to={`/ask-scout?companyId=${company.id}`} className="ask-scout-link-button">
+          Ask Scout about {company.name}
+        </Link>
       </div>
 
       {company.archived_at && (
@@ -309,6 +315,40 @@ export function CompanyDetailsPage() {
           reports, and generated content are preserved. Restore it at any time.
         </p>
       )}
+
+      {visitChanges &&
+        !visitChanges.first_visit &&
+        (visitChanges.new_notifications.length > 0 ||
+          visitChanges.new_opportunity_count > 0 ||
+          visitChanges.new_report_count > 0) && (
+          <div className="since-last-visit-banner">
+            <p>
+              Since your last visit{visitChanges.since ? ` (${new Date(visitChanges.since).toLocaleString()})` : ""}:{" "}
+              {visitChanges.new_opportunity_count > 0 &&
+                `${visitChanges.new_opportunity_count} new opportunit${
+                  visitChanges.new_opportunity_count === 1 ? "y" : "ies"
+                }`}
+              {visitChanges.new_opportunity_count > 0 &&
+                (visitChanges.new_report_count > 0 || visitChanges.new_notifications.length > 0) &&
+                ", "}
+              {visitChanges.new_report_count > 0 &&
+                `${visitChanges.new_report_count} new report${visitChanges.new_report_count === 1 ? "" : "s"}`}
+              {visitChanges.new_report_count > 0 && visitChanges.new_notifications.length > 0 && ", "}
+              {visitChanges.new_notifications.length > 0 &&
+                `${visitChanges.new_notifications.length} new alert${
+                  visitChanges.new_notifications.length === 1 ? "" : "s"
+                }`}
+              .
+            </p>
+            {visitChanges.new_notifications.length > 0 && (
+              <ul className="since-last-visit-notifications">
+                {visitChanges.new_notifications.map((notification) => (
+                  <li key={notification.id}>{notification.title}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
       {toggleMonitoring.isError && <p className="form-error">{getErrorMessage(toggleMonitoring.error)}</p>}
 
@@ -431,24 +471,44 @@ export function CompanyDetailsPage() {
         )}
       </Card>
 
-      <Card title="Reports">
-        {reportsQuery.isLoading ? (
-          <LoadingState message="Loading reports..." />
-        ) : reportsQuery.isError ? (
-          <ErrorState message={getErrorMessage(reportsQuery.error)} />
-        ) : (reportsQuery.data ?? []).length === 0 ? (
-          <EmptyState message="No reports yet - run an analysis to generate one." />
-        ) : (
-          <ul className="report-list">
-            {(reportsQuery.data ?? []).map((report) => (
-              <li key={report.id}>
-                <Link to={`/reports/${report.id}`} className="report-list-item">
-                  <span>Report</span>
-                  <span>{new Date(report.created_at).toLocaleString()}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+      <Card title="AI Sales Coach">
+        <p className="card-description">
+          If you were the Account Executive, what would you do next? Scout synthesizes a live recommendation from
+          everything it already knows about this company - it's never saved, so ask again any time.
+        </p>
+        <button type="button" onClick={() => salesCoach.mutate()} disabled={salesCoach.isPending}>
+          {salesCoach.isPending ? "Thinking..." : "Get Recommendation"}
+        </button>
+        {salesCoach.isError && <p className="form-error">{getErrorMessage(salesCoach.error)}</p>}
+        {salesCoach.data && (
+          <dl className="sales-coach-recommendation">
+            <dt>Who to contact</dt>
+            <dd>{salesCoach.data.who_to_contact ?? "Not enough information yet."}</dd>
+            <dt>Best timing</dt>
+            <dd>{salesCoach.data.best_timing ?? "Not enough information yet."}</dd>
+            <dt>Best talking points</dt>
+            <dd>
+              {salesCoach.data.best_talking_points.length === 0 ? (
+                "None yet."
+              ) : (
+                <BulletList items={salesCoach.data.best_talking_points} />
+              )}
+            </dd>
+            <dt>Suggested sequence</dt>
+            <dd>
+              {salesCoach.data.suggested_sequence.length === 0 ? (
+                "None yet."
+              ) : (
+                <BulletList items={salesCoach.data.suggested_sequence} />
+              )}
+            </dd>
+            <dt>Risks</dt>
+            <dd>
+              {salesCoach.data.risks.length === 0 ? "None identified." : <BulletList items={salesCoach.data.risks} />}
+            </dd>
+            <dt>Why Scout recommends this</dt>
+            <dd>{salesCoach.data.why ?? "Not enough information yet."}</dd>
+          </dl>
         )}
       </Card>
 
@@ -611,7 +671,7 @@ export function CompanyDetailsPage() {
         )}
       </Card>
 
-      <Card title="Full Intelligence Reports">
+      <Card title="Intelligence Reports">
         <p className="card-description">
           A complete rollup of everything gathered on this company - research, opportunities, executives, and
           any sales playbooks, meeting briefs, or outreach drafts generated so far.
@@ -632,19 +692,19 @@ export function CompanyDetailsPage() {
           </button>
         </div>
         <GenerationStatus job={reportJob.data} onRetry={handleGenerateReport} />
-        {v3ReportsQuery.isLoading ? (
+        {reportsQuery.isLoading ? (
           <LoadingState message="Loading reports..." />
-        ) : v3ReportsQuery.isError ? (
-          <ErrorState message={getErrorMessage(v3ReportsQuery.error)} />
-        ) : (v3ReportsQuery.data ?? []).length === 0 ? (
-          <EmptyState message="No reports yet." />
+        ) : reportsQuery.isError ? (
+          <ErrorState message={getErrorMessage(reportsQuery.error)} />
+        ) : reportsQuery.data.length === 0 ? (
+          <EmptyState message="No reports yet - run an analysis or generate one above." />
         ) : (
           <ul className="report-list">
-            {(v3ReportsQuery.data ?? []).map((report) => (
+            {reportsQuery.data.map((report) => (
               <li key={report.id}>
-                <Link to={`/v3-reports/${report.id}`} className="report-list-item">
-                  <span>{report.title ?? "Report"}</span>
-                  <span>{new Date(report.created_at).toLocaleString()}</span>
+                <Link to={report.to} className="report-list-item">
+                  <span>{report.title}</span>
+                  <span>{new Date(report.date).toLocaleString()}</span>
                 </Link>
               </li>
             ))}

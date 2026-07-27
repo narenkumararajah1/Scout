@@ -20,6 +20,7 @@ multiple locations").
 """
 
 import logging
+from typing import Optional
 
 from backend.ai.llm_gateway import generate_completion
 from backend.ai.prompts.conversation_prompts import build_conversation_prompt
@@ -35,6 +36,20 @@ NO_INTELLIGENCE_MESSAGE = (
     "analysis first, then ask again."
 )
 
+# Priority 4 (roadmap Phase 2, Scout Copilot): a fixed, always-safe set
+# of one-click actions offered whenever the question was asked with a
+# known company in context - each reuses an existing, already-rate-
+# limited GenerationJob flow unchanged. Sales Playbook generation is
+# deliberately excluded here since it hard-requires picking a specific
+# opportunity_id, which chat has no reliable way to infer - that one
+# stays a page-level action, not a chat one-click.
+SUGGESTED_ACTION_TYPES = ("meeting_brief", "outreach_draft", "report")
+_ACTION_LABELS = {
+    "meeting_brief": "Generate Meeting Brief",
+    "outreach_draft": "Generate Outreach Draft",
+    "report": "Generate Report",
+}
+
 # Bounds per company so the prompt stays a reasonable size regardless of
 # how much historical intelligence a company accumulates - a
 # conversational answer only needs the most recent/most relevant slice,
@@ -43,9 +58,16 @@ MAX_OPPORTUNITIES_PER_COMPANY = 5
 MAX_CAPABILITY_MATCHES_PER_COMPANY = 5
 
 
-def _build_intelligence_context() -> list[dict]:
+def _build_intelligence_context(focus_company_id: Optional[str] = None) -> list[dict]:
     context = []
-    for company in list_companies():
+    companies = list_companies()
+    if focus_company_id:
+        # The focus company leads the context list so it's naturally
+        # weighted first in the prompt, without hiding the rest - a
+        # question asked from a company's page can still reference
+        # other companies (e.g. "how does this compare to X?").
+        companies = sorted(companies, key=lambda c: c.id != focus_company_id)
+    for company in companies:
         sessions = list_research_sessions(company.id)
         latest_session = sessions[0] if sessions else None
         signals = list_signals_for_session(latest_session.id) if latest_session else []
@@ -92,8 +114,23 @@ def _build_intelligence_context() -> list[dict]:
     return context
 
 
-def answer_question(question: str) -> str:
+def answer_question(
+    question: str,
+    company_id: Optional[str] = None,
+    history: Optional[list[dict]] = None,
+) -> dict:
     """Answers `question` using Scout's existing intelligence.
+
+    Returns {"answer": str, "related_companies": list[dict], "suggested_actions": list[dict]}.
+
+    `company_id` (roadmap Phase 2, Scout Copilot) is the company the user
+    was viewing when they asked - when given, that company is
+    prioritized in the prompt and the response includes a fixed set of
+    one-click generation actions for it instead of related-company
+    detection. `history` is prior (question, answer) turns from this
+    session, resent by the client each time (no server-side session
+    store) so the conversation reads as continuous rather than each
+    question starting cold.
 
     Raises ValueError if `question` is blank. Raises whatever
     generate_completion raises on an LLM failure - callers decide how to
@@ -102,14 +139,36 @@ def answer_question(question: str) -> str:
     if not question.strip():
         raise ValueError("Conversation Service requires a non-empty question.")
 
-    context = _build_intelligence_context()
+    companies = list_companies()
+    context = _build_intelligence_context(focus_company_id=company_id)
     if not context:
         # Honest-empty pattern (matches capability_matching_service.py,
         # opportunity_analysis_service.py): nothing to answer from yet,
         # so skip the LLM call rather than asking it to answer from
         # nothing.
-        return NO_INTELLIGENCE_MESSAGE
+        return {"answer": NO_INTELLIGENCE_MESSAGE, "related_companies": [], "suggested_actions": []}
 
-    answer = generate_completion(build_conversation_prompt(question, context))
+    focus_company = next((c for c in companies if c.id == company_id), None) if company_id else None
+    answer = generate_completion(
+        build_conversation_prompt(
+            question,
+            context,
+            history=history,
+            focus_company=focus_company.name if focus_company else None,
+        )
+    )
     logger.info("Answered conversational question (%d companies in context).", len(context))
-    return answer
+
+    if focus_company:
+        suggested_actions = [
+            {"label": _ACTION_LABELS[action_type], "action_type": action_type, "company_id": focus_company.id}
+            for action_type in SUGGESTED_ACTION_TYPES
+        ]
+        return {"answer": answer, "related_companies": [], "suggested_actions": suggested_actions}
+
+    # No focus company given (asked from the global Ask Scout page,
+    # possibly spanning several companies) - surface plain links to
+    # whichever companies the answer actually mentions, rather than
+    # generation buttons, since it'd be ambiguous which one to act on.
+    related_companies = [{"id": c.id, "name": c.name} for c in companies if c.name.lower() in answer.lower()][:5]
+    return {"answer": answer, "related_companies": related_companies, "suggested_actions": []}

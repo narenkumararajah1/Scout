@@ -1,11 +1,13 @@
+from backend.models.capability_match import CapabilityMatch
 from backend.models.company import Company
 from backend.models.opportunity import Opportunity
 from backend.models.report import Report
-from backend.models.research import ResearchSession
+from backend.models.research import ResearchSession, Signal
+from backend.repositories.capability_match_repository import create_capability_match
 from backend.repositories.company_repository import create_company
 from backend.repositories.opportunity_repository import create_opportunity
 from backend.repositories.report_repository import create_report
-from backend.repositories.research_repository import create_research_session
+from backend.repositories.research_repository import create_research_session, create_signal
 from backend.services import analytics_service
 from tests.conftest import clear_v2_tables
 
@@ -90,3 +92,59 @@ def test_company_trends_handles_company_with_no_activity():
     assert trends["report_count"] == 0
     assert trends["average_opportunity_confidence"] is None
     assert trends["top_opportunities"] == []
+
+
+def test_executive_dashboard_groups_opportunities_by_company_with_reasoning_and_signal_counts():
+    clear_v2_tables()
+    company, session = _make_company_with_session()
+    signal = create_signal(
+        Signal(research_session_id=session.id, type="hiring", title="Hiring spike in engineering")
+    )
+    match = create_capability_match(
+        CapabilityMatch(
+            company_id=company.id,
+            research_session_id=session.id,
+            capability_id="cap-1",
+            capability_name="Cloud Migration",
+            confidence=0.9,
+            reasoning="Strong hiring signal for cloud engineers.",
+        )
+    )
+    create_opportunity(
+        Opportunity(
+            company_id=company.id,
+            research_session_id=session.id,
+            title="Cloud Migration Opportunity",
+            priority=9,
+            confidence_score=0.85,
+            supporting_signal_ids=[signal.id],
+            capability_match_ids=[match.id],
+        )
+    )
+
+    dashboard = analytics_service.executive_dashboard()
+
+    assert len(dashboard["companies"]) == 1
+    entry = dashboard["companies"][0]
+    assert entry["company_id"] == company.id
+    assert len(entry["opportunities"]) == 1
+    opportunity_entry = entry["opportunities"][0]
+    assert opportunity_entry["title"] == "Cloud Migration Opportunity"
+    assert opportunity_entry["reasoning"] == ["Strong hiring signal for cloud engineers."]
+    assert opportunity_entry["signal_type_counts"] == {"hiring": 1}
+
+
+def test_executive_dashboard_skips_opportunities_for_archived_companies():
+    clear_v2_tables()
+    company, session = _make_company_with_session()
+    create_opportunity(
+        Opportunity(company_id=company.id, research_session_id=session.id, title="Some Opp", priority=5)
+    )
+
+    from backend.services import company_service
+
+    company_service.archive_company(company.id)
+
+    dashboard = analytics_service.executive_dashboard()
+
+    assert dashboard["companies"] == []

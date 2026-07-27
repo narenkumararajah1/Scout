@@ -6,6 +6,16 @@ export interface ObjectionHandlingItem {
   response: string;
 }
 
+// Roadmap Phase 4, item 14 ("Explain Why Innominds?") - Customer Need
+// -> Relevant Innominds Practices -> Relevant Experience -> Suggested
+// Sales Motion, assembled server-side from already-persisted data.
+export interface WhyInnominds {
+  customer_need: string | null;
+  relevant_practices: string[];
+  relevant_experience: string[];
+  suggested_sales_motion: string[];
+}
+
 export interface SalesPlaybook {
   id: string;
   company_id: string;
@@ -19,4 +29,5 @@ export interface SalesPlaybook {
   risks: string[];
   confidence_score: number | null;
   created_at: string;
+  why_innominds?: WhyInnominds;
 }

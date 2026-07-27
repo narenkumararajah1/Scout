@@ -17,6 +17,9 @@ export interface MeetingBrief {
   discovery_questions: string[];
   recommended_services: string[];
   meeting_objectives: string[];
+  recent_developments: string[];
+  risks: string[];
+  related_opportunities: string[];
   confidence_score: number | null;
   created_at: string;
 }

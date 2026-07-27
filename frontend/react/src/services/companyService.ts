@@ -8,7 +8,9 @@
 import { apiRequest, apiRequestData } from "../api/client";
 import type { Company, CreateCompanyInput } from "../types/company";
 import type { CompanyIntelligence } from "../types/companyIntelligence";
+import type { CompanyVisitChanges } from "../types/companyView";
 import type { Report } from "../types/report";
+import type { SalesCoachRecommendation } from "../types/salesCoach";
 
 export const companyService = {
   async listCompanies(includeArchived = false): Promise<Company[]> {
@@ -33,6 +35,19 @@ export const companyService = {
 
   async getCompanyIntelligence(companyId: string): Promise<CompanyIntelligence> {
     return apiRequestData<CompanyIntelligence>(`/api/v1/companies/${companyId}/intelligence`);
+  },
+
+  // Roadmap Phase 3 - "What Changed Since Last Visit". Not idempotent:
+  // each call both reads and advances the "last viewed" checkpoint, so
+  // this should be called once per page open, not on every render.
+  async visitCompany(companyId: string): Promise<CompanyVisitChanges> {
+    return apiRequestData<CompanyVisitChanges>(`/api/v1/companies/${companyId}/visit`, { method: "POST" });
+  },
+
+  // Roadmap Phase 4, item 10 ("AI Sales Coach") - a real LLM call, so
+  // it's opt-in from the UI (a button), not fetched automatically.
+  async getSalesCoachRecommendation(companyId: string): Promise<SalesCoachRecommendation> {
+    return apiRequestData<SalesCoachRecommendation>(`/api/v1/companies/${companyId}/sales-coach`);
   },
 
   async analyzeCompany(companyId: string): Promise<Report> {

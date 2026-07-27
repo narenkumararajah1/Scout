@@ -428,6 +428,25 @@ a {
   margin-bottom: 1rem;
 }
 
+.since-last-visit-banner {
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 6px;
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  color: #3730a3;
+  margin-bottom: 1rem;
+}
+
+.since-last-visit-banner p {
+  margin: 0;
+}
+
+.since-last-visit-notifications {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+}
+
 .delivery-live-banner {
   background: #fff7ed;
   border: 1px solid #fdba74;
@@ -471,6 +490,28 @@ a {
   margin: 0.25rem 0 0;
   color: #6b7280;
   font-size: 0.9rem;
+}
+
+.notification-item-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.notification-recommended-action {
+  color: #6b7280;
+}
+
+.notification-recommended-action::before {
+  content: "· ";
+}
+
+.morning-brief {
+  color: #4338ca;
+  font-size: 1rem;
+  margin: -0.5rem 0 1rem;
 }
 
 /* Companies */
@@ -730,7 +771,7 @@ a {
   font-family: inherit;
 }
 
-/* Ask Scout */
+/* Ask Scout / Scout Copilot */
 .ask-scout-form {
   display: flex;
   gap: 0.5rem;
@@ -741,6 +782,51 @@ a {
   flex: 1;
   min-width: 240px;
   padding: 0.55rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
+}
+
+.ask-scout-link-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
+  background: #fff;
+  color: #1a1a1a;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.ask-scout-link-button:hover {
+  background: #f3f4f6;
+}
+
+.ask-scout-focus-banner {
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 6px;
+  padding: 0.55rem 0.85rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.ask-scout-clear-focus {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #4338ca;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.ask-scout-company-picker {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
   border: 1px solid #d0d3d9;
   border-radius: 4px;
 }
@@ -767,9 +853,66 @@ a {
 }
 
 .conversation-answer {
-  margin: 0;
   color: #4b5162;
-  white-space: pre-wrap;
+}
+
+.conversation-answer > :first-child {
+  margin-top: 0;
+}
+
+.conversation-answer > :last-child {
+  margin-bottom: 0;
+}
+
+.conversation-answer table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5rem 0;
+}
+
+.conversation-answer th,
+.conversation-answer td {
+  border: 1px solid #e5e7eb;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
+
+.conversation-answer th {
+  background: #f9fafb;
+}
+
+.conversation-related-companies,
+.conversation-suggested-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.6rem;
+}
+
+.conversation-company-chip {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.conversation-company-chip:hover {
+  background: #e0e7ff;
+}
+
+.conversation-suggested-actions button {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.conversation-suggested-actions button:hover:not(:disabled) {
+  background: #f3f4f6;
 }
 
 /* Data table (e.g. workflow run history) */
@@ -855,6 +998,22 @@ a {
 }
 
 .company-overview dd {
+  margin: 0;
+}
+
+.sales-coach-recommendation {
+  margin: 1rem 0 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1.5rem;
+}
+
+.sales-coach-recommendation dt {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.sales-coach-recommendation dd {
   margin: 0;
 }
 
@@ -948,6 +1107,67 @@ a {
   margin: 0.25rem 0 0;
   color: #6b7280;
   font-size: 0.85rem;
+}
+
+/* Executive Intelligence Dashboard (Analytics page) */
+.exec-dashboard-signal-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.exec-dashboard-reasoning {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  color: #4b5563;
+  font-size: 0.85rem;
+}
+
+.exec-dashboard-reasoning li {
+  margin-bottom: 0.2rem;
+}
+
+.exec-dashboard-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.65rem;
+}
+
+.exec-dashboard-actions button {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.exec-dashboard-actions button:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+/* Why Innominds map (Sales Playbook detail) */
+.why-innominds-map {
+  list-style: decimal;
+  padding-left: 1.3rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.why-innominds-map li::marker {
+  font-weight: 700;
+  color: #4338ca;
+}
+
+.why-innominds-label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.25rem;
 }
 
 /* Report detail */

@@ -1,21 +1,18 @@
-// Conversational intelligence ("Ask Scout") domain operations (V2->V3
-// parity pass). Wraps V2's existing, unversioned POST /conversation/ask
-// (backend/routers/conversation.py, Phase 11) unchanged - a read-only
-// Q&A over already-persisted intelligence that never triggers new
-// research. No conversation history is persisted server-side, matching
-// V2's own behavior - the frontend keeps history in memory only.
+// Conversational intelligence ("Ask Scout" / Scout Copilot, roadmap
+// Phase 2) - wraps V2's existing, unversioned POST /conversation/ask
+// (backend/routers/conversation.py). Still never triggers new
+// research; Phase 2 adds optional page context (companyId) and
+// client-resent history (no server-side session store) so a
+// conversation reads as continuous, plus related-company links and
+// safe one-click generation-action suggestions in the response.
 import { apiRequest } from "../api/client";
-
-interface ConversationResponse {
-  answer: string;
-}
+import type { AskScoutResult, ConversationTurn } from "../types/conversation";
 
 export const conversationService = {
-  async ask(question: string): Promise<string> {
-    const response = await apiRequest<ConversationResponse>("/conversation/ask", {
+  async ask(question: string, companyId?: string, history: ConversationTurn[] = []): Promise<AskScoutResult> {
+    return apiRequest<AskScoutResult>("/conversation/ask", {
       method: "POST",
-      body: { question },
+      body: { question, company_id: companyId, history },
     });
-    return response.answer;
   },
 };

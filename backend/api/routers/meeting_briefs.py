@@ -77,10 +77,13 @@ async def create_meeting_brief(
 
     sessions = await asyncio.to_thread(list_research_sessions, company.id)
     research_summary = sessions[0].research_summary or "" if sessions else ""
+    research_session_id = sessions[0].id if sessions else None
 
     job = await create_job(JOB_TYPE, company.id, request.model_dump())
     background_tasks.add_task(
-        execute_job, job.id, lambda: generate_meeting_brief(company, request.meeting_title, research_summary)
+        execute_job,
+        job.id,
+        lambda: generate_meeting_brief(company, request.meeting_title, research_summary, research_session_id),
     )
     data = GenerationJobOut.model_validate(job).model_dump()
     return {"success": True, "message": "Meeting brief generation started.", "data": data}

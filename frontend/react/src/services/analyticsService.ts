@@ -4,6 +4,7 @@
 // here or in any component, per the approved Phase 7B plan.
 import { apiRequest } from "../api/client";
 import type { CompanyTrends } from "../types/analytics";
+import type { ExecutiveDashboard } from "../types/executiveDashboard";
 import type { Opportunity } from "../types/opportunity";
 
 export const analyticsService = {
@@ -13,5 +14,9 @@ export const analyticsService = {
 
   async companyTrends(companyId: string): Promise<CompanyTrends> {
     return apiRequest<CompanyTrends>(`/analytics/companies/${companyId}/trends`);
+  },
+
+  async executiveDashboard(limit = 50): Promise<ExecutiveDashboard> {
+    return apiRequest<ExecutiveDashboard>(`/analytics/executive-dashboard?limit=${limit}`);
   },
 };
