@@ -2,7 +2,8 @@
 Phase 7A). Isolated, read-only endpoints:
 GET /api/v1/companies/{company_id}/intelligence,
 POST /api/v1/companies/{company_id}/visit (roadmap Phase 3 - "What
-Changed Since Last Visit").
+Changed Since Last Visit"), and the relationships CRUD (roadmap Phase 6
+- Relationship Intelligence, basic level).
 
 Exposes Phase 5's already-built
 backend/services/company_intelligence_service.py - adds no new
@@ -22,9 +23,10 @@ from backend.api.error_handlers import APIError
 from backend.database.models import User
 from backend.repositories.research_repository import list_research_sessions
 from backend.schemas.company_intelligence import CompanyIntelligenceResponse
+from backend.schemas.company_relationship import CompanyRelationshipOut, CreateCompanyRelationshipRequest
 from backend.schemas.company_view import CompanyVisitChangesResponse
 from backend.schemas.sales_coach import SalesCoachRecommendation
-from backend.services import company_service
+from backend.services import company_relationship_service, company_service
 from backend.services.ai_sales_coach_service import what_would_you_do
 from backend.services.company_intelligence_service import build_company_intelligence_profile
 from backend.services.company_view_service import get_changes_since_last_visit
@@ -81,3 +83,49 @@ async def get_sales_coach_recommendation(company_id: str, current_user: User = D
     recommendation = await what_would_you_do(company)
     data = SalesCoachRecommendation.model_validate(recommendation)
     return {"success": True, "message": "Sales coach recommendation generated successfully.", "data": data.model_dump()}
+
+
+@router.get("/{company_id}/relationships")
+async def list_company_relationships(company_id: str, current_user: User = Depends(get_current_user)) -> dict:
+    try:
+        company_service.get_company(company_id)
+    except ValueError as exc:
+        raise APIError(404, str(exc)) from exc
+
+    relationships = await company_relationship_service.list_relationships(company_id)
+    data = [CompanyRelationshipOut.model_validate(r).model_dump() for r in relationships]
+    return {"success": True, "message": "Relationships retrieved successfully.", "data": data}
+
+
+@router.post("/{company_id}/relationships", status_code=201)
+async def create_company_relationship(
+    company_id: str, request: CreateCompanyRelationshipRequest, current_user: User = Depends(get_current_user)
+) -> dict:
+    try:
+        company_service.get_company(company_id)
+    except ValueError as exc:
+        raise APIError(404, str(exc)) from exc
+
+    try:
+        relationship = await company_relationship_service.add_relationship(
+            company_id,
+            request.relationship_type,
+            related_company_id=request.related_company_id,
+            related_company_name=request.related_company_name,
+            notes=request.notes,
+        )
+    except ValueError as exc:
+        raise APIError(400, str(exc)) from exc
+
+    data = CompanyRelationshipOut.model_validate(relationship).model_dump()
+    return {"success": True, "message": "Relationship added successfully.", "data": data}
+
+
+@router.delete("/{company_id}/relationships/{relationship_id}", status_code=204)
+async def delete_company_relationship(
+    company_id: str, relationship_id: str, current_user: User = Depends(get_current_user)
+) -> None:
+    try:
+        await company_relationship_service.remove_relationship(company_id, relationship_id)
+    except ValueError as exc:
+        raise APIError(404, str(exc)) from exc

@@ -12,11 +12,14 @@ import { GenerationStatus } from "../components/ui/GenerationStatus";
 import { IntelligenceTimeline } from "../components/ui/IntelligenceTimeline";
 import { LoadingState } from "../components/ui/LoadingState";
 import { ToastContainer } from "../components/ui/Toast";
+import { useAddCompanyRelationship } from "../hooks/useAddCompanyRelationship";
 import { useAnalyzeCompany } from "../hooks/useAnalyzeCompany";
 import { useArchiveCompany } from "../hooks/useArchiveCompany";
+import { useCompanies } from "../hooks/useCompanies";
 import { useCompany } from "../hooks/useCompany";
 import { useConfirm } from "../hooks/useConfirm";
 import { useCompanyIntelligence } from "../hooks/useCompanyIntelligence";
+import { useCompanyRelationships } from "../hooks/useCompanyRelationships";
 import { useCompanyTrends } from "../hooks/useCompanyTrends";
 import { useCompanyVisit } from "../hooks/useCompanyVisit";
 import { useGenerateMeetingBrief } from "../hooks/useGenerateMeetingBrief";
@@ -28,14 +31,24 @@ import { useIntelligenceReports } from "../hooks/useIntelligenceReports";
 import { useMeetingBriefs } from "../hooks/useMeetingBriefs";
 import { useOutreachDrafts } from "../hooks/useOutreachDrafts";
 import { useRemoveCompany } from "../hooks/useRemoveCompany";
+import { useRemoveCompanyRelationship } from "../hooks/useRemoveCompanyRelationship";
 import { useRestoreCompany } from "../hooks/useRestoreCompany";
 import { useSalesCoach } from "../hooks/useSalesCoach";
 import { useSalesPlaybooks } from "../hooks/useSalesPlaybooks";
 import { useToasts } from "../hooks/useToasts";
 import { companyService } from "../services/companyService";
 import type { GenerationJob } from "../types/generationJob";
+import { RELATIONSHIP_TYPES, type RelationshipType } from "../types/companyRelationship";
 import { getErrorMessage } from "../utils/errors";
 import { outreachStatusVariant } from "../utils/outreachDraft";
+
+const RELATIONSHIP_TYPE_LABELS: Record<RelationshipType, string> = {
+  competitor: "Competitor",
+  partner: "Partner",
+  subsidiary: "Subsidiary",
+  parent: "Parent Company",
+  customer: "Customer",
+};
 
 // Priority 1: fires `onCompleted` exactly once, the moment a polled
 // GenerationJob first reaches "completed" - shared by all four
@@ -65,6 +78,10 @@ export function CompanyDetailsPage() {
   const reportsQuery = useIntelligenceReports(companyId);
   const visitChanges = useCompanyVisit(companyId);
   const salesCoach = useSalesCoach(companyId);
+  const relationshipsQuery = useCompanyRelationships(companyId);
+  const allCompaniesQuery = useCompanies();
+  const addRelationship = useAddCompanyRelationship(companyId);
+  const removeRelationship = useRemoveCompanyRelationship(companyId);
   const queryClient = useQueryClient();
   const { toasts, pushToast, dismissToast } = useToasts();
   const { confirm, confirmDialog } = useConfirm();
@@ -131,6 +148,40 @@ export function CompanyDetailsPage() {
   const [talkingPointsText, setTalkingPointsText] = useState("");
   const [outreachOpportunityId, setOutreachOpportunityId] = useState("");
   const [outreachMeetingBriefId, setOutreachMeetingBriefId] = useState("");
+  const [relationshipType, setRelationshipType] = useState<RelationshipType>("competitor");
+  const [relatedCompanyId, setRelatedCompanyId] = useState("");
+  const [relatedCompanyName, setRelatedCompanyName] = useState("");
+  const [relationshipNotes, setRelationshipNotes] = useState("");
+
+  function handleAddRelationship() {
+    if (!relatedCompanyId && !relatedCompanyName.trim()) {
+      pushToast("Choose a tracked company or type a name.", "error");
+      return;
+    }
+    addRelationship.mutate(
+      {
+        relationshipType,
+        relatedCompanyId: relatedCompanyId || undefined,
+        relatedCompanyName: relatedCompanyId ? undefined : relatedCompanyName.trim(),
+        notes: relationshipNotes.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          setRelatedCompanyId("");
+          setRelatedCompanyName("");
+          setRelationshipNotes("");
+          pushToast("Relationship added.", "success");
+        },
+        onError: (error) => pushToast(getErrorMessage(error), "error"),
+      },
+    );
+  }
+
+  function handleRemoveRelationship(relationshipId: string) {
+    removeRelationship.mutate(relationshipId, {
+      onError: (error) => pushToast(getErrorMessage(error), "error"),
+    });
+  }
 
   function handleRunAnalysis() {
     pushToast("Analysis started - this can take a minute.", "progress");
@@ -477,6 +528,89 @@ export function CompanyDetailsPage() {
             <IntelligenceTimeline events={trends.timeline} />
           </>
         )}
+      </Card>
+
+      <Card title="Related Companies">
+        <p className="card-description">
+          Competitors, partners, subsidiaries, parent companies, and customers - helping you understand the broader
+          ecosystem around this account. User-curated, not AI-generated.
+        </p>
+        {relationshipsQuery.isLoading ? (
+          <LoadingState message="Loading relationships..." />
+        ) : relationshipsQuery.isError ? (
+          <ErrorState message={getErrorMessage(relationshipsQuery.error)} />
+        ) : (relationshipsQuery.data ?? []).length === 0 ? (
+          <EmptyState message="No related companies yet." />
+        ) : (
+          <ul className="relationship-list">
+            {(relationshipsQuery.data ?? []).map((relationship) => (
+              <li key={relationship.id} className="relationship-list-item">
+                <Badge label={RELATIONSHIP_TYPE_LABELS[relationship.relationship_type]} variant="neutral" />
+                {relationship.related_company_id ? (
+                  <Link to={`/companies/${relationship.related_company_id}`}>
+                    {allCompaniesQuery.data?.find((c) => c.id === relationship.related_company_id)?.name ??
+                      relationship.related_company_name ??
+                      "View company"}
+                  </Link>
+                ) : (
+                  <span>{relationship.related_company_name}</span>
+                )}
+                {relationship.notes && <span className="relationship-notes">{relationship.notes}</span>}
+                <button
+                  type="button"
+                  className="relationship-remove-button"
+                  onClick={() => handleRemoveRelationship(relationship.id)}
+                  disabled={removeRelationship.isPending}
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="generate-form">
+          <select value={relationshipType} onChange={(event) => setRelationshipType(event.target.value as RelationshipType)}>
+            {RELATIONSHIP_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {RELATIONSHIP_TYPE_LABELS[type]}
+              </option>
+            ))}
+          </select>
+          <select
+            value={relatedCompanyId}
+            onChange={(event) => {
+              setRelatedCompanyId(event.target.value);
+              if (event.target.value) {
+                setRelatedCompanyName("");
+              }
+            }}
+          >
+            <option value="">Tracked company (optional)...</option>
+            {(allCompaniesQuery.data ?? [])
+              .filter((c) => c.id !== companyId)
+              .map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+          </select>
+          <input
+            type="text"
+            placeholder="Or type a company name"
+            value={relatedCompanyName}
+            disabled={relatedCompanyId !== ""}
+            onChange={(event) => setRelatedCompanyName(event.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Notes (optional)"
+            value={relationshipNotes}
+            onChange={(event) => setRelationshipNotes(event.target.value)}
+          />
+          <button type="button" onClick={handleAddRelationship} disabled={addRelationship.isPending}>
+            {addRelationship.isPending ? "Adding..." : "Add Relationship"}
+          </button>
+        </div>
       </Card>
 
       <Card title="AI Sales Coach">

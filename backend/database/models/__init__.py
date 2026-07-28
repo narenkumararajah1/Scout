@@ -8,6 +8,7 @@ mixing ORM classes into that package.
 
 from backend.database.models.business_initiative import BusinessInitiative
 from backend.database.models.company import Company
+from backend.database.models.company_relationship import CompanyRelationship
 from backend.database.models.company_view import CompanyView
 from backend.database.models.evidence import Evidence
 from backend.database.models.executive import Executive
@@ -40,4 +41,5 @@ __all__ = [
     "GenerationJob",
     "GenerationFeedback",
     "CompanyView",
+    "CompanyRelationship",
 ]

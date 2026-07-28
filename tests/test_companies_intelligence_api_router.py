@@ -165,3 +165,67 @@ async def test_sales_coach_returns_a_structured_recommendation(client, postgres_
     data = response.json()["data"]
     assert data["who_to_contact"] == "Jane Doe, CTO"
     assert data["suggested_sequence"] == ["Send an intro email"]
+
+
+async def test_list_relationships_returns_404_for_an_unknown_company(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("rel-test-1@example.com")
+
+    response = client.get("/api/v1/companies/does-not-exist/relationships", headers=headers)
+
+    assert response.status_code == 404
+
+
+async def test_create_and_list_and_delete_relationship(client, postgres_available):
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="rel-api-company-1", name="RelApiCo1"))
+    await create_postgres_company(PostgresCompany(id="rel-api-company-1", name="RelApiCo1"))
+    headers = await _auth_headers("rel-test-2@example.com")
+
+    create_response = client.post(
+        "/api/v1/companies/rel-api-company-1/relationships",
+        headers=headers,
+        json={"relationship_type": "competitor", "related_company_name": "Untracked Rival Co"},
+    )
+    assert create_response.status_code == 201
+    relationship_id = create_response.json()["data"]["id"]
+
+    list_response = client.get("/api/v1/companies/rel-api-company-1/relationships", headers=headers)
+    assert list_response.status_code == 200
+    assert [r["id"] for r in list_response.json()["data"]] == [relationship_id]
+
+    delete_response = client.delete(
+        f"/api/v1/companies/rel-api-company-1/relationships/{relationship_id}", headers=headers
+    )
+    assert delete_response.status_code == 204
+
+    list_after_delete = client.get("/api/v1/companies/rel-api-company-1/relationships", headers=headers)
+    assert list_after_delete.json()["data"] == []
+
+
+async def test_create_relationship_rejects_an_invalid_type(client, postgres_available):
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="rel-api-company-2", name="RelApiCo2"))
+    await create_postgres_company(PostgresCompany(id="rel-api-company-2", name="RelApiCo2"))
+    headers = await _auth_headers("rel-test-3@example.com")
+
+    response = client.post(
+        "/api/v1/companies/rel-api-company-2/relationships",
+        headers=headers,
+        json={"relationship_type": "rival", "related_company_name": "Someone"},
+    )
+
+    assert response.status_code == 400
+
+
+async def test_delete_relationship_returns_404_for_an_unknown_id(client, postgres_available):
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="rel-api-company-3", name="RelApiCo3"))
+    await create_postgres_company(PostgresCompany(id="rel-api-company-3", name="RelApiCo3"))
+    headers = await _auth_headers("rel-test-4@example.com")
+
+    response = client.delete(
+        "/api/v1/companies/rel-api-company-3/relationships/does-not-exist", headers=headers
+    )
+
+    assert response.status_code == 404

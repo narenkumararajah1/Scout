@@ -15,13 +15,17 @@ by inspection. Every item below should be resolved (and this section
 removed) as it's addressed; new gaps discovered later should be added
 here rather than left implicit.
 
-## Scout V3 Enhancement Roadmap - Phases 1-5
+## Scout V3 Enhancement Roadmap - Phases 1-6 (complete)
 
 A new roadmap (`Scout V3 Enhancement Roadmap`, external to this repo)
-is now the source of truth for evolving Scout from a sales-intelligence
-tool into an "AI Sales Strategist." Auth/RBAC/multi-tenancy/SSO stay
-deferred per that roadmap's explicit instructions. Phase 6 (basic
-Relationship Intelligence) is still ahead.
+was the source of truth for evolving Scout from a sales-intelligence
+tool into an "AI Sales Strategist." Auth/RBAC/multi-tenancy/SSO stayed
+deferred per that roadmap's explicit instructions throughout. All six
+planned phases are now complete. Explicitly out of scope for the whole
+engagement, not just deferred to "later" (per the approved plan): full
+multi-tier Intelligent AI Routing (item 4), Proactive Opportunity
+Discovery (item 6), Industry Benchmarking (item 7), Scout Memory (item
+12), Opportunity Simulator (item 13).
 
 **Phase 1 - Report System Unification.** The two report systems (V2's
 SQLite-backed `Report`/`research_reports` and V3's Postgres-backed
@@ -208,6 +212,44 @@ Postgres-isolation reason as before) plus frontend `tsc`/`lint`/`build`
 all pass clean. `npm install recharts` added no new vulnerabilities -
 `npm audit` still reports only the same pre-existing dev-tooling
 findings (eslint/vite/react-router/etc.) from before this pass.
+
+**Phase 6 - Relationship Intelligence (basic level, non-graph).** A new
+Postgres-only `CompanyRelationship` table (migration `0011`, same
+pattern as Phase 3's `CompanyView` - keyed by `company_id` alone, no V2/
+V3 dispatcher needed) records company-to-company relationships:
+competitor, partner, subsidiary, parent, or customer, each with either
+a `related_company_id` (when the related entity is itself a company
+Scout tracks) or a free-text `related_company_name` (the common case -
+most competitors/customers aren't companies Scout monitors itself).
+Deliberately **user-curated, not AI-generated**: the roadmap items that
+would consume this programmatically (Industry Benchmarking, Proactive
+Opportunity Discovery) are both explicitly out of scope for this whole
+engagement, so there's no extraction pipeline here, just manual CRUD -
+`backend/services/company_relationship_service.py` validates the type,
+requires exactly one of the two related-entity fields, rejects
+self-relations, and confirms a given `related_company_id` actually
+exists before persisting. Three new endpoints
+(`GET`/`POST`/`DELETE /api/v1/companies/{id}/relationships`) and a new
+"Related Companies" card on Company Details - a flat list grouped
+visually by a type badge, linking to the related company's own page
+when tracked, with an inline add-relationship form and per-row removal.
+Executives and Technologies (also named in the roadmap's relationship
+list) already surface as relationship data elsewhere on this same page
+(`Executive.company_id`/`Technology.company_id`) - not duplicated here.
+
+Verified against this environment's real dev Postgres instance:
+migration `0011` applied, then both relationship paths were exercised
+for real through the running API - a tracked-company relationship
+(Hertz "partner" Nutanix, with notes) and an untracked one (Hertz
+"competitor" "Enterprise Rent-A-Car") - both rendered correctly on
+Company Details, the tracked one as a real link to Nutanix's page, and
+removal was confirmed end-to-end in a live browser session (list
+re-fetches correctly after delete). Full backend suite (359 tests, 182
+skipped for the same pre-existing Postgres-isolation reason as every
+earlier phase) plus frontend `tsc`/`lint`/`build` all pass clean.
+
+This closes out the Scout V3 Enhancement Roadmap engagement - all six
+phases implemented, tested, and verified against a real backend.
 
 ## Outreach workflow redesign - generation and delivery are now separate steps
 

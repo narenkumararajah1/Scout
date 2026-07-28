@@ -8,6 +8,7 @@
 import { apiRequest, apiRequestData } from "../api/client";
 import type { Company, CreateCompanyInput } from "../types/company";
 import type { CompanyIntelligence } from "../types/companyIntelligence";
+import type { CompanyRelationship, CreateCompanyRelationshipInput } from "../types/companyRelationship";
 import type { CompanyVisitChanges } from "../types/companyView";
 import type { Report } from "../types/report";
 import type { SalesCoachRecommendation } from "../types/salesCoach";
@@ -66,5 +67,27 @@ export const companyService = {
   // already been archived (Priority 5).
   async removeCompany(companyId: string): Promise<void> {
     await apiRequest<void>(`/companies/${companyId}`, { method: "DELETE" });
+  },
+
+  // Roadmap Phase 6 - Relationship Intelligence (basic level). User-curated,
+  // not AI-generated.
+  async listRelationships(companyId: string): Promise<CompanyRelationship[]> {
+    return apiRequestData<CompanyRelationship[]>(`/api/v1/companies/${companyId}/relationships`);
+  },
+
+  async addRelationship(companyId: string, input: CreateCompanyRelationshipInput): Promise<CompanyRelationship> {
+    return apiRequestData<CompanyRelationship>(`/api/v1/companies/${companyId}/relationships`, {
+      method: "POST",
+      body: {
+        relationship_type: input.relationshipType,
+        related_company_id: input.relatedCompanyId || undefined,
+        related_company_name: input.relatedCompanyName || undefined,
+        notes: input.notes || undefined,
+      },
+    });
+  },
+
+  async removeRelationship(companyId: string, relationshipId: string): Promise<void> {
+    await apiRequest<void>(`/api/v1/companies/${companyId}/relationships/${relationshipId}`, { method: "DELETE" });
   },
 };
