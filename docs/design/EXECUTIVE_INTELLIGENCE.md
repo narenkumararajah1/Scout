@@ -2,561 +2,264 @@
 
 ## Purpose
 
-The Executive Intelligence module provides comprehensive insights into the leadership team of a company.
+Executive Intelligence provides a strategic understanding of the people driving a customer's business.
 
-Rather than functioning as a directory of executives, this module should help users understand organizational leadership, decision-making structures, executive priorities, and engagement opportunities.
+Rather than functioning as a directory of executives, Scout should explain who influences business decisions, what each leader is focused on, how their priorities align with company initiatives, and how sales teams should engage them.
 
-Scout should transform leadership information into actionable sales intelligence.
+Every executive profile should answer:
 
-Every executive profile should answer one primary question:
+- Who is this leader?
+- What are they trying to accomplish?
+- Why do they matter?
+- How should we engage them?
 
-**"How can we effectively engage this leader?"**
+Executive Intelligence should feel like preparation from an experienced executive relationship manager rather than a collection of LinkedIn profiles.
 
 ---
 
 # Design Objectives
 
-The Executive Intelligence experience shall:
+Executive Intelligence shall:
 
 - Identify key decision makers.
-- Explain organizational influence.
-- Surface leadership changes.
-- Highlight executive priorities.
-- Support account planning.
-- Improve customer engagement.
-- Build confidence before meetings.
-
-Executive Intelligence should enable users to understand the people behind the business.
+- Explain executive priorities.
+- Connect leadership changes to business strategy.
+- Surface potential champions and stakeholders.
+- Recommend engagement strategies.
+- Improve executive meeting preparation.
+- Reduce research time before customer conversations.
 
 ---
 
 # Page Structure
 
-The Executive Intelligence page shall follow the following hierarchy.
-
-Company Leadership Overview
-
-↓
-
-Executive Summary
-
-↓
-
-Leadership Team
-
-↓
-
-Organizational Structure
-
-↓
-
-Decision Makers
-
-↓
-
+```
+Leadership Overview
+        ↓
+AI Executive Summary
+        ↓
 Executive Profiles
-
-↓
-
-Leadership Activity
-
-↓
-
-Relationship Opportunities
-
-↓
-
-Organizational Changes
-
-↓
-
+        ↓
+Organizational Structure
+        ↓
+Executive Priorities
+        ↓
+Recent Executive Activity
+        ↓
+Influence & Stakeholder Mapping
+        ↓
 Recommended Engagement Strategy
+        ↓
+Next Actions
+```
 
-↓
-
-Supporting Intelligence
+The page should move naturally from understanding leadership to planning engagement.
 
 ---
 
 # Leadership Overview
 
-The page begins with a high-level overview of the organization's leadership.
+Provide a high-level overview of the company's leadership organization.
 
-Display:
+Include:
 
-- Total Leadership Team
-- Key Decision Makers
-- Executive Changes
-- Recent Appointments
-- Organizational Stability
-- Last Updated
+- CEO
+- Executive Leadership Team
+- Key Business Leaders
+- Technology Leadership
+- Business Unit Leaders
 
-Provide an AI-generated summary describing the overall leadership landscape.
-
----
-
-# Executive Summary
-
-Scout shall generate a concise summary explaining:
-
-- Leadership structure
-- Organizational priorities
-- Recent executive movement
-- Strategic direction
-- Decision-making dynamics
-- Potential engagement opportunities
-
-The summary should read like a briefing prepared for an account executive before meeting company leadership.
+Users should quickly understand how leadership is structured.
 
 ---
 
-# Leadership Team
+# AI Executive Summary
 
-Display all relevant executives.
+Scout should generate a concise briefing describing:
 
-Examples:
+- Leadership direction
+- Organizational stability
+- Recent executive changes
+- Strategic priorities
+- Likely decision makers
+- Recommended engagement approach
 
-CEO
-
-President
-
-COO
-
-CFO
-
-CTO
-
-CIO
-
-CISO
-
-Chief Digital Officer
-
-Chief Data Officer
-
-Chief Product Officer
-
-VP Engineering
-
-VP Technology
-
-VP Infrastructure
-
-Director of Digital Transformation
-
-Head of AI
-
-Additional executives should be included when relevant.
+The summary should read like a briefing prepared by an experienced account executive.
 
 ---
 
-# Executive Profile
+# Executive Profiles
 
-Every executive profile shall contain:
+Each executive profile should include:
 
-Full Name
+- Name
+- Title
+- Area of Responsibility
+- Career Background
+- Public Biography
+- Strategic Focus
+- Business Priorities
+- Relevant Public Activity
 
-Current Role
-
-Department
-
-Location (if available)
-
-Years in Current Role
-
-Professional Background
-
-Areas of Responsibility
-
-Public Biography
-
-Professional Experience
-
-Education (when publicly available)
-
-The objective is to provide context rather than simply displaying a title.
-
----
-
-# Executive Responsibilities
-
-Scout should summarize each executive's primary responsibilities.
-
-Examples:
-
-Technology Strategy
-
-Infrastructure
-
-Artificial Intelligence
-
-Cybersecurity
-
-Operations
-
-Customer Experience
-
-Digital Transformation
-
-Cloud Engineering
-
-Platform Engineering
-
-Product Development
-
-Understanding responsibilities helps determine engagement strategy.
-
----
-
-# Executive Influence
-
-Each executive shall receive an influence assessment.
-
-Potential classifications:
-
-Strategic Decision Maker
-
-Budget Owner
-
-Technology Leader
-
-Operational Leader
-
-Business Sponsor
-
-Technical Influencer
-
-Innovation Champion
-
-Executive Sponsor
-
-The purpose is to identify who has the greatest impact on purchasing decisions.
+Profiles should emphasize business relevance rather than personal information.
 
 ---
 
 # Organizational Structure
 
-Provide a simplified leadership hierarchy.
+Provide a visual overview of reporting relationships.
 
-Display:
+Include:
 
-Reporting relationships (where available)
+- Reporting hierarchy
+- Business functions
+- Technology leadership
+- Cross-functional relationships
 
-Business units
-
-Technology organization
-
-Executive responsibilities
-
-Department ownership
-
-The visualization should remain clear and uncluttered.
-
----
-
-# Executive Activity
-
-Track meaningful executive activity.
-
-Examples:
-
-Conference presentations
-
-Interviews
-
-LinkedIn posts
-
-Press releases
-
-Public statements
-
-Technology announcements
-
-Industry events
-
-Executive movement
-
-Activity should help users understand executive priorities.
-
----
-
-# Leadership Changes
-
-Display recent organizational changes.
-
-Examples:
-
-New CTO
-
-CEO transition
-
-Board appointments
-
-Promotions
-
-Executive departures
-
-Organizational restructuring
-
-Leadership changes often indicate strategic business shifts.
+Users should understand organizational influence at a glance.
 
 ---
 
 # Executive Priorities
 
-Scout shall infer executive priorities based on available intelligence.
+Scout should identify priorities for each executive whenever evidence is available.
 
 Examples:
 
-AI Adoption
+- AI transformation
+- Cloud modernization
+- Digital innovation
+- Operational efficiency
+- Customer experience
+- Data strategy
+- Platform engineering
 
-Cloud Modernization
+Every priority should explain:
 
-Operational Efficiency
-
-Customer Experience
-
-Security
-
-Automation
-
-Platform Modernization
-
-Digital Transformation
-
-Data Strategy
-
-Each priority should include supporting evidence.
+- Supporting evidence
+- Strategic importance
+- Potential engagement opportunities
 
 ---
 
-# Engagement Intelligence
+# Recent Executive Activity
+
+Highlight meaningful executive developments.
+
+Examples:
+
+- Leadership appointments
+- Promotions
+- Conference presentations
+- Interviews
+- Public announcements
+- Board appointments
+- Organizational restructuring
+
+Each activity should explain why it matters to the sales team.
+
+---
+
+# Influence & Stakeholder Mapping
+
+Scout should identify likely stakeholders involved in future engagements.
+
+Potential classifications include:
+
+- Executive Sponsor
+- Budget Owner
+- Technical Decision Maker
+- Business Champion
+- Technical Influencer
+- Procurement Stakeholder
+
+Where possible, explain:
+
+- Level of influence
+- Decision-making authority
+- Relevant business interests
+
+Future versions may visualize relationships between stakeholders.
+
+---
+
+# Recommended Engagement Strategy
 
 Scout should recommend how to engage each executive.
 
 Include:
 
-Likely interests
+- Suggested discussion topics
+- Relevant business challenges
+- Potential value propositions
+- Recommended communication style
+- Suggested follow-up actions
 
-Relevant business topics
-
-Suggested conversation themes
-
-Recommended Innominds capabilities
-
-Potential customer challenges
-
-This section should help sales teams prepare meaningful conversations.
+Recommendations should remain consultative and personalized.
 
 ---
 
-# Suggested Talking Points
+# Intelligence Principles
 
-Generate executive-specific talking points.
+Every executive insight shall include:
 
-Examples:
+- Supporting evidence
+- Business context
+- Confidence
+- Timestamp
+- Source attribution where available
 
-Cloud modernization initiatives
-
-Operational efficiency improvements
-
-AI transformation strategy
-
-Platform scalability
-
-Engineering productivity
-
-Data modernization
-
-Talking points should feel consultative rather than promotional.
+Scout should clearly distinguish verified information from inferred insights.
 
 ---
 
-# Suggested Discovery Questions
-
-Scout shall generate thoughtful questions.
-
-Examples:
-
-How is your organization approaching AI adoption?
-
-Which modernization initiatives are highest priority this year?
-
-How are engineering teams supporting business growth?
-
-What challenges exist within your current technology landscape?
-
-Questions should encourage meaningful dialogue.
-
----
-
-# Relationship Opportunities
-
-Future capability.
-
-Display:
-
-Known relationships
-
-Shared customers
-
-Past engagements
-
-Internal connections
-
-Executive introductions
-
-Relationship mapping should help identify warm introductions.
-
----
-
-# Executive Timeline
-
-Display important executive events chronologically.
-
-Examples:
-
-Joined Company
-
-Promotion
-
-Major Announcement
-
-Conference Presentation
-
-Leadership Change
-
-Technology Initiative
-
-Executive Interview
-
-Timeline helps users understand leadership evolution.
-
----
-
-# AI Insights
-
-Throughout the page, Scout should surface AI-generated observations.
-
-Examples:
-
-"The CTO has consistently emphasized cloud modernization over the past twelve months."
-
-"Recent executive interviews suggest increased investment in AI initiatives."
-
-Each insight shall include:
-
-Supporting evidence
-
-Confidence
-
-Reasoning
-
-Timestamp
-
----
-
-# Visualizations
-
-Recommended visualizations include:
-
-Leadership Hierarchy
-
-Executive Timeline
-
-Department Distribution
-
-Influence Matrix
-
-Executive Activity Trends
-
-Organizational Stability
-
-Leadership Changes
-
-Decision-Maker Network
-
-Visuals should improve understanding rather than increase complexity.
-
----
-
-# Recommended Actions
-
-At the end of the page, Scout shall recommend next steps.
-
-Examples:
-
-Generate executive briefing
-
-Prepare meeting notes
-
-Research executive interviews
-
-Draft personalized outreach
-
-Monitor executive activity
-
-Schedule leadership review
-
-Recommendations should require minimal effort to execute.
-
----
-
-# Search
-
-Users should be able to search executives by:
-
-Name
-
-Role
-
-Department
-
-Technology Area
-
-Business Unit
-
-Responsibilities
-
-Leadership Level
-
-Search should remain available throughout the page.
+# Interaction Model
+
+Users should be able to:
+
+- Expand executive profiles
+- Compare executives
+- Filter by business function
+- Bookmark important stakeholders
+- Navigate directly to related Company Intelligence
+- Open Meeting Preparation
+- Generate Executive Briefings
+
+Interactions should make executive research fast and intuitive.
 
 ---
 
 # Accessibility
 
-Executive Intelligence shall support:
+Refer to ACCESSIBILITY.md.
 
-Keyboard navigation
+Additional requirements include:
 
-Screen readers
-
-Accessible visualizations
-
-Logical reading order
-
-Responsive layouts
-
-High contrast
+- Accessible organization charts
+- Keyboard navigation across executive profiles
+- Screen-reader support for AI summaries
+- Accessible stakeholder diagrams
 
 ---
 
 # Responsive Design
 
-Desktop
+Refer to RESPONSIVENESS.md.
 
-Multi-column leadership workspace.
+Executive Intelligence should preserve profile navigation and organizational context across desktop, tablet, and mobile.
 
-Tablet
+---
 
-Adaptive card layout.
+# Next Step
 
-Mobile
+From Executive Intelligence users should naturally continue to:
 
-Single-column layout with expandable executive profiles.
+- Meeting Preparation
+- Sales Playbook
+- AI Outreach
+- Reports
 
-All information should remain accessible regardless of screen size.
+Leadership insights should transition directly into customer engagement planning.
 
 ---
 
@@ -564,50 +267,36 @@ All information should remain accessible regardless of screen size.
 
 Future versions may include:
 
-Relationship mapping
-
-Social media intelligence
-
-Conference participation
-
-Podcast appearances
-
-Buying committee prediction
-
-Internal CRM relationships
-
-Email sentiment analysis
-
-Executive influence scoring
-
-Meeting history
-
-AI executive assistant
+- Relationship Intelligence
+- Buying Committee Analysis
+- Executive Relationship Health
+- Internal Relationship Mapping
+- Meeting History
+- Stakeholder Influence Scoring
+- Scout Copilot integration
 
 ---
 
 # Success Criteria
 
-A successful Executive Intelligence page enables users to answer the following questions within five minutes:
+A successful Executive Intelligence page enables users to answer:
 
 - Who are the key decision makers?
-- What are their responsibilities?
-- What appears to matter most to them?
-- What recent leadership changes occurred?
-- Which executives should we engage?
+- What does each executive care about?
+- Which leaders should we engage?
 - What should we discuss?
-- Which Innominds services are most relevant?
-- How should we prepare for executive meetings?
+- How should we position Innominds?
+- What should happen next?
 
-If these questions cannot be answered efficiently, the experience should be redesigned.
+If users finish the page without knowing who to engage or how to approach them, the experience should be redesigned.
 
 ---
 
 # Final Principle
 
-Executive Intelligence is about understanding people, not collecting biographies.
+Executive Intelligence should transform leadership information into relationship intelligence.
 
-Scout should help users understand leadership priorities, organizational dynamics, and engagement opportunities so they can build stronger customer relationships and have more meaningful business conversations.
+Rather than simply identifying executives, Scout should help sales teams understand who matters, why they matter, and how to build meaningful executive relationships that lead to successful customer engagements.
 
 ---
 

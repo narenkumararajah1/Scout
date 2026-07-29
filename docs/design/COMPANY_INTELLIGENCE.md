@@ -2,654 +2,328 @@
 
 ## Purpose
 
-The Company Intelligence page is the core experience of Scout.
+Company Intelligence is the central intelligence hub within Scout.
 
-It serves as the central workspace for understanding a company, identifying business opportunities, monitoring strategic changes, and preparing for customer engagement.
+It transforms scattered company information into a unified strategic narrative, enabling sales teams to understand a customer's business, priorities, technology direction, leadership, and potential opportunities from a single workspace.
 
-Rather than acting as a static company profile, this page should function as a continuously evolving intelligence hub that combines AI-generated insights, public information, historical trends, and internal organizational knowledge.
+Rather than presenting isolated facts, Company Intelligence should explain how business events connect, why they matter, and how Innominds can create value.
 
-Every piece of information presented should ultimately help answer one question:
+Every page should answer four questions:
 
-**"How can Innominds create value for this company?"**
+- What is happening?
+- Why is it happening?
+- Why does it matter to Innominds?
+- What should we do next?
+
+Company Intelligence should feel like collaborating with an experienced industry analyst rather than reading a company profile.
 
 ---
 
 # Design Objectives
 
-The Company Intelligence experience shall:
+Company Intelligence shall:
 
-- Present the company as a complete business story.
-- Highlight important insights before raw data.
-- Surface business opportunities.
-- Explain why opportunities exist.
-- Connect company activities to Innominds capabilities.
-- Continuously update as new intelligence becomes available.
-- Support executive-level decision making.
+- Build a complete understanding of the customer.
+- Connect business events into meaningful narratives.
+- Surface strategic opportunities before competitors.
+- Explain AI reasoning with supporting evidence.
+- Continuously evolve as new intelligence becomes available.
+- Reduce research time while improving decision quality.
+- Guide users toward the next best sales action.
 
 ---
 
 # Page Structure
 
-The Company Intelligence page shall follow the following hierarchy.
-
-Company Header
-
-↓
-
+```
+Company Overview
+        ↓
 AI Executive Summary
-
-↓
-
-Opportunity Snapshot
-
-↓
-
-Business Overview
-
-↓
-
-Technology Landscape
-
-↓
-
+        ↓
+Since Your Last Visit
+        ↓
+Business Snapshot
+        ↓
 Strategic Initiatives
-
-↓
-
+        ↓
+Technology Landscape
+        ↓
 Executive Intelligence
+        ↓
+Opportunity Signals
+        ↓
+Relationship Intelligence
+        ↓
+Industry Context
+        ↓
+Recommended Actions
+```
 
-↓
-
-Hiring Intelligence
-
-↓
-
-Recent News
-
-↓
-
-Historical Timeline
-
-↓
-
-Capability Alignment
-
-↓
-
-Recommended Next Actions
-
-↓
-
-Supporting Intelligence
-
----
-
-# Company Header
-
-The page header shall immediately establish company identity.
-
-Display:
-
-- Company Name
-- Logo
-- Industry
-- Headquarters
-- Company Size
-- Revenue (when available)
-- Status
-- Last Updated Timestamp
-
-Quick Actions:
-
-- Generate Report
-- Compare Company
-- Save Company
-- Share
-- Export
-- Refresh Analysis
+The page should move naturally from understanding to action.
 
 ---
 
 # AI Executive Summary
 
-This section is the heart of the page.
+Every company begins with a concise AI-generated executive briefing.
 
-Scout shall generate a concise executive summary explaining:
+The summary should explain:
 
-- What the company does.
-- Current business direction.
-- Recent developments.
-- Technology priorities.
-- Growth indicators.
-- Strategic initiatives.
-- Business risks.
-- Why the company matters.
+- Current business direction
+- Strategic priorities
+- Technology focus
+- Recent developments
+- Business risks
+- Opportunity potential
 
-The summary should read like an executive briefing prepared by a senior consultant.
-
-Avoid generic encyclopedia-style descriptions.
+The summary should read like a briefing prepared by a senior consultant.
 
 ---
 
-# Opportunity Snapshot
+# Since Your Last Visit
 
-Immediately below the executive summary, display a high-level opportunity overview.
-
-Metrics may include:
-
-- Overall Opportunity Score
-- Strategic Fit
-- Revenue Potential
-- AI Confidence
-- Estimated Engagement Difficulty
-- Technology Alignment
-- Relationship Strength (Future)
-
-The purpose is to quickly communicate overall opportunity quality.
-
----
-
-# Business Overview
-
-Provide key company information.
+Highlight everything that has changed since the user last viewed this company.
 
 Examples:
+
+- Executive promotions
+- New hiring initiatives
+- Technology investments
+- Product launches
+- Financial announcements
+- Acquisitions
+- Partnerships
+- AI initiatives
+- Organizational restructuring
+
+Each update should include:
+
+- What changed
+- Why it matters
+- Supporting evidence
+- Timestamp
+
+Users should immediately understand what is new without re-reading the entire profile.
+
+---
+
+# Business Snapshot
+
+Provide a concise overview of the organization.
+
+Include:
 
 - Industry
-- Business Model
-- Products
-- Services
-- Markets
-- Geographic Presence
-- Customer Base
-- Growth Strategy
+- Business model
+- Geographic presence
+- Employee count
+- Revenue (where available)
+- Growth indicators
+- Recent performance
+- Strategic priorities
 
-Information should remain concise.
-
-Avoid excessive corporate history.
-
----
-
-# Technology Landscape
-
-Scout shall analyze the company's technology ecosystem.
-
-Examples:
-
-- Artificial Intelligence
-- Cloud Platforms
-- Data Platforms
-- Cybersecurity
-- IoT
-- DevOps
-- Automation
-- Digital Transformation
-- Analytics
-- Enterprise Applications
-
-For each technology:
-
-Display:
-
-Technology
-
-Current Adoption
-
-Evidence
-
-Business Importance
-
-Trend Direction
-
-Opportunity Potential
+Avoid overwhelming users with static reference information.
 
 ---
 
 # Strategic Initiatives
 
-Highlight major initiatives currently underway.
+Identify the organization's major initiatives.
 
 Examples:
 
-AI Transformation
+- AI transformation
+- Cloud modernization
+- Digital transformation
+- Platform engineering
+- Customer experience
+- Data modernization
+- Security initiatives
 
-Cloud Migration
+Each initiative should explain:
 
-Infrastructure Modernization
-
-Customer Experience Improvements
-
-Supply Chain Digitization
-
-Platform Modernization
-
-Data Modernization
-
-Operational Efficiency
-
-Each initiative should include:
-
-Summary
-
-Evidence
-
-Business Impact
-
-Potential Innominds Services
-
-Confidence Level
+- Evidence
+- Business impact
+- Strategic importance
+- Potential engagement opportunities
 
 ---
 
-# Opportunity Analysis
+# Technology Landscape
 
-Scout should automatically identify potential business opportunities.
+Provide an overview of the company's technology direction.
 
-Each opportunity should contain:
+Include:
 
-Title
+- Technology stack
+- Cloud platforms
+- AI adoption
+- Data platforms
+- Engineering practices
+- Digital initiatives
 
-Description
-
-Supporting Evidence
-
-Business Need
-
-Suggested Innominds Offering
-
-Estimated Value
-
-Priority
-
-Confidence Score
-
-Suggested Next Step
-
-Users should understand exactly why the opportunity exists.
-
----
-
-# Capability Alignment
-
-One of Scout's most valuable sections.
-
-Scout shall map identified opportunities directly to Innominds capabilities.
-
-Examples:
-
-Cloud Services
-
-AI Solutions
-
-Data Engineering
-
-Quality Engineering
-
-Digital Transformation
-
-Application Modernization
-
-Platform Engineering
-
-Automation
-
-Cybersecurity
-
-Each recommendation should explain:
-
-Why it matches
-
-Business problem solved
-
-Expected customer value
-
-Potential engagement type
+Technology should be presented in business context rather than as a technical inventory.
 
 ---
 
 # Executive Intelligence
 
-Display important leadership information.
+Provide a high-level overview of leadership.
 
 Include:
 
-CEO
+- Key decision makers
+- Organizational changes
+- Executive priorities
+- Public activity
+- Potential stakeholders
 
-CTO
-
-CIO
-
-CISO
-
-VP Engineering
-
-Chief Digital Officer
-
-Relevant Decision Makers
-
-For each executive:
-
-Role
-
-Background
-
-Responsibilities
-
-Recent Activity
-
-Public Statements
-
-Potential Influence
+Users should be able to navigate directly into the Executive Intelligence module for detailed analysis.
 
 ---
 
-# Hiring Intelligence
+# Opportunity Signals
 
-Hiring trends often reveal business priorities.
-
-Scout should monitor:
-
-Hiring Growth
-
-Departments Hiring
-
-Technology Skills
-
-Geographic Expansion
-
-Engineering Growth
-
-Leadership Hiring
-
-Hiring trends should be summarized rather than listing every job posting.
-
----
-
-# Recent News
-
-Display recent company developments.
+Scout should continuously identify signals that may indicate future business opportunities.
 
 Examples:
 
-Acquisitions
+- Hiring growth
+- AI investment
+- Technology migration
+- Executive hiring
+- Geographic expansion
+- Product launches
+- Funding
+- Partnerships
 
-Partnerships
+Every signal should explain:
 
-Funding
-
-Product Launches
-
-Executive Changes
-
-Expansion
-
-Technology Investments
-
-AI Initiatives
-
-Each news item should include:
-
-Headline
-
-Summary
-
-Business Impact
-
-Opportunity Relevance
-
-Publication Date
+- Why it matters
+- Confidence level
+- Supporting evidence
+- Suggested opportunity
 
 ---
 
-# Historical Timeline
+# Relationship Intelligence
 
-Present company events chronologically.
+Future versions may include relationship awareness.
+
+Potential insights include:
+
+- Existing customer relationships
+- Previous engagements
+- Internal connections
+- Executive interactions
+- Account activity
+- Meeting history
+
+Relationship context should strengthen opportunity recommendations without becoming the focus of the page.
+
+---
+
+# Industry Context
+
+Provide broader market context.
 
 Examples:
 
-Leadership Changes
+- Industry trends
+- Competitive landscape
+- Regulatory developments
+- Technology adoption
+- Economic factors
 
-Acquisitions
-
-Funding
-
-Major Technology Investments
-
-Cloud Migration
-
-AI Initiatives
-
-Digital Transformation Projects
-
-Users should understand how the company has evolved over time.
+Users should understand how external forces influence the company's strategy.
 
 ---
 
-# Risk Indicators
+# Recommended Actions
 
-Highlight potential business risks.
+Every Company Intelligence page concludes with practical recommendations.
 
 Examples:
 
-Executive Turnover
+- Run Opportunity Analysis
+- Generate Sales Playbook
+- Prepare Executive Briefing
+- Draft AI Outreach
+- Monitor hiring
+- Schedule discovery session
 
-Hiring Slowdown
+Each recommendation should explain:
 
-Layoffs
-
-Revenue Decline
-
-Technology Challenges
-
-Operational Risks
-
-Competitive Pressure
-
-Economic Exposure
-
-Risk indicators should explain their potential business impact.
+- Why now
+- Expected business value
+- Confidence
+- Estimated impact
 
 ---
 
-# Competitive Position
+# Intelligence Principles
 
-Provide a high-level competitive overview.
+Every insight shall include:
 
-Include:
+- Business context
+- AI reasoning
+- Supporting evidence
+- Confidence
+- Timestamp
+- Source attribution where available
 
-Major Competitors
-
-Market Position
-
-Differentiators
-
-Competitive Advantages
-
-Potential Weaknesses
-
-This section should remain concise.
+Scout should never ask users to trust unexplained recommendations.
 
 ---
 
-# AI Insights
-
-Throughout the page, Scout should surface contextual AI insights.
-
-Examples:
-
-"This company appears to be accelerating cloud adoption."
-
-"Leadership changes indicate digital transformation."
-
-"Recent hiring suggests investment in AI infrastructure."
-
-Every AI insight shall include:
-
-Reasoning
-
-Supporting Evidence
-
-Confidence Score
-
-Timestamp
-
----
-
-# Recommended Next Actions
-
-At the end of the page, Scout should recommend specific actions.
-
-Examples:
-
-Generate Executive Brief
-
-Prepare Meeting Notes
-
-Create Outreach Email
-
-Review Opportunity
-
-Compare with Competitors
-
-Schedule Follow-up
-
-Generate Full Report
-
-Actions should require a single click.
-
----
-
-# Visualizations
-
-Recommended visual components include:
-
-Technology Distribution
-
-Hiring Trends
-
-Executive Timeline
-
-Opportunity Score
-
-Industry Comparison
-
-Technology Adoption
-
-Business Growth Timeline
-
-Initiative Progress
-
-Visuals should complement—not replace—written insights.
-
----
-
-# Search Within Company
-
-Users should be able to search within a company profile.
-
-Examples:
-
-Executives
-
-Technologies
-
-News
-
-Reports
-
-AI Insights
-
-Opportunities
-
-Timeline Events
-
----
-
-# Refresh Intelligence
-
-Users should be able to refresh analysis.
-
-Scout should clearly indicate:
-
-Analysis Date
-
-Last Refresh
-
-Data Sources
-
-AI Model Version
-
----
-
-# Empty States
-
-If intelligence is unavailable, explain why.
-
-Examples:
-
-"Technology analysis is currently unavailable."
-
-instead of
-
-"No data."
-
-Whenever possible, suggest the next action.
-
----
-
-# Loading Experience
-
-Company sections should load independently.
-
-AI Summary
-
-Technology
-
-Executives
-
-News
-
-Timeline
-
-Opportunities
-
-This minimizes perceived waiting time.
+# Interaction Model
+
+Users should be able to:
+
+- Expand supporting evidence
+- Compare historical intelligence
+- Filter by category
+- Bookmark important findings
+- Save insights
+- Share findings
+- Drill into related modules
+
+Interactions should encourage exploration without increasing complexity.
 
 ---
 
 # Accessibility
 
-The page shall support:
+Refer to ACCESSIBILITY.md.
 
-Keyboard navigation
+Additional requirements:
 
-Responsive layouts
-
-Screen readers
-
-High contrast
-
-Accessible charts
-
-Logical reading order
+- Accessible timelines
+- Screen-reader support for AI summaries
+- Keyboard navigation across intelligence cards
 
 ---
 
 # Responsive Design
 
-Desktop
+Refer to RESPONSIVENESS.md.
 
-Multi-column information layout.
+Company Intelligence should preserve all major workflows across desktop, tablet, and mobile while adapting layouts appropriately.
 
-Tablet
+---
 
-Adaptive two-column layout.
+# Next Step
 
-Mobile
+From Company Intelligence users should naturally continue to:
 
-Single-column layout with collapsible sections.
+- Opportunity Analysis
+- Executive Intelligence
+- Sales Playbook
+- Meeting Preparation
+- AI Outreach
+- Reports
 
-No functionality should be removed.
+Navigation should reinforce the progression from understanding a company to engaging with it.
 
 ---
 
@@ -657,52 +331,36 @@ No functionality should be removed.
 
 Future versions may include:
 
-CRM Integration
-
-Internal Glean Knowledge
-
-Relationship Mapping
-
-Buying Intent Prediction
-
-Meeting History
-
-Proposal Generator
-
-Document Intelligence
-
-Customer Health Score
-
-Account Expansion Opportunities
-
-AI Chat About Company
+- Relationship Intelligence
+- Industry Benchmarking
+- Predictive company health
+- Buying committee mapping
+- Competitive benchmarking
+- Timeline replay
+- Scout Copilot integration
 
 ---
 
 # Success Criteria
 
-A successful Company Intelligence page enables users to answer the following questions within five minutes:
+A successful Company Intelligence page enables users to answer:
 
-- What does this company do?
-- Where are they investing?
-- What technologies matter?
-- What opportunities exist?
-- Why do those opportunities exist?
-- Which Innominds services fit best?
-- Who should we contact?
-- What should we discuss?
-- What happened recently?
-- What should we do next?
+- What is this company's strategy?
+- What has changed recently?
+- Which opportunities are emerging?
+- Why does Scout believe those opportunities exist?
+- How does Innominds fit?
+- What should I do next?
 
-If users cannot answer these questions quickly, the page should be redesigned.
+If users leave the page with more information but less clarity, the experience should be redesigned.
 
 ---
 
 # Final Principle
 
-The Company Intelligence page should feel like reading an executive briefing prepared by a team of experienced consultants—not browsing a collection of company facts.
+Company Intelligence should not function as a company profile.
 
-Every insight should move the user closer to identifying, understanding, and winning new business opportunities.
+It should function as a continuously evolving strategic intelligence briefing that transforms information into understanding and understanding into action.
 
 ---
 
@@ -710,4 +368,4 @@ Every insight should move the user closer to identifying, understanding, and win
 
 **Priority:** Highest
 
-**Applies To:** Company Intelligence Workspace
+**Applies To:** Company Intelligence Module

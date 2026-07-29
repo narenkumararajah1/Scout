@@ -1,387 +1,133 @@
-# Scout Navigation & Information Architecture
+# Navigation Design Specification
 
 ## Purpose
 
-This document defines the complete navigation architecture for Scout.
+Navigation is the connective framework of Scout.
 
-Its purpose is to ensure that users always know:
+Rather than functioning as a simple menu, navigation should guide users through a natural intelligence workflow, helping them move from understanding a customer to planning a strategy and executing meaningful sales actions.
 
-- Where they are
-- What they can do
-- Where they should go next
+Navigation should feel intuitive, predictable, and supportive without distracting users from their work.
 
-Navigation should never feel confusing.
+Every navigation decision should answer:
 
-As Scout grows, every new feature must fit into this navigation architecture rather than introducing entirely new navigation patterns.
+- Where am I?
+- What can I do here?
+- What should I do next?
+- How do I get back?
 
----
-
-# Navigation Philosophy
-
-Navigation should be:
-
-- Predictable
-- Consistent
-- Fast
-- Minimal
-- Logical
-- Scalable
-
-Users should never need to think about where something is located.
-
-Every major feature should have a clear home.
+Navigation should reinforce Scout's philosophy of **Intelligence → Decision → Action**.
 
 ---
 
-# Design Goals
+# Navigation Principles
 
-Scout should feel like a professional enterprise SaaS platform.
+Navigation shall:
 
-Navigation should prioritize:
+- Minimize cognitive load.
+- Preserve context across the application.
+- Encourage logical workflows.
+- Reduce unnecessary page switching.
+- Surface relevant actions at the right time.
+- Keep frequently used features easily accessible.
+- Remain consistent throughout the application.
 
-- Quick access
-- Logical grouping
-- Minimal clicks
-- Easy exploration
-- Clear hierarchy
-
----
-
-# Navigation Structure
-
-Scout uses a three-level navigation hierarchy.
-
-Primary Navigation
-
-↓
-
-Page Navigation
-
-↓
-
-Context Navigation
-
-This hierarchy should remain consistent throughout the application.
+Users should spend their time analyzing intelligence—not figuring out where to click next.
 
 ---
 
 # Primary Navigation
 
-The primary navigation appears as a permanent left sidebar.
+Scout uses a persistent left sidebar as the primary navigation.
 
-It remains visible throughout the application.
+## Primary Sections
 
-The sidebar should support:
+- Dashboard
+- Company Intelligence
+- Opportunity Analysis
+- Executive Intelligence
+- Sales Playbook
+- Meeting Preparation
+- AI Outreach
+- Reports
 
-Expanded Mode
-
-Collapsed Mode
-
-Hover Expansion (Future)
-
-Pinned/Floating Mode (Future)
+These represent the primary workflow of the application.
 
 ---
 
-# Sidebar Sections
+# Sidebar Design
 
-The sidebar should contain the following sections.
+The sidebar should remain visible throughout the application.
 
-## Home
+Features include:
 
-Purpose:
+- Product logo
+- Primary navigation
+- Favorites
+- Recent companies
+- Quick actions
+- Settings
+- User profile
 
-The executive dashboard.
+The sidebar should support collapse/expand while remaining fully functional.
 
-This is the landing page after login.
+---
 
-Icon:
+# Workflow Navigation
 
+Navigation should reinforce the user's journey.
+
+```
 Dashboard
-
----
-
-## Companies
-
-Purpose:
-
-Browse all monitored companies.
-
-Functions:
-
-Search
-
-Filter
-
-Company Profiles
-
-Saved Companies
-
-Recently Viewed
-
----
-
-## Opportunities
-
-Purpose:
-
-View AI-generated business opportunities.
-
-Functions:
-
-Priority Opportunities
-
-Technology Opportunities
-
-Growth Opportunities
-
-Opportunity History
-
-Opportunity Scores
-
----
-
-## Reports
-
-Purpose:
-
-Generated reports.
-
-Functions:
-
-Company Reports
-
-Executive Briefings
-
-Meeting Reports
-
-Export History
-
-Draft Reports
-
----
-
-## Executive Intelligence
-
-Purpose:
-
-Leadership insights.
-
-Functions:
-
-Executive Profiles
-
-Leadership Changes
-
-Decision Makers
-
-Executive Timeline
-
----
-
-## Sales Playbooks
-
-Purpose:
-
-Sales guidance.
-
-Functions:
-
-Talking Points
-
-Discovery Questions
-
-Objection Handling
-
-Recommended Services
-
-Engagement Strategy
-
----
-
-## Meeting Preparation
-
-Purpose:
-
-Prepare for customer meetings.
-
-Functions:
-
-Meeting Briefs
-
-Customer Summaries
-
-Agenda Suggestions
-
-Executive Notes
-
-Discussion Topics
-
----
-
-## AI Outreach
-
-Purpose:
-
-AI-generated communication.
-
-Functions:
-
-Cold Emails
-
-Follow-Ups
-
-LinkedIn Messages
-
-Meeting Requests
-
-Approval Queue
-
----
-
-## Analytics
-
-Purpose:
-
-Visual analytics.
-
-Functions:
-
-Opportunity Trends
-
-Technology Trends
-
-Industry Insights
-
-Hiring Trends
-
-Company Comparisons
-
-Executive Movement
-
-Historical Trends
-
----
-
-## Notifications
-
-Purpose:
-
-Recent activity.
-
-Functions:
-
-AI Alerts
-
-Company Updates
-
-Opportunity Alerts
-
-Executive Changes
-
-System Notifications
-
----
-
-## Settings
-
-Purpose:
-
-Application configuration.
-
-Functions:
-
-Profile
-
-Preferences
-
-Theme
-
-Notifications
-
-Account
-
-Integrations
-
-API Keys
-
-Security
-
----
-
-# Home Dashboard
-
-The dashboard should always answer:
-
-"What should I focus on today?"
-
-within five seconds.
-
-The dashboard is the command center of Scout.
-
-Users should naturally begin every session here.
-
----
-
-# Global Search
-
-Global Search is available from every page.
-
-Search should support:
-
-Companies
-
-Executives
-
+        ↓
+Company Intelligence
+        ↓
+Opportunity Analysis
+        ↓
+Executive Intelligence
+        ↓
+Sales Playbook
+        ↓
+Meeting Preparation
+        ↓
+AI Outreach
+        ↓
 Reports
+```
 
-Technologies
-
-Industries
-
-Sales Playbooks
-
-Meeting Briefs
-
-Notifications
-
-Opportunities
-
-AI Insights
-
-Future:
-
-Natural language search.
-
-Example:
-
-"Show AI companies hiring in healthcare."
+Users should always understand the recommended next step.
 
 ---
 
-# Search Experience
+# Contextual Actions
 
-Search should provide:
+Every page should surface relevant actions without requiring users to search for them.
 
-Instant Suggestions
+Examples:
 
-Recent Searches
+From Company Intelligence:
 
-Popular Searches
+- Analyze Opportunities
+- View Executives
+- Generate Report
 
-Filters
+From Opportunity Analysis:
 
-Keyboard Navigation
+- Open Sales Playbook
+- Prepare Meeting
+- Draft Outreach
 
-Search History
+From Meeting Preparation:
 
-Empty State Suggestions
+- Generate Outreach
+- Export Briefing
+
+Contextual actions should reduce unnecessary navigation.
 
 ---
 
 # Breadcrumb Navigation
 
-Every page should display breadcrumbs.
+Every page should include breadcrumbs.
 
 Example:
 
@@ -389,7 +135,7 @@ Dashboard
 
 ↓
 
-Companies
+Company Intelligence
 
 ↓
 
@@ -397,359 +143,252 @@ Microsoft
 
 ↓
 
-Executive Intelligence
+Opportunity Analysis
 
-Users should always understand their location.
-
----
-
-# Secondary Navigation
-
-Pages with multiple sections should use tabs.
-
-Examples:
-
-Company Page
-
-Overview
-
-Technology
-
-Executives
-
-Hiring
-
-News
-
-Timeline
-
-Reports
-
-Opportunities
-
-Meeting Prep
+Breadcrumbs should provide orientation and quick navigation.
 
 ---
 
-# Context Navigation
+# Back Navigation
 
-Each page may include contextual actions.
+Users should always have a clear way to return to the previous view.
+
+Back navigation should:
+
+- Preserve filters
+- Preserve search state
+- Preserve scroll position
+- Preserve selected company
+
+Users should never lose context when navigating.
+
+---
+
+# Global Search
+
+Search should be available from every page.
+
+Users should be able to search for:
+
+- Companies
+- Executives
+- Reports
+- Opportunities
+- Technologies
+- Industries
+
+Search should prioritize relevance over exact matches.
+
+---
+
+# Ask Scout
+
+Ask Scout should be globally accessible.
+
+Rather than functioning as a standalone chatbot, it should understand the current page automatically.
 
 Examples:
 
-Analyze Company
+On Company Intelligence:
 
-Generate Report
+"What changed this month?"
 
-Export PDF
+On Opportunity Analysis:
 
-Compare Companies
+"Why is confidence increasing?"
 
-Bookmark
+On Sales Playbook:
 
-Share
+"What should our next meeting accomplish?"
 
-Refresh Analysis
-
-These actions should remain visible without overwhelming users.
+Ask Scout should remain context-aware across the application.
 
 ---
 
 # Quick Actions
 
-Quick Actions provide one-click access to common workflows.
+A persistent Quick Actions menu should provide shortcuts for common tasks.
 
 Examples:
 
-Analyze Company
-
-Generate Report
-
-Create Meeting Brief
-
-Compare Companies
-
-Search Executive
-
-Draft Email
-
-Run Scout Analysis
-
-Quick Actions should be available from:
-
-Dashboard
-
-Company Pages
-
-Search
-
-Opportunity Pages
-
----
-
-# User Flow
-
-Scout should guide users naturally.
-
-Typical flow:
-
-Dashboard
-
-↓
-
-Select Company
-
-↓
-
-Review AI Summary
-
-↓
-
-Review Opportunity Analysis
-
-↓
-
-View Executive Intelligence
-
-↓
-
-Open Sales Playbook
-
-↓
-
-Generate Meeting Brief
-
-↓
-
-Create AI Outreach
-
-↓
-
-Export Report
-
-↓
-
-Schedule Follow-up
-
-Every screen should naturally lead to the next logical action.
-
----
-
-# Navigation Rules
-
-Never create duplicate navigation paths.
-
-Every page should have one obvious location.
-
-Avoid hidden functionality.
-
-Important features should require as few clicks as possible.
-
----
-
-# Maximum Click Principle
-
-Users should reach any major feature within three clicks.
-
-If a feature requires excessive navigation, reconsider the hierarchy.
-
----
-
-# Information Architecture
-
-Scout organizes information into six primary domains.
-
-1. Intelligence
-
-Companies
-
-Executives
-
-Technology
-
-News
-
-Hiring
-
-Timeline
-
----
-
-2. Opportunities
-
-AI Analysis
-
-Recommendations
-
-Priority Scores
-
-Business Opportunities
-
----
-
-3. Sales
-
-Playbooks
-
-Talking Points
-
-Meeting Prep
-
-Outreach
-
----
-
-4. Analytics
-
-Charts
-
-KPIs
-
-Comparisons
-
-Historical Trends
-
----
-
-5. Reports
-
-Generated Reports
-
-Executive Briefs
-
-Meeting Reports
-
-Exports
-
----
-
-6. Administration
-
-Settings
-
-Profile
-
-Integrations
-
-Notifications
-
-Security
-
----
-
-# Favorites
-
-Users should be able to favorite:
-
-Companies
-
-Reports
-
-Executives
-
-Dashboards
-
-Saved Searches
-
-Playbooks
-
-Favorites should be accessible from the dashboard.
+- Research Company
+- Generate Report
+- Prepare Meeting
+- Draft Outreach
+- Open Dashboard
+- Ask Scout
+
+Quick Actions should reduce repetitive navigation.
 
 ---
 
 # Recent Activity
 
-Scout should remember:
+Users should easily return to recent work.
 
-Recently Viewed Companies
+Display:
 
-Recent Reports
+- Recently viewed companies
+- Recent reports
+- Recent meetings
+- Recent playbooks
+- Recent outreach drafts
 
-Recent Searches
+Recent activity should improve continuity.
 
-Recent Opportunities
+---
 
-Recent Meetings
+# Favorites
 
-Allow users to resume work quickly.
+Users should be able to pin important items.
+
+Examples:
+
+- Companies
+- Reports
+- Executives
+- Opportunities
+
+Favorites should appear in the sidebar.
 
 ---
 
 # Notifications
 
-Notifications should never interrupt users unnecessarily.
+Notifications should highlight meaningful intelligence updates.
 
-Notifications should be categorized.
+Examples:
 
-High Priority
+- Opportunity score increased
+- Executive changed
+- AI initiative detected
+- Report outdated
+- New recommendation available
 
-Medium Priority
-
-Information
-
-AI Recommendation
-
-System
-
-Unread notifications should remain visually distinct.
+Notifications should explain why they matter and link directly to the relevant page.
 
 ---
 
-# Future Navigation Enhancements
+# Cross-Module Navigation
 
-Potential future improvements include:
+Modules should be interconnected.
 
-Command Palette
+Example:
 
-Universal Search
+Company Intelligence
 
-Voice Navigation
+↓
 
-AI Assistant Sidebar
+Opportunity Analysis
 
-Keyboard Shortcuts
+↓
 
-Workspace Personalization
+Sales Playbook
 
-Pinned Pages
+↓
 
-Custom Dashboards
+Meeting Preparation
 
-Saved Views
+↓
 
-Multi-Workspace Support
+AI Outreach
+
+↓
+
+Reports
+
+Navigation should encourage complete workflows rather than isolated page visits.
 
 ---
 
-# Navigation Consistency Rules
+# Empty States
 
-Every page should include:
+When no data is available, navigation should guide users toward productive actions.
 
-Sidebar
+Examples:
 
-Page Title
+"No companies researched yet."
 
-Breadcrumb
+↓
 
-Global Search
+Research your first company.
 
-Quick Actions
+"No reports available."
 
-User Profile
+↓
 
-Notifications
+Generate your first report.
 
-Every page should feel familiar.
+Every empty state should include a clear call-to-action.
+
+---
+
+# Accessibility
+
+Refer to ACCESSIBILITY.md.
+
+Additional requirements:
+
+- Full keyboard navigation
+- Visible focus indicators
+- Screen-reader support
+- Skip navigation links
+- Accessible sidebar collapse
+
+---
+
+# Responsive Design
+
+Refer to RESPONSIVENESS.md.
+
+Desktop:
+
+Persistent sidebar.
+
+Tablet:
+
+Collapsible sidebar.
+
+Mobile:
+
+Slide-out navigation drawer.
+
+Navigation should preserve workflows across all devices.
+
+---
+
+# Future Enhancements
+
+Future versions may include:
+
+- AI-recommended navigation
+- Personalized shortcuts
+- Workflow automation
+- Recently completed tasks
+- Team workspaces
+- Multi-account support
+- Voice navigation
+
+---
+
+# Success Criteria
+
+A successful navigation system enables users to answer:
+
+- Where am I?
+- What should I do next?
+- How do I get there?
+- How do I return?
+
+Users should never feel lost while moving through Scout.
 
 ---
 
 # Final Principle
 
-Navigation should never become something users think about.
+Navigation should disappear into the background.
 
-Instead, it should quietly guide users toward making better business decisions as efficiently as possible.
-
-If users have to stop and ask "Where do I go next?", the navigation has failed.
+Rather than acting as a menu system, it should quietly guide users through an end-to-end intelligence workflow, helping them move from research to strategy to customer engagement with minimal effort.
 
 ---
 
@@ -757,4 +396,4 @@ If users have to stop and ask "Where do I go next?", the navigation has failed.
 
 **Priority:** Highest
 
-**Applies To:** Entire Scout Platform
+**Applies To:** Entire Scout Application

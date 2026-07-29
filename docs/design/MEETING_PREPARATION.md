@@ -2,590 +2,337 @@
 
 ## Purpose
 
-The Meeting Preparation module provides a complete AI-generated briefing that enables sales teams to confidently prepare for customer meetings.
+Meeting Preparation equips sales teams with everything they need before engaging a customer.
 
-Rather than requiring users to gather information from multiple sources, Scout shall consolidate relevant intelligence into a structured, actionable meeting workspace.
+Rather than compiling notes from multiple modules, Scout should generate a complete meeting briefing that combines company intelligence, executive insights, opportunity analysis, and recommended discussion topics into a single, actionable workspace.
 
-The objective is to reduce preparation time while improving meeting quality and increasing the likelihood of meaningful customer engagement.
+Every meeting briefing should answer:
 
-Every meeting preparation should answer one primary question:
+- Who am I meeting?
+- What should I know?
+- What should I discuss?
+- What outcome should I achieve?
 
-**"Am I fully prepared for this customer meeting?"**
+Meeting Preparation should reduce preparation time while increasing confidence and meeting effectiveness.
 
 ---
 
 # Design Objectives
 
-The Meeting Preparation experience shall:
+Meeting Preparation shall:
 
-- Eliminate manual research.
-- Consolidate all relevant intelligence.
-- Improve meeting confidence.
-- Recommend discussion topics.
-- Identify customer priorities.
-- Suggest appropriate Innominds capabilities.
-- Support executive-level conversations.
-- Standardize meeting preparation across teams.
-
-Meeting preparation should feel like receiving a briefing from an experienced account manager.
+- Consolidate relevant intelligence into one briefing.
+- Personalize preparation for the meeting audience.
+- Recommend discussion topics based on current business priorities.
+- Anticipate customer questions and objections.
+- Define clear meeting objectives.
+- Increase executive engagement quality.
+- Improve consistency across customer interactions.
 
 ---
 
 # Page Structure
 
-The Meeting Preparation page shall follow the following hierarchy.
-
+```
 Meeting Overview
-
-↓
-
-Executive Brief
-
-↓
-
+        ↓
+AI Meeting Brief
+        ↓
+Attendees
+        ↓
 Meeting Objectives
-
-↓
-
-Company Summary
-
-↓
-
-Recent Business Activity
-
-↓
-
-Executive Profiles
-
-↓
-
-Business Challenges
-
-↓
-
+        ↓
+Company Snapshot
+        ↓
+Executive Insights
+        ↓
+Current Opportunities
+        ↓
 Recommended Discussion Topics
-
-↓
-
-Suggested Questions
-
-↓
-
-Recommended Services
-
-↓
-
-Potential Risks
-
-↓
-
-Action Plan
-
-↓
-
+        ↓
+Potential Risks & Questions
+        ↓
+Suggested Agenda
+        ↓
 Meeting Checklist
+        ↓
+Follow-Up Recommendations
+```
+
+The page should guide users from preparation to execution.
 
 ---
 
 # Meeting Overview
 
-The page begins with a concise overview of the upcoming meeting.
+Display a concise summary of the meeting.
 
-Display:
+Include:
 
-- Company Name
-- Meeting Date
-- Meeting Time
+- Company
+- Meeting Date & Time
 - Meeting Type
-- Meeting Participants
-- Meeting Owner
-- Last Updated
-- Preparation Status
+- Internal Participants
+- Customer Participants
+- Duration
+- Objective
 
-Quick Actions:
-
-- Generate Report
-- Export Briefing
-- Share Briefing
-- Refresh Analysis
-- Generate Outreach
-- Add Notes
+Users should immediately understand the purpose of the meeting.
 
 ---
 
-# Executive Brief
+# AI Meeting Brief
 
-Scout shall generate an executive-level briefing.
+Scout should generate an executive-style briefing summarizing:
 
-The briefing should summarize:
-
-- Company direction
+- Current company situation
 - Recent developments
-- Strategic priorities
-- Technology initiatives
-- Business challenges
-- Major opportunities
-- Executive activity
+- Executive priorities
+- Existing opportunities
+- Key discussion themes
+- Desired meeting outcome
 
-The briefing should require no more than five minutes to read.
+The briefing should be readable in under five minutes.
+
+---
+
+# Attendees
+
+Provide information about meeting participants.
+
+Include:
+
+- Name
+- Title
+- Area of Responsibility
+- Role in Meeting
+- Relevant Priorities
+- Relationship Status (Future)
+
+Users should understand why each attendee matters.
 
 ---
 
 # Meeting Objectives
 
-Scout shall recommend clear objectives.
+Clearly define what success looks like.
 
 Examples:
 
-Understand modernization priorities
+- Understand AI transformation roadmap
+- Validate modernization priorities
+- Identify business challenges
+- Build executive relationships
+- Schedule technical workshop
+- Confirm next steps
 
-Explore AI initiatives
-
-Introduce Innominds capabilities
-
-Validate business challenges
-
-Identify next engagement
-
-Schedule technical workshop
-
-Objectives should remain concise and measurable.
+Objectives should be specific and measurable.
 
 ---
 
 # Company Snapshot
 
-Display essential company information.
+Summarize only the information relevant to this meeting.
 
 Include:
 
-Industry
+- Recent business developments
+- Strategic initiatives
+- Technology direction
+- Market position
+- Current challenges
 
-Headquarters
-
-Employees
-
-Revenue (when available)
-
-Products
-
-Markets
-
-Business Model
-
-Recent Growth
-
-Technology Focus
-
-This section serves as a quick refresher before the meeting.
+Avoid repeating unnecessary background information.
 
 ---
 
-# Recent Business Activity
+# Executive Insights
 
-Highlight recent developments that may influence the meeting.
+Highlight insights about meeting attendees.
 
-Examples:
+Include:
 
-Acquisitions
+- Current priorities
+- Recent public activity
+- Known interests
+- Decision-making influence
+- Suggested talking points
 
-Executive changes
-
-Hiring growth
-
-Technology investments
-
-Funding
-
-Product launches
-
-Strategic partnerships
-
-Cloud initiatives
-
-Digital transformation
-
-Each activity should include:
-
-Summary
-
-Business relevance
-
-Suggested discussion opportunity
+Insights should support meaningful conversations.
 
 ---
 
-# Executive Profiles
+# Current Opportunities
 
-Display executives attending the meeting.
-
-For each executive include:
-
-Name
-
-Role
-
-Responsibilities
-
-Technology Focus
-
-Professional Background
-
-Business Priorities
-
-Public Activity
-
-Suggested Discussion Topics
-
-This information should support personalized conversations.
-
----
-
-# Business Challenges
-
-Scout shall summarize likely customer challenges.
-
-Examples:
-
-Cloud migration
-
-Legacy systems
-
-Engineering productivity
-
-AI adoption
-
-Operational efficiency
-
-Customer experience
-
-Platform scalability
-
-Data modernization
-
-Cybersecurity
-
-Challenges should include supporting evidence whenever possible.
-
----
-
-# Opportunity Summary
-
-Present the highest-value opportunities relevant to the meeting.
+Display opportunities most relevant to this meeting.
 
 Each opportunity should include:
 
-Summary
+- Description
+- Business value
+- Supporting evidence
+- Confidence
+- Recommended positioning
 
-Supporting Evidence
-
-Business Value
-
-Confidence
-
-Recommended Service
-
-Priority
-
-Suggested Conversation
-
-This section connects company intelligence directly to meeting goals.
+Focus only on opportunities appropriate for the meeting objectives.
 
 ---
 
 # Recommended Discussion Topics
 
-Scout shall recommend strategic discussion topics.
+Scout should recommend discussion topics tailored to the attendees.
 
 Examples:
 
-Digital transformation roadmap
+- AI initiatives
+- Cloud modernization
+- Engineering productivity
+- Customer experience
+- Platform strategy
+- Digital transformation
 
-Cloud modernization
+Each topic should explain:
 
-Artificial intelligence
-
-Operational efficiency
-
-Platform engineering
-
-Customer experience
-
-Application modernization
-
-Engineering productivity
-
-Topics should encourage consultative conversations.
+- Why it matters
+- Relevant evidence
+- Suggested questions
 
 ---
 
-# Suggested Discovery Questions
+# Potential Risks & Questions
 
-Generate intelligent discovery questions.
+Prepare users for difficult conversations.
 
 Examples:
 
-What strategic initiatives are highest priority this year?
+Potential customer concerns:
 
-Which modernization efforts are currently underway?
+- Budget
+- Existing vendors
+- Internal capabilities
+- Technical complexity
+- Project timing
 
-How is AI influencing your technology strategy?
+For each concern provide:
 
-What engineering challenges are slowing innovation?
+- Why it may arise
+- Suggested response
+- Supporting evidence
 
-How are customer expectations changing?
-
-Questions should encourage business discussions rather than product discussions.
+Preparation should build confidence rather than encourage scripted responses.
 
 ---
 
-# Suggested Talking Points
+# Suggested Agenda
 
-Provide concise talking points for the sales team.
+Scout should generate a recommended agenda.
 
-Examples:
+Example:
 
-Industry trends
+1. Introductions
+2. Business priorities
+3. Current initiatives
+4. Challenges
+5. Opportunity discussion
+6. Next steps
 
-Technology opportunities
-
-Business value
-
-Relevant customer success stories
-
-Operational improvements
-
-Innovation initiatives
-
-Talking points should help guide natural conversations.
-
----
-
-# Recommended Services
-
-Scout shall recommend Innominds capabilities that align with meeting objectives.
-
-Examples:
-
-Artificial Intelligence
-
-Cloud Engineering
-
-Platform Engineering
-
-Application Modernization
-
-Quality Engineering
-
-Automation
-
-Cybersecurity
-
-Digital Transformation
-
-Data Engineering
-
-Each recommendation shall include:
-
-Business Need
-
-Reasoning
-
-Expected Customer Value
-
-Potential Outcomes
-
----
-
-# Potential Risks
-
-Identify factors that may impact the meeting.
-
-Examples:
-
-Limited evidence
-
-Competitive vendors
-
-Budget constraints
-
-Executive turnover
-
-Technology uncertainty
-
-Changing priorities
-
-Low organizational urgency
-
-Potential risks should prepare the sales team for realistic discussions.
-
----
-
-# AI Recommendations
-
-Scout shall provide recommended actions before the meeting.
-
-Examples:
-
-Research executive interviews
-
-Review recent hiring
-
-Generate executive briefing
-
-Compare competitors
-
-Prepare architecture discussion
-
-Draft follow-up email
-
-Recommendations should be prioritized.
+The agenda should remain flexible based on meeting goals.
 
 ---
 
 # Meeting Checklist
 
-Provide a practical checklist.
+Provide a final preparation checklist.
 
 Examples:
 
-Review executive profiles
+- Review executive profiles
+- Review opportunity analysis
+- Confirm attendees
+- Prepare customer questions
+- Verify latest intelligence
+- Prepare follow-up plan
 
-Understand technology landscape
-
-Prepare discovery questions
-
-Review opportunities
-
-Prepare customer success stories
-
-Review latest company news
-
-Generate meeting report
-
-Checklist items should be interactive.
+The checklist should ensure users are fully prepared.
 
 ---
 
-# Notes
+# Follow-Up Recommendations
 
-Users should be able to record meeting notes.
-
-Future capabilities include:
-
-Rich text
-
-Images
-
-Voice notes
-
-Action items
-
-Task assignments
-
-CRM synchronization
-
-Notes should remain linked to the meeting.
-
----
-
-# Follow-Up Preparation
-
-Scout shall prepare suggested follow-up actions.
+After the meeting, Scout should recommend next actions.
 
 Examples:
 
-Send thank-you email
+- Generate AI Outreach
+- Update Sales Playbook
+- Record meeting notes
+- Schedule follow-up meeting
+- Generate executive report
 
-Schedule technical workshop
-
-Prepare proposal
-
-Generate executive report
-
-Monitor company activity
-
-Create opportunity
-
-Follow-up recommendations should be available immediately after the meeting.
+Recommendations should help maintain momentum after customer interactions.
 
 ---
 
-# Visualizations
+# Intelligence Principles
 
-Recommended visualizations include:
+Every recommendation shall include:
 
-Opportunity Summary
+- Supporting evidence
+- Business reasoning
+- Confidence
+- Timestamp
+- Source attribution
 
-Technology Landscape
-
-Executive Timeline
-
-Business Timeline
-
-Capability Alignment
-
-Meeting Readiness Score
-
-Stakeholder Influence Map
-
-Discussion Topic Distribution
-
-Visualizations should support quick preparation.
+Preparation should always be transparent and explainable.
 
 ---
 
-# Export Options
+# Interaction Model
 
-Meeting preparation should support exporting as:
+Users should be able to:
 
-PDF
+- Expand supporting evidence
+- Customize agendas
+- Bookmark discussion topics
+- Print or export meeting briefs
+- Launch Executive Intelligence
+- Launch Company Intelligence
+- Generate AI Outreach
 
-PowerPoint
-
-Word
-
-Markdown
-
-Printable Executive Brief
-
-Exports should maintain professional formatting.
+Interactions should reduce preparation effort without limiting flexibility.
 
 ---
 
 # Accessibility
 
-The Meeting Preparation module shall support:
+Refer to ACCESSIBILITY.md.
 
-Keyboard navigation
+Additional requirements include:
 
-Screen readers
-
-Accessible charts
-
-High contrast
-
-Responsive layouts
-
-Logical reading order
+- Accessible meeting agendas
+- Keyboard navigation throughout the briefing
+- Screen-reader support for AI summaries
+- Accessible checklist interactions
 
 ---
 
 # Responsive Design
 
-Desktop
+Refer to RESPONSIVENESS.md.
 
-Multi-panel preparation workspace.
+Meeting Preparation should remain easy to review across desktop, tablet, and mobile devices, especially before meetings.
 
-Tablet
+---
 
-Adaptive card layout.
+# Next Step
 
-Mobile
+From Meeting Preparation users should naturally continue to:
 
-Single-column layout with expandable sections.
+- AI Outreach
+- Reports
+- Dashboard
 
-No preparation functionality should be removed.
+The meeting should transition seamlessly into follow-up activities.
 
 ---
 
@@ -593,56 +340,41 @@ No preparation functionality should be removed.
 
 Future versions may include:
 
-Calendar integration
-
-CRM integration
-
-AI meeting assistant
-
-Live meeting notes
-
-Voice transcription
-
-Automatic action-item extraction
-
-Meeting recording summaries
-
-Presentation mode
-
-Relationship tracking
-
-Conversation coaching
+- Calendar integration
+- Live meeting mode
+- Real-time AI note taking
+- Automatic action item extraction
+- CRM synchronization
+- Executive relationship tracking
+- Scout Copilot assistance during meetings
 
 ---
 
 # Success Criteria
 
-A successful Meeting Preparation page enables users to answer the following questions within five minutes:
+A successful Meeting Preparation page enables users to answer:
 
-- What should I know before this meeting?
-- What challenges is the customer facing?
-- Which executives will I meet?
+- Who am I meeting?
+- What are their priorities?
 - What should I discuss?
-- Which questions should I ask?
-- Which services should I recommend?
-- What risks should I anticipate?
-- What should I do after the meeting?
+- What questions should I ask?
+- What concerns should I anticipate?
+- What outcome should I achieve?
 
-If users still need external research after reviewing the meeting preparation, the experience should be redesigned.
+If a user can confidently walk into a customer meeting using only this briefing, the experience has achieved its purpose.
 
 ---
 
 # Final Principle
 
-Meeting Preparation should eliminate uncertainty.
+Meeting Preparation should transform scattered intelligence into confident customer engagement.
 
-Scout should function as a trusted pre-meeting advisor, ensuring every sales representative enters customer conversations informed, confident, and prepared to deliver meaningful business value.
+Rather than collecting meeting notes, Scout should help sales teams enter every conversation informed, focused, and prepared to create value.
 
 ---
 
 **Status:** Active Meeting Preparation Specification
 
-**Priority:** Highest
+**Priority:** High
 
 **Applies To:** Meeting Preparation Module
-```

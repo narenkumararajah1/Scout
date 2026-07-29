@@ -2,13 +2,13 @@
 
 ## Purpose
 
-The Component Library defines every reusable user interface element used throughout Scout.
+The Component Library defines the reusable building blocks used throughout Scout.
 
-Its purpose is to ensure visual consistency, predictable interactions, accessibility, and maintainability across the entire application.
+Rather than creating unique interfaces for every page, Scout should use a consistent set of components that reinforce familiarity, improve usability, and accelerate development.
 
-Every component should solve a single problem well while remaining flexible enough to be reused in multiple contexts.
+Every component should communicate intelligence clearly while maintaining a unified visual language.
 
-This document serves as the foundation for the Scout design system and frontend implementation.
+Components should prioritize readability, explainability, and actionability over visual complexity.
 
 ---
 
@@ -17,984 +17,516 @@ This document serves as the foundation for the Scout design system and frontend 
 Every component should be:
 
 - Consistent
-- Predictable
+- Explainable
+- Reusable
 - Accessible
 - Responsive
-- Reusable
-- Lightweight
-- Performance-focused
-- Easy to understand
-- AI-friendly
-- Enterprise-ready
+- Action-oriented
 
-A component should never require users to relearn interactions.
+Users should learn components once and recognize them everywhere.
 
 ---
 
 # Component Categories
 
-Scout components are organized into the following groups.
+The Scout interface consists of the following component groups:
 
-Navigation
+• Intelligence Components
 
-Inputs
+• Recommendation Components
 
-Buttons
+• Data Visualization Components
 
-Cards
+• Navigation Components
 
-Tables
+• AI Components
 
-Lists
+• Input Components
 
-Search
+• Feedback Components
 
-Filters
-
-Badges
-
-Indicators
-
-Charts
-
-AI Components
-
-Dialogs
-
-Notifications
-
-Loading States
-
-Empty States
-
-Feedback Components
-
-Layout Components
-
-Media Components
-
-Utility Components
+• Layout Components
 
 ---
 
-# Navigation Components
+# Intelligence Card
 
-## Sidebar
+## Purpose
 
-Purpose
-
-Primary application navigation.
-
-Contains:
-
-- Logo
-- Primary navigation links
-- Collapsible sections
-- Favorites
-- Recent companies
-- Settings
-- User profile
-
-Behavior
-
-- Fixed on desktop
-- Collapsible
-- Expand on hover (optional future enhancement)
-- Scroll independently
-
----
-
-## Top Navigation Bar
-
-Purpose
-
-Provides global actions.
-
-Contains:
-
-Global Search
-
-Notifications
-
-AI Assistant
-
-Quick Actions
-
-Theme Toggle
-
-Profile Menu
-
-Workspace Selector (Future)
-
-The top bar remains visible while scrolling.
-
----
-
-## Breadcrumbs
-
-Purpose
-
-Provide context within the application hierarchy.
-
-Example
-
-Dashboard
-
->
-
-Companies
-
->
-
-Microsoft
-
->
-
-Executive Intelligence
-
-Breadcrumbs should never exceed one line.
-
----
-
-# Buttons
-
-Buttons communicate actions.
-
----
-
-## Primary Button
-
-Used for the most important action on a page.
-
-Examples
-
-Run Analysis
-
-Generate Report
-
-Save Changes
-
-Generate Playbook
-
-Only one primary button should exist within a major section.
-
----
-
-## Secondary Button
-
-Used for supporting actions.
-
-Examples
-
-Cancel
-
-Preview
-
-Export
-
-Duplicate
-
----
-
-## Tertiary Button
-
-Low-emphasis actions.
-
-Examples
-
-View More
-
-Open Details
-
-Expand
-
----
-
-## Icon Button
-
-Displays a single icon.
-
-Examples
-
-Search
-
-Favorite
-
-Refresh
-
-Settings
-
-Delete
-
-Icons must always include accessible labels.
-
----
-
-## Floating Action Button (Future)
-
-Reserved for high-priority global actions.
-
-Example
-
-Start New Analysis
-
----
-
-# Input Components
-
----
-
-## Text Field
-
-Supports:
-
-Single-line text
-
-Validation
-
-Clear button
-
-Character count
-
-Placeholder
-
-Helper text
-
-Error messages
-
----
-
-## Text Area
-
-Supports:
-
-Multi-line input
-
-Markdown (Future)
-
-Auto-resize
-
-Character count
-
-Spell check
-
----
-
-## Search Bar
-
-Core component used across Scout.
-
-Features:
-
-Instant search
-
-Search suggestions
-
-Recent searches
-
-Clear button
-
-Keyboard navigation
-
-Loading indicator
-
-Optional AI-assisted search
-
----
-
-## Dropdown
-
-Supports:
-
-Single selection
-
-Multi-selection
-
-Searchable options
-
-Grouping
-
-Keyboard navigation
-
----
-
-## Date Picker
-
-Supports:
-
-Single date
-
-Date range
-
-Relative dates
-
-Calendar navigation
-
-Disabled dates
-
----
-
-## Toggle Switch
-
-Represents binary settings.
-
-Examples
-
-Enable AI
-
-Dark Mode
-
-Notifications
-
-Automatic Refresh
-
----
-
-## Checkbox
-
-Used for multiple selections.
-
-Supports:
-
-Select All
-
-Indeterminate state
-
-Grouped options
-
----
-
-## Radio Group
-
-Used when exactly one option may be selected.
-
----
-
-# Cards
-
-Cards are Scout's primary information container.
-
----
-
-## Standard Card
-
-Contains:
-
-Title
-
-Subtitle
-
-Body
-
-Optional actions
-
-Footer
-
-Cards should maintain consistent spacing.
-
----
-
-## KPI Card
-
-Displays:
-
-Metric
-
-Trend
-
-Comparison
-
-Time period
-
-Confidence (optional)
-
-Status indicator
-
-Example
-
-AI Opportunities
-
-42
-
-+18%
-
-Last 30 Days
-
----
-
-## Executive Card
-
-Contains:
-
-Photo (optional)
-
-Name
-
-Role
-
-Responsibilities
-
-Priority
-
-Recent activity
-
-Quick actions
-
----
-
-## Opportunity Card
-
-Contains:
-
-Opportunity Title
-
-Business Value
-
-Confidence
-
-Recommended Service
-
-Priority
-
-Supporting Evidence
-
-Quick Actions
-
----
-
-## Company Card
-
-Contains:
-
-Company Name
-
-Industry
-
-Opportunity Score
-
-Recent Activity
-
-Technology Focus
-
-AI Summary
-
----
-
-## AI Insight Card
-
-Highlights AI-generated observations.
-
-Includes:
-
-Insight
-
-Supporting evidence
-
-Confidence
-
-Timestamp
-
-Refresh option
-
-AI badge
-
----
-
-# Tables
-
-Scout uses data-rich tables extensively.
-
-All tables shall support:
-
-Sorting
-
-Filtering
-
-Column resizing
-
-Column hiding
-
-Pagination
-
-Keyboard navigation
-
-Responsive behavior
-
-Export
-
-Sticky headers
-
-Selectable rows
-
----
-
-## Company Table
-
-Columns
-
-Company
-
-Industry
-
-Opportunity Score
-
-Status
-
-Recent Activity
-
-Owner
-
-Last Updated
-
----
-
-## Executive Table
-
-Columns
-
-Executive
-
-Role
-
-Department
-
-Priority
-
-Influence
-
-Recent Activity
-
----
-
-## Opportunity Table
-
-Columns
-
-Opportunity
-
-Company
-
-Value
-
-Confidence
-
-Owner
-
-Status
-
-Priority
-
----
-
-# Lists
-
-Supported list types:
-
-Activity Timeline
-
-News Feed
-
-Notifications
-
-Recent Searches
-
-Recent Reports
-
-Saved Companies
-
-Meeting History
-
-Lists should support virtualization for large datasets.
-
----
-
-# Search Components
-
-Global Search
-
-Company Search
-
-Executive Search
-
-Opportunity Search
-
-Command Palette (Future)
-
-Every search experience should:
-
-Return results quickly
-
-Highlight matches
-
-Support keyboard shortcuts
-
-Provide intelligent suggestions
-
----
-
-# Filter Components
-
-Supported filters include:
-
-Industry
-
-Company Size
-
-Technology
-
-Region
-
-Date
-
-Opportunity Score
-
-Confidence
-
-Priority
-
-Executive Role
-
-Filters should remain persistent while navigating.
-
----
-
-# Badge Components
-
-Badges communicate concise status information.
+Displays a single intelligence insight.
 
 Examples:
 
-AI Generated
+- Executive hired
+- AI initiative announced
+- Opportunity detected
+- Hiring spike
+- Partnership announced
 
-New
+### Structure
 
-Updated
+Headline
 
-High Priority
-
-Critical
-
-Verified
-
-Draft
-
-Archived
-
-Meeting Ready
-
-Badges should use both color and text.
-
----
-
-# Status Indicators
-
-Supported states:
-
-Success
-
-Warning
-
-Error
-
-Information
-
-Offline
-
-Processing
-
-Completed
-
-Scheduled
-
-Status should never rely on color alone.
-
----
-
-# AI Components
-
-AI is a first-class feature within Scout.
-
----
-
-## AI Summary Panel
-
-Provides concise AI-generated summaries.
-
-Contains:
+↓
 
 Summary
 
-Confidence
+↓
 
-Sources
+Supporting Evidence
 
-Reasoning
-
-Refresh
-
-Expand
-
----
-
-## AI Recommendation Panel
-
-Displays recommended actions.
-
-Examples
-
-Generate Report
-
-Schedule Meeting
-
-Research Executive
-
-Monitor Activity
-
-Recommendations should be actionable.
-
----
-
-## AI Reasoning Panel
-
-Displays:
-
-Evidence
-
-Supporting intelligence
+↓
 
 Confidence
 
-Reasoning process
+↓
 
-Users should understand why AI reached a conclusion.
+Timestamp
 
----
+↓
 
-## AI Chat Panel (Future)
+Recommended Action
 
-Context-aware assistant.
+### Actions
 
-Capabilities:
-
-Answer questions
-
-Explain insights
-
-Generate reports
-
-Navigate Scout
-
-Summarize pages
+- View Details
+- Save
+- Share
+- Generate Report
 
 ---
 
-# Dialog Components
+# AI Summary Card
 
-Supported dialogs:
+## Purpose
 
-Confirmation
+Displays concise AI-generated summaries.
 
-Delete
+Used on:
 
-Archive
+- Dashboard
+- Company Intelligence
+- Opportunity Analysis
+- Reports
+- Executive Intelligence
+- Meeting Preparation
 
-Share
+### Structure
 
-Export
+Title
 
-Generate
+↓
 
-Settings
+Executive Summary
 
-Dialogs should trap keyboard focus until dismissed.
+↓
 
----
+Key Insights
 
-# Notifications
+↓
 
-Supported notification types:
+Recommended Next Step
 
-Success
-
-Warning
-
-Information
-
-Error
-
-Progress
-
-Notifications should disappear automatically when appropriate.
-
-Critical notifications require user dismissal.
+Users should understand the page within one minute.
 
 ---
 
-# Loading Components
+# Recommendation Card
 
-Loading should communicate progress.
+## Purpose
 
-Supported components:
+Displays AI recommendations.
 
-Skeleton Cards
+Examples:
 
-Skeleton Tables
+- Prepare Meeting
+- Draft Outreach
+- Run Opportunity Analysis
+- Generate Report
 
-Skeleton Charts
+### Structure
 
-Loading Spinner
+Recommendation
 
-Progress Bar
+↓
 
-Progress Steps
+Reason
 
-Never display blank pages while data loads.
+↓
+
+Business Value
+
+↓
+
+Confidence
+
+↓
+
+Primary Action
+
+Recommendation cards should always explain *why* they exist.
 
 ---
 
-# Empty States
+# Opportunity Card
+
+## Purpose
+
+Represents an individual opportunity.
+
+Display:
+
+- Opportunity Title
+- Company
+- Priority
+- Opportunity Score
+- Confidence
+- Estimated Value
+- Status
+
+Quick Actions:
+
+- Analyze
+- Sales Playbook
+- Meeting Brief
+- Outreach
+
+---
+
+# Executive Profile Card
+
+## Purpose
+
+Summarizes executive information.
+
+Include:
+
+- Name
+- Title
+- Responsibility
+- Strategic Priorities
+- Recent Activity
+- Suggested Talking Points
+
+Actions:
+
+- View Profile
+- Meeting Brief
+- Outreach
+
+---
+
+# Evidence Panel
+
+## Purpose
+
+Provides supporting evidence for AI recommendations.
+
+Display:
+
+- Source
+- Date
+- Summary
+- Business Relevance
+
+Evidence panels should always remain collapsible.
+
+---
+
+# Timeline Component
+
+## Purpose
+
+Displays chronological intelligence.
+
+Examples:
+
+- Executive changes
+- Hiring trends
+- Opportunity evolution
+- Product launches
+
+Timeline items should explain:
+
+- What happened
+- Why it matters
+- Supporting evidence
+
+---
+
+# Metric Card
+
+## Purpose
+
+Displays high-level KPIs.
+
+Examples:
+
+- Opportunity Score
+- AI Readiness
+- Confidence
+- Strategic Fit
+- Revenue
+- Employee Count
+
+Metric cards should remain compact and visually consistent.
+
+---
+
+# Company Card
+
+## Purpose
+
+Summarizes company information.
+
+Include:
+
+- Company Name
+- Industry
+- Opportunity Score
+- Recent Updates
+- Strategic Priority
+
+Actions:
+
+- Open Company
+- Generate Report
+
+---
+
+# Executive Brief Card
+
+## Purpose
+
+Displays a concise executive briefing.
+
+Include:
+
+- Summary
+- Opportunities
+- Risks
+- Recommended Discussion Topics
+
+Used primarily in Meeting Preparation.
+
+---
+
+# Notification Card
+
+## Purpose
+
+Displays important updates.
+
+Examples:
+
+- Opportunity score increased
+- Executive changed
+- AI initiative detected
+- Report outdated
+
+Notifications should explain why the update matters.
+
+---
+
+# Activity Feed Item
+
+## Purpose
+
+Represents events in the Intelligence Feed.
+
+Include:
+
+- Company
+- Headline
+- Category
+- Timestamp
+- Why it Matters
+- Recommended Action
+
+---
+
+# Insight Badge
+
+Used to communicate:
+
+- New
+- Updated
+- High Priority
+- AI Generated
+- Verified
+- Emerging
+- Strategic
+
+Badges should remain subtle while improving discoverability.
+
+---
+
+# Confidence Indicator
+
+Displays AI confidence.
+
+Should include:
+
+- Percentage
+- Visual Indicator
+- Explanation on hover
+
+Confidence should never appear without supporting reasoning.
+
+---
+
+# Action Panel
+
+Displays recommended next steps.
+
+Examples:
+
+- Generate Report
+- Prepare Meeting
+- Draft Outreach
+- View Opportunity
+- Research Company
+
+Action Panels should appear at the end of every workflow.
+
+---
+
+# Empty State
+
+Every empty state should encourage action.
+
+Example:
+
+"No reports yet."
+
+↓
+
+Generate your first report.
 
 Every empty state should include:
 
-Friendly explanation
-
-Reason for the empty state
-
-Recommended action
-
-Illustration (optional)
-
-Example
-
-"No opportunities found."
-
-Suggested action:
-
-Run a new company analysis.
+- Illustration (optional)
+- Explanation
+- Primary CTA
 
 ---
 
-# Feedback Components
+# Loading State
 
-Validation Messages
+Loading should communicate progress.
 
-Success Messages
+Examples:
 
-Warning Messages
+- Researching company...
+- Generating report...
+- Analyzing opportunities...
+- Preparing briefing...
 
-Inline Errors
-
-Toast Notifications
-
-Progress Indicators
-
-Feedback should appear immediately after user actions.
+Avoid generic loading spinners whenever possible.
 
 ---
 
-# Layout Components
+# Error State
 
-Supported layouts:
+Errors should explain:
 
-Two-column
+- What happened
+- Why it happened (when possible)
+- How to recover
 
-Three-column
-
-Dashboard Grid
-
-Split View
-
-Resizable Panels
-
-Tabbed Workspace
-
-Accordion
-
-Drawer
-
-Master-Detail
-
-Layouts should remain flexible across screen sizes.
+Every error should include a recovery action.
 
 ---
 
-# Media Components
+# Search Result Card
 
-Supported media:
+Used by:
 
-Company Logos
+- Global Search
+- Ask Scout
+- Company Search
 
-Executive Photos
+Display:
 
-Charts
-
-Icons
-
-Illustrations
-
-Documents
-
-PDF Preview
-
-Media should include fallback states when unavailable.
+- Result Type
+- Title
+- Summary
+- Matching Context
 
 ---
 
-# Utility Components
+# AI Response Block
 
-Tooltip
+Used by Ask Scout.
 
-Popover
+Structure:
 
-Divider
+Question
 
-Avatar
+↓
 
-Progress Ring
+Executive Summary
 
-Timeline
+↓
 
-Tag
+Supporting Evidence
 
-Chip
+↓
 
-Accordion
+Recommendations
 
-Tabs
+↓
 
-Paginator
+Suggested Follow-Up Questions
 
-Command Menu
+AI responses should be formatted rather than displayed as long paragraphs.
 
-Context Menu
+---
 
-Each utility component should have a clearly defined purpose and consistent interaction pattern.
+# Comparison Table
+
+Used for:
+
+- Company comparisons
+- Technology comparisons
+- Opportunity comparisons
+- Executive comparisons
+
+Tables should prioritize readability over density.
+
+---
+
+# Modal Dialog
+
+Used sparingly for:
+
+- Confirmations
+- Quick previews
+- Short workflows
+
+Complex workflows should remain full-page experiences.
 
 ---
 
 # Accessibility
 
-Every component shall support:
+Refer to ACCESSIBILITY.md.
 
-Keyboard navigation
+All components shall support:
 
-Screen readers
-
-Logical focus order
-
-High contrast
-
-Touch accessibility
-
-ARIA attributes where appropriate
-
-Accessible error messaging
+- Keyboard navigation
+- Screen readers
+- Focus indicators
+- High contrast
+- Responsive scaling
 
 ---
 
 # Responsive Behavior
 
-All components shall define behavior for:
+Refer to RESPONSIVENESS.md.
+
+Every component should gracefully adapt to:
 
 Desktop
 
@@ -1002,53 +534,62 @@ Tablet
 
 Mobile
 
-Components should adapt gracefully without losing functionality.
+without losing functionality.
+
+---
+
+# Design Consistency
+
+All components should use consistent:
+
+- Typography
+- Icons
+- Colors
+- Border radius
+- Shadows
+- Spacing
+- Animation timing
+
+Consistency should take precedence over novelty.
 
 ---
 
 # Future Components
 
-Future releases may introduce:
+Potential additions:
 
-Voice Interaction
-
-AI Workflow Builder
-
-Relationship Maps
-
-Whiteboard
-
-Live Collaboration
-
-Real-Time Presence
-
-CRM Widgets
-
-Calendar Widgets
-
-Email Composer
-
-Presentation Mode
+- Relationship Graph
+- Buying Committee Map
+- Opportunity Simulator
+- AI Coach Panel
+- Industry Benchmark Card
+- Scout Copilot Panel
 
 ---
 
 # Success Criteria
 
-A successful component library enables designers and developers to build new Scout features without creating custom interface elements.
+A successful component library enables:
 
-If multiple teams independently solve the same UI problem differently, the component library should be expanded.
+- Faster development
+- Consistent experiences
+- Easier maintenance
+- Better usability
+- Predictable interactions
+
+Every page in Scout should feel like part of the same application.
 
 ---
 
 # Final Principle
 
-Every component should feel familiar, predictable, and purposeful.
+Components should communicate intelligence, not decoration.
 
-The best component is one users rarely notice because it behaves exactly as expected, allowing them to focus on insights, decisions, and customer outcomes rather than the interface itself.
+Every reusable element should make information easier to understand, decisions easier to make, and actions easier to take.
 
 ---
 
-**Status:** Active Component Library Specification
+**Status:** Active Component Library
 
 **Priority:** Highest
 

@@ -2,568 +2,325 @@
 
 ## Purpose
 
-The Opportunity Analysis module is responsible for transforming raw company intelligence into actionable business opportunities.
+Opportunity Analysis transforms business intelligence into strategic sales opportunities.
 
-Rather than simply identifying potential opportunities, Scout shall explain:
+Rather than simply identifying potential engagements, Scout should explain why an opportunity exists, how it aligns with the customer's business priorities, why Innominds is uniquely positioned to deliver value, and what actions should be taken next.
 
-- Why the opportunity exists.
-- What evidence supports it.
-- How confident Scout is.
-- Which Innominds capabilities align with the opportunity.
-- What the sales team should do next.
+Every opportunity should be supported by evidence, strategic reasoning, and clear recommendations.
 
-The objective is not to replace sales judgment but to accelerate decision-making through AI-powered analysis.
+Every page should answer:
 
-Every opportunity presented by Scout should answer one fundamental question:
+- Why is this an opportunity?
+- Why now?
+- Why Innominds?
+- What should happen next?
 
-**"Why should we pursue this opportunity?"**
+Opportunity Analysis should feel like guidance from an experienced enterprise sales strategist.
 
 ---
 
 # Design Objectives
 
-The Opportunity Analysis experience shall:
+Opportunity Analysis shall:
 
-- Explain opportunities rather than simply listing them.
-- Build trust through transparent AI reasoning.
-- Connect opportunities to measurable business value.
-- Prioritize actionable recommendations.
-- Reduce research time.
-- Help sales teams focus on the highest-impact opportunities.
-- Present information in a structured and repeatable manner.
+- Identify high-value business opportunities.
+- Explain AI reasoning transparently.
+- Connect business signals into strategic recommendations.
+- Align customer challenges with Innominds capabilities.
+- Prioritize opportunities by business impact.
+- Reduce uncertainty during account planning.
+- Guide users toward the next best action.
 
 ---
 
-# Opportunity Lifecycle
+# Page Structure
 
-Every opportunity shall move through the following lifecycle.
-
-Intelligence Collection
-
-↓
-
-Pattern Detection
-
-↓
-
+```
+Opportunity Overview
+        ↓
+AI Opportunity Summary
+        ↓
+Business Context
+        ↓
+Supporting Signals
+        ↓
 AI Reasoning
-
-↓
-
-Opportunity Identification
-
-↓
-
-Evidence Validation
-
-↓
-
+        ↓
+Why Innominds
+        ↓
 Capability Alignment
-
-↓
-
-Confidence Assessment
-
-↓
-
+        ↓
+Business Impact
+        ↓
+Risks & Considerations
+        ↓
 Recommended Actions
+```
 
-↓
-
-Sales Follow-up
-
-Users should understand where an opportunity sits within this lifecycle.
+The page should naturally progress from evidence to recommendation.
 
 ---
 
 # Opportunity Overview
 
-Every opportunity page shall begin with a concise overview.
+Begin with a concise overview of the opportunity.
 
 Display:
 
-- Opportunity Title
-- Company Name
-- Opportunity Type
+- Opportunity Name
+- Company
+- Priority
 - Opportunity Score
-- Priority Level
-- Confidence Score
+- Confidence
 - Estimated Business Value
-- Estimated Sales Effort
-- Last Updated
+- Strategic Importance
 
-The overview should provide enough information for users to quickly determine whether further investigation is worthwhile.
-
----
-
-# Opportunity Score
-
-Scout shall calculate an overall Opportunity Score.
-
-The score should summarize the attractiveness of the opportunity based on multiple contributing factors.
-
-Potential inputs include:
-
-- Technology investments
-- Hiring trends
-- Executive changes
-- Strategic initiatives
-- Public announcements
-- Company growth
-- Industry trends
-- Capability alignment
-- Historical engagement (Future)
-- Internal organizational knowledge (Future)
-
-The score should always be accompanied by an explanation.
-
-Users should never see a score without understanding how it was derived.
+Users should understand the opportunity within seconds.
 
 ---
 
-# Opportunity Categories
+# AI Opportunity Summary
 
-Scout shall classify opportunities into meaningful categories.
+Scout should generate an executive summary describing:
 
-Examples include:
+- Why this opportunity exists
+- Why it matters
+- What business problem is likely driving it
+- Why it is relevant now
+- What action Scout recommends
 
-Cloud Modernization
-
-Artificial Intelligence
-
-Data Engineering
-
-Application Modernization
-
-Platform Engineering
-
-Quality Engineering
-
-Automation
-
-Cybersecurity
-
-Digital Transformation
-
-Infrastructure Modernization
-
-Customer Experience
-
-Analytics
-
-Operational Efficiency
-
-Cost Optimization
-
-Industry-Specific Initiatives
-
-A company may contain multiple active opportunities.
+The summary should read like an experienced consultant's assessment rather than an AI-generated report.
 
 ---
 
 # Business Context
 
-Each opportunity shall explain the surrounding business context.
+Explain the broader business situation that created the opportunity.
 
 Examples:
 
-The company has increased hiring in cloud engineering.
+- Digital transformation
+- AI adoption
+- Platform modernization
+- Cloud migration
+- Customer experience initiatives
+- Operational efficiency
+- Data modernization
+- Engineering transformation
 
-Recent acquisitions suggest infrastructure integration.
-
-Leadership changes indicate digital transformation.
-
-Growing AI investment aligns with generative AI adoption.
-
-Business context should establish why the opportunity exists.
+Business context should explain the customer's motivation rather than simply listing facts.
 
 ---
 
-# Supporting Evidence
+# Supporting Signals
 
-Every recommendation must include supporting evidence.
+Every opportunity should be backed by observable evidence.
 
-Evidence may include:
+Examples:
 
-Recent news
+- Hiring trends
+- Executive statements
+- Earnings calls
+- Technology investments
+- Product launches
+- Partnerships
+- Acquisitions
+- Industry developments
+- Public announcements
 
-Executive statements
+Each signal should include:
 
-Hiring activity
+- Description
+- Source
+- Date
+- Business relevance
 
-Technology stack
-
-Job descriptions
-
-Partnerships
-
-Acquisitions
-
-Press releases
-
-Annual reports
-
-Financial announcements
-
-Public technical documentation
-
-Evidence should be presented as structured insights rather than raw links.
+Evidence should strengthen confidence without overwhelming users.
 
 ---
 
 # AI Reasoning
 
-Scout shall explain its reasoning in natural language.
+Scout must clearly explain how it reached its conclusion.
 
-Example:
+The reasoning should describe:
 
-"Recent hiring across multiple AI engineering teams, combined with executive discussions around digital transformation, suggests an expanding investment in enterprise AI initiatives."
+- Which signals contributed most
+- How those signals relate
+- Why they indicate a business opportunity
+- Alternative interpretations
+- Overall confidence
 
-The explanation should read like an experienced consultant's assessment.
-
-Avoid technical AI terminology.
-
----
-
-# Confidence Assessment
-
-Every opportunity shall include a confidence score.
-
-Confidence represents how strongly the available evidence supports the recommendation.
-
-Confidence should be categorized as:
-
-Very High
-
-High
-
-Moderate
-
-Low
-
-Experimental
-
-Confidence should never imply certainty.
-
-Instead, it should communicate AI confidence in the available evidence.
+Users should understand the reasoning behind every recommendation.
 
 ---
 
-# Business Impact
+# Why Innominds
 
-Scout shall estimate the potential business impact.
+This section differentiates Scout from generic sales intelligence platforms.
 
-Possible classifications include:
+For every opportunity, explain:
 
-Transformational
+- Why Innominds is well positioned
+- Relevant capabilities
+- Similar customer success areas
+- Expected business outcomes
+- Potential value creation
+- Strategic advantages
 
-High
-
-Medium
-
-Low
-
-Unknown
-
-Business impact should consider:
-
-Customer value
-
-Project complexity
-
-Potential engagement size
-
-Strategic importance
-
-Long-term relationship potential
+Recommendations should remain consultative rather than promotional.
 
 ---
 
 # Capability Alignment
 
-Every opportunity shall map directly to relevant Innominds services.
+Map customer needs directly to Innominds capabilities.
 
-Each recommendation should explain:
-
-Recommended Capability
+Each recommendation should include:
 
 Business Challenge
 
-Why It Fits
+↓
 
-Expected Customer Value
-
-Potential Engagement Type
-
-Relevant Success Areas
-
-Capability alignment should be one of the strongest sections within the analysis.
-
----
-
-# Recommended Services
-
-Scout should recommend services such as:
-
-AI Solutions
-
-Cloud Services
-
-Platform Engineering
-
-Application Modernization
-
-Quality Engineering
-
-Automation
-
-Cybersecurity
-
-Data Engineering
-
-Digital Transformation
-
-Recommendations should always include supporting reasoning.
-
----
-
-# Opportunity Timeline
-
-Whenever possible, Scout shall visualize how the opportunity developed.
-
-Example timeline:
-
-Executive hired
+Recommended Capability
 
 ↓
 
-Cloud migration announced
+Expected Outcome
 
 ↓
 
-Engineering hiring increased
+Potential Engagement
 
 ↓
 
-AI investment expanded
+Estimated Customer Value
 
-↓
-
-Opportunity identified
-
-Users should understand the progression of events.
+Capability alignment should be practical and specific.
 
 ---
 
-# Opportunity Risks
+# Business Impact
 
-Every opportunity should include potential risks.
+Estimate the potential value of the opportunity.
 
 Examples:
 
-Budget constraints
+- Revenue growth
+- Operational efficiency
+- Cost reduction
+- Customer experience improvements
+- Engineering productivity
+- Time-to-market acceleration
 
-Leadership uncertainty
-
-Competitive landscape
-
-Technology maturity
-
-Limited evidence
-
-Economic conditions
-
-Internal priorities
-
-Risks should help sales teams prepare realistic expectations.
+Where estimates are uncertain, explain the assumptions behind them.
 
 ---
 
-# Sales Recommendations
+# Risks & Considerations
 
-Scout shall provide practical next steps.
+Every opportunity should include balanced analysis.
+
+Potential considerations include:
+
+- Budget constraints
+- Existing vendors
+- Competitive pressure
+- Organizational readiness
+- Technical complexity
+- Market uncertainty
+
+Scout should acknowledge uncertainty rather than overstating confidence.
+
+---
+
+# Recommended Actions
+
+Conclude with practical recommendations.
 
 Examples:
 
-Research executive priorities
+- Generate Sales Playbook
+- Prepare Executive Briefing
+- Draft AI Outreach
+- Schedule discovery meeting
+- Research executive priorities
+- Monitor additional signals
+- Build proposal
 
-Generate executive briefing
+Every recommendation should explain:
 
-Prepare discovery questions
-
-Create outreach email
-
-Schedule introductory meeting
-
-Monitor hiring activity
-
-Compare competitors
-
-Recommendations should be ordered by priority.
-
----
-
-# Suggested Talking Points
-
-Scout should generate initial conversation topics.
-
-Examples:
-
-Cloud modernization
-
-Operational efficiency
-
-AI adoption
-
-Platform scalability
-
-Customer experience
-
-Data modernization
-
-Talking points should support consultative selling.
+- Why now
+- Expected impact
+- Priority
+- Confidence
 
 ---
 
-# Discovery Questions
+# Intelligence Principles
 
-Scout shall recommend thoughtful discovery questions.
+Every opportunity shall include:
 
-Examples:
+- AI reasoning
+- Supporting evidence
+- Confidence score
+- Business context
+- Source attribution
+- Timestamp
 
-How is your organization approaching AI adoption?
-
-What modernization initiatives are planned over the next year?
-
-Which technology platforms are currently being evaluated?
-
-Questions should encourage meaningful conversations rather than product pitches.
-
----
-
-# Visualizations
-
-Opportunity pages should emphasize visual storytelling.
-
-Suggested visualizations include:
-
-Opportunity Score Breakdown
-
-Evidence Distribution
-
-Technology Alignment
-
-Business Timeline
-
-Hiring Trends
-
-Capability Mapping
-
-Confidence Indicator
-
-Industry Comparison
-
-Charts should always support business understanding.
+Recommendations should always be explainable.
 
 ---
 
-# Comparison View
+# Interaction Model
 
-Users should be able to compare opportunities across companies.
+Users should be able to:
 
-Comparison metrics may include:
+- Expand reasoning
+- View supporting evidence
+- Compare opportunities
+- Sort by confidence or value
+- Filter by priority or capability
+- Save opportunities
+- Share analyses
+- Drill into Company Intelligence or Executive Intelligence
 
-Opportunity Score
-
-Business Value
-
-Confidence
-
-Technology Alignment
-
-Strategic Fit
-
-Estimated Complexity
-
-Industry
-
-Relationship Potential
-
-Comparison should help prioritize sales efforts.
-
----
-
-# AI Transparency
-
-Every AI-generated recommendation shall clearly indicate:
-
-Reasoning
-
-Supporting Evidence
-
-Confidence
-
-Generation Timestamp
-
-Analysis Version
-
-Users should understand why the recommendation exists.
-
----
-
-# Refresh Analysis
-
-Users should be able to request updated analysis.
-
-Scout shall indicate:
-
-Analysis Date
-
-Latest Intelligence
-
-Changes Since Previous Analysis
-
-New Opportunities
-
-Removed Opportunities
-
-Confidence Changes
+Interactions should make complex analysis easy to explore.
 
 ---
 
 # Accessibility
 
-Opportunity Analysis shall support:
+Refer to ACCESSIBILITY.md.
 
-Keyboard navigation
+Additional requirements:
 
-Screen readers
-
-High contrast
-
-Responsive layouts
-
-Accessible charts
-
-Logical reading order
+- Accessible evidence timelines
+- Keyboard navigation across opportunity cards
+- Screen-reader support for AI reasoning
+- Accessible visual confidence indicators
 
 ---
 
 # Responsive Design
 
-Desktop
+Refer to RESPONSIVENESS.md.
 
-Multi-panel analysis layout.
+Opportunity Analysis should preserve all strategic workflows across desktop, tablet, and mobile while adapting layouts appropriately.
 
-Tablet
+---
 
-Adaptive card layout.
+# Next Step
 
-Mobile
+From Opportunity Analysis users should naturally continue to:
 
-Single-column presentation with expandable sections.
+- Sales Playbook
+- Executive Intelligence
+- Meeting Preparation
+- AI Outreach
+- Reports
 
-No analytical functionality should be removed on smaller devices.
+Every recommendation should move users closer to engaging the customer.
 
 ---
 
@@ -571,52 +328,36 @@ No analytical functionality should be removed on smaller devices.
 
 Future versions may include:
 
-Predictive opportunity forecasting
-
-CRM opportunity synchronization
-
-Relationship scoring
-
-Buying intent detection
-
-Proposal generation
-
-Competitive positioning
-
-Revenue forecasting
-
-Multi-company opportunity clustering
-
-Industry benchmarking
-
-Executive influence mapping
+- Opportunity Simulator
+- Win Probability Prediction
+- Competitive Positioning Analysis
+- Pricing Guidance
+- Relationship Intelligence
+- Buying Committee Analysis
+- Scout Copilot integration
 
 ---
 
 # Success Criteria
 
-A successful Opportunity Analysis page enables users to answer the following questions within three minutes:
+A successful Opportunity Analysis enables users to answer:
 
-- Why does this opportunity exist?
-- What evidence supports it?
-- How confident is Scout?
-- Which services should we recommend?
-- Who should we contact?
-- What should we discuss?
+- Why is this an opportunity?
+- Why now?
+- Why Innominds?
+- What evidence supports this recommendation?
 - What risks should we consider?
 - What should we do next?
 
-If these questions cannot be answered quickly and confidently, the experience should be redesigned.
+If users cannot confidently explain the opportunity to another stakeholder after reading this page, the experience should be redesigned.
 
 ---
 
 # Final Principle
 
-Opportunity Analysis is the bridge between intelligence and action.
+Opportunity Analysis should transform scattered business signals into a compelling, evidence-backed business case.
 
-Scout should not merely discover opportunities—it should explain them, validate them, prioritize them, and help the sales team confidently pursue them.
-
-Every opportunity should move the user one step closer to a meaningful customer engagement.
+Every recommendation should help sales teams understand not only where opportunities exist, but why they matter, why Innominds can create value, and what actions should be taken to win the engagement.
 
 ---
 

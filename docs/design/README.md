@@ -22,6 +22,26 @@ This allows Scout to evolve while remaining cohesive and professional.
 
 ---
 
+# Documentation Hierarchy
+
+This directory now has a top-level planning layer above the detailed design documents listed under [Design Documentation Structure](#design-documentation-structure) below:
+
+```
+SCOUT_VISION.md
+      |
+PRODUCT_REQUIREMENTS.md  (master index into the detailed design documents below)
+      |
+Detailed design documents (DESIGN_PHILOSOPHY.md, DASHBOARD.md, COMPANY_INTELLIGENCE.md, ...)
+      |
+IMPLEMENTATION_ROADMAP.md  (active build tracking)
+```
+
+[PRODUCT_EVOLUTION_BACKLOG.md](PRODUCT_EVOLUTION_BACKLOG.md) is tracked alongside the roadmap and holds approved future enhancements not yet in scope.
+
+New contributors should start at [SCOUT_VISION.md](SCOUT_VISION.md) and follow its links down through [PRODUCT_REQUIREMENTS.md](PRODUCT_REQUIREMENTS.md) into the specific document they need.
+
+---
+
 # Product Vision
 
 Scout is an AI-powered Sales Intelligence Platform that helps enterprise sales teams discover opportunities, analyze companies, prepare for customer engagements, and make data-driven decisions through AI-powered insights.
@@ -287,6 +307,22 @@ Every future feature should answer these questions before implementation.
 - Can this experience be simplified?
 - Can information be visualized instead of written?
 - Does this align with Scout's design philosophy?
+
+---
+
+# Future Documentation
+
+These are recommendations only - none of the documents below exist yet, and none should be created until Scout V3 has matured enough to justify them. As the platform grows, the following would be reasonable additions to this hierarchy:
+
+**USER_WORKFLOWS.md** - a dedicated home for the end-to-end workflows currently sketched in NAVIGATION.md's "User Flow" section, expanded to cover every major journey (onboarding a new company, running a full research-to-outreach cycle, preparing for a recurring account review) rather than the single canonical flow documented today.
+
+**INFORMATION_ARCHITECTURE.md** - formalizes NAVIGATION.md's "Information Architecture" section into its own document once the platform has enough domains and sub-navigation that a single section can no longer describe it clearly.
+
+**DESIGN_PATTERNS.md** - extracts the recurring composite UI patterns (AI Summary, AI Recommendations, Confidence Indicator, Supporting Evidence, Opportunity Card, Executive Card, Timeline) identified in COMPONENT_LIBRARY.md's TODO note into one canonical definition per pattern, referenced by every page spec instead of re-described.
+
+**DATA_MODEL.md** - defines the underlying entities (Company, Executive, Opportunity, Report, Sales Playbook, Meeting Brief, Outreach Draft) and their relationships. Every design document today references these implicitly through field lists; none currently defines them as a single, shared model.
+
+**AI_FOUNDATION.md** - consolidates the AI/confidence/reasoning philosophy currently repeated as similar "AI Transparency," "Confidence Assessment," and "AI Insights" sections across most page specs into one authoritative definition of how Scout generates, scores, and explains AI content.
 
 ---
 

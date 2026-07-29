@@ -12,6 +12,8 @@ Every roadmap initiative should answer one primary question:
 
 **"Does this feature make Scout a more valuable sales intelligence platform?"**
 
+This document describes the broad, phased direction of that evolution. Specific enhancements that have been reviewed and approved for near-term work are tracked with full detail (business value, complexity, dependencies, status) in [PRODUCT_EVOLUTION_BACKLOG.md](PRODUCT_EVOLUTION_BACKLOG.md) rather than here - where an item below already has a corresponding backlog entry, this document links to it instead of duplicating its description.
+
 ---
 
 # Product Vision
@@ -125,7 +127,7 @@ Saved Searches
 
 Advanced Notifications
 
-Executive Brief Generator
+Executive Brief Generator (see EP-011, PRODUCT_EVOLUTION_BACKLOG.md)
 
 Expected Outcome
 
@@ -179,7 +181,7 @@ Win Probability Prediction
 
 Buying Committee Detection
 
-Relationship Strength Scoring
+Relationship Strength Scoring (see EP-009 "Relationship Intelligence", PRODUCT_EVOLUTION_BACKLOG.md)
 
 Account Risk Forecasting
 

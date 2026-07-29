@@ -1,621 +1,417 @@
-# Scout Design System
+# Design System Specification
 
 ## Purpose
 
-This document defines the complete visual language of Scout.
+The Scout Design System establishes the visual, interactive, and experiential foundation of the application.
 
-Every screen, component, interaction, and future feature must follow the standards defined here.
+Rather than defining isolated styles, the design system ensures every screen communicates intelligence consistently, builds user trust, and supports efficient decision-making.
 
-The objective is to create a consistent, premium, enterprise-grade user experience throughout the platform.
+Every visual decision should reinforce Scout's mission:
 
-Developers should not invent new colors, spacing, component styles, or interaction patterns unless this document is updated first.
+**Transform intelligence into understanding, understanding into strategy, and strategy into action.**
+
+The design system should make Scout feel like a modern enterprise intelligence platform—not a collection of disconnected AI tools.
 
 ---
 
-# Design Goals
+# Design Principles
+
+Every interface should be:
+
+- Intelligence-first
+- Clear
+- Consistent
+- Explainable
+- Professional
+- Accessible
+- Action-oriented
+
+Design should reduce cognitive load rather than increase visual complexity.
+
+---
+
+# Product Personality
 
 Scout should feel:
 
-- Premium
-- Modern
-- Enterprise-grade
-- Minimal
-- Executive-ready
 - Intelligent
-- Fast
-- Interactive
-- Clean
+- Trustworthy
 - Professional
+- Modern
+- Calm
+- Analytical
+- Helpful
 
-Every visual decision should reinforce these qualities.
+Avoid designs that feel overly playful, distracting, or experimental.
 
----
-
-# Visual Identity
-
-Scout should communicate intelligence through simplicity.
-
-The interface should prioritize readability, whitespace, hierarchy, and purposeful interactions over decorative design.
-
-Avoid excessive gradients, bright colors, flashy animations, or unnecessary visual elements.
-
-The design should remain timeless rather than trendy.
+The interface should inspire confidence during executive and enterprise workflows.
 
 ---
 
-# Color Philosophy
+# Visual Hierarchy
 
-Colors should communicate meaning rather than decoration.
+Information should always follow this hierarchy:
 
-Every color must have a purpose.
+Primary Insight
 
-Examples include:
+↓
 
-Primary Actions
+AI Summary
 
-Success States
+↓
 
-Warnings
+Supporting Evidence
 
-Errors
+↓
 
-Information
+Recommended Actions
 
-Neutral Elements
+↓
 
-Interactive Components
+Detailed Data
 
-Background Surfaces
-
-Charts
-
-Never introduce random colors simply for aesthetics.
+Users should understand the most important information within a few seconds.
 
 ---
 
-# Primary Color Palette
+# Layout Principles
 
-The final palette will be defined during implementation, but should generally include:
+Every page should follow a consistent structure:
 
-Primary Brand Color
+Page Header
 
-Used for:
+↓
 
-- Primary buttons
-- Links
-- Active navigation
-- Selected states
-- Key interactions
+AI Summary
 
-Neutral Colors
+↓
 
-Used for:
+Primary Content
 
-- Backgrounds
-- Cards
-- Borders
-- Text
-- Dividers
+↓
 
-Success
+Supporting Information
 
-Used for:
+↓
 
-- Positive metrics
-- Successful actions
-- Growth indicators
-- Completed tasks
+Recommended Actions
 
-Warning
+↓
 
-Used for:
+Related Modules
 
-- Medium priority alerts
-- Attention-required items
-
-Error
-
-Used for:
-
-- Failed actions
-- Critical alerts
-- Validation errors
-
-Information
-
-Used for:
-
-- Notifications
-- Informational messages
-- AI insights
-
----
-
-# Theme Support
-
-Scout should support:
-
-Light Theme
-
-Dark Theme
-
-Future Custom Themes
-
-Both themes should maintain identical layouts and interaction behavior.
-
-Only color values should change.
-
----
-
-# Typography
-
-Typography should prioritize readability.
-
-Avoid decorative fonts.
-
-Use modern sans-serif typography.
-
-Typography hierarchy should remain consistent across every page.
-
-Suggested hierarchy:
-
-Display Title
-
-Page Title
-
-Section Heading
-
-Subheading
-
-Body Text
-
-Secondary Text
-
-Caption
-
-Labels
-
-Helper Text
-
-Never skip hierarchy levels.
-
----
-
-# Text Principles
-
-Use concise language.
-
-Avoid unnecessary technical jargon.
-
-Prefer short paragraphs.
-
-Use bullets where appropriate.
-
-Highlight important insights.
-
-AI-generated content should remain easy to scan.
-
----
-
-# Spacing System
-
-Scout should follow a consistent spacing scale.
-
-Spacing should create visual rhythm.
-
-Avoid inconsistent padding or margins.
-
-Whitespace should be treated as an essential design element.
-
-Every page should feel open and breathable.
+The layout should naturally guide users through the Intelligence → Decision → Action workflow.
 
 ---
 
 # Grid System
 
-Layouts should follow a consistent grid.
+Desktop
 
-Pages should remain aligned.
+12-column responsive grid
 
-Cards should line up naturally.
+Tablet
 
-Charts should maintain consistent sizing.
+8-column responsive grid
 
-Widgets should never appear randomly placed.
+Mobile
 
-The dashboard should feel structured.
+4-column responsive grid
+
+Spacing should remain proportional across breakpoints.
 
 ---
 
-# Border Radius
+# Spacing System
 
-Scout should use subtle rounded corners.
+Use a consistent spacing scale throughout the application.
 
-Cards
+Examples:
 
-Buttons
+- Extra Small
+- Small
+- Medium
+- Large
+- Extra Large
 
-Inputs
+Consistent spacing improves readability and reduces visual noise.
 
-Dialogs
+---
 
-Charts
+# Typography
 
-Dropdowns
+Typography should emphasize readability.
 
-Modals
+Hierarchy:
 
-should all follow the same corner radius.
+Display
 
-Avoid mixing different rounding styles.
+↓
+
+Page Heading
+
+↓
+
+Section Heading
+
+↓
+
+Card Title
+
+↓
+
+Body Text
+
+↓
+
+Supporting Text
+
+↓
+
+Caption
+
+Avoid excessive font sizes or decorative typography.
+
+---
+
+# Color Philosophy
+
+Color should communicate meaning—not decoration.
+
+Use color intentionally to indicate:
+
+- Information
+- Success
+- Warning
+- Error
+- Priority
+- Confidence
+
+Important intelligence should never rely on color alone.
 
 ---
 
 # Elevation
 
-Use elevation sparingly.
+Elevation should indicate hierarchy.
 
-Hierarchy should primarily be communicated through spacing rather than shadows.
+Examples:
 
-Shadows should indicate:
+Highest
 
-Floating elements
+Modal dialogs
 
-Dialogs
+↓
 
-Dropdowns
+Floating panels
 
-Hover states
+↓
 
-Cards
+Primary cards
 
-Avoid dramatic shadows.
+↓
+
+Secondary cards
+
+↓
+
+Background
+
+Shadows should remain subtle and consistent.
+
+---
+
+# Border Radius
+
+Use consistent corner radii throughout the application.
+
+Rounded corners should create a modern appearance without appearing overly soft.
+
+---
+
+# Iconography
+
+Icons should:
+
+- Clarify meaning
+- Support recognition
+- Remain visually consistent
+- Never replace labels entirely
+
+Icons should complement content rather than dominate it.
+
+---
+
+# Card Design
+
+Cards are the primary organizational unit of Scout.
+
+Every card should include:
+
+- Clear title
+- Relevant content
+- Supporting context
+- Actions
+
+Cards should remain visually lightweight while grouping related information.
 
 ---
 
 # Buttons
 
-Buttons should communicate action priority.
+Button hierarchy:
 
-Primary Button
+Primary
 
-Highest importance.
+Most important action.
 
-Used for:
+Secondary
 
-Generate Report
+Supporting action.
 
-Analyze Company
+Tertiary
 
-Run Workflow
+Low emphasis.
 
-Create Opportunity
+Danger
 
-Secondary Button
+Destructive actions only.
 
-Supporting actions.
-
-Outlined or lower emphasis.
-
-Tertiary Button
-
-Minimal emphasis.
-
-Used for contextual actions.
-
-Danger Button
-
-Reserved for destructive actions.
-
-Examples:
-
-Delete
-
-Archive
-
-Remove
-
-Buttons should always have:
-
-Hover state
-
-Pressed state
-
-Disabled state
-
-Loading state
-
-Focus state
-
----
-
-# Cards
-
-Cards are the primary information container throughout Scout.
-
-Every card should contain:
-
-Title
-
-Optional subtitle
-
-Primary content
-
-Supporting content
-
-Available actions
-
-Cards should never become overcrowded.
-
-Each card should communicate one primary idea.
-
----
-
-# Tables
-
-Tables should remain readable.
-
-Avoid displaying excessive columns.
-
-Support:
-
-Sorting
-
-Filtering
-
-Searching
-
-Pagination
-
-Column resizing (future)
-
-Sticky headers
-
-Tables should emphasize scanning rather than data density.
+Users should immediately recognize the primary action on every page.
 
 ---
 
 # Forms
 
-Forms should remain simple.
+Forms should be:
 
-Guidelines:
+- Short
+- Clear
+- Guided
+- Accessible
 
-Clear labels
-
-Logical grouping
-
-Helpful validation
-
-Minimal required fields
-
-Inline error messages
-
-Avoid unnecessary questions.
+Request only the information necessary to complete a task.
 
 ---
 
-# Inputs
+# Tables
 
-Input components include:
-
-Text Input
-
-Search
-
-Dropdown
-
-Date Picker
-
-Checkbox
-
-Radio Button
-
-Toggle
-
-Slider
-
-Multi-select
-
-Tag Input
-
-Every input should maintain consistent sizing.
-
----
-
-# Search
-
-Search is one of Scout's primary interactions.
-
-Search should be available globally.
+Tables should prioritize readability.
 
 Support:
 
-Autocomplete
+- Sorting
+- Filtering
+- Searching
+- Column resizing (desktop)
 
-Suggestions
-
-Recent Searches
-
-Filtering
-
-Keyboard shortcuts (future)
-
-Results should appear quickly.
+Avoid dense tables with excessive columns.
 
 ---
 
-# Navigation Components
+# AI Elements
 
-Navigation includes:
-
-Sidebar
-
-Top Navigation
-
-Breadcrumbs
-
-Tabs
-
-Context Menus
-
-Dropdown Menus
-
-Drawers
-
-Navigation should remain identical across every page.
-
----
-
-# Charts
-
-Charts are first-class citizens within Scout.
-
-Charts should prioritize:
-
-Readability
-
-Interaction
-
-Clarity
-
-Business storytelling
-
-Avoid unnecessary visual complexity.
-
-Every chart should include:
-
-Title
-
-Description
-
-Legend
-
-Tooltips
-
-Filtering
-
-Export capability (future)
-
----
-
-# Icons
-
-Icons should improve comprehension.
-
-Icons should never replace text entirely.
-
-Use icons consistently.
-
-Avoid mixing icon styles.
-
----
-
-# Badges
-
-Badges communicate status.
+AI-generated content should be visually identifiable.
 
 Examples:
 
-High Priority
+- AI Summary
+- AI Recommendation
+- AI Insight
+- AI Explanation
 
-AI Generated
+AI elements should explain:
 
-Draft
+- Why
+- Confidence
+- Supporting evidence
 
-Completed
-
-New
-
-Trending
-
-Archived
-
-Badges should remain small and unobtrusive.
+Transparency builds trust.
 
 ---
 
-# Notifications
+# Recommendation Panels
 
-Notifications should be categorized.
+Every recommendation should include:
 
-Success
+- Recommendation
+- Reason
+- Expected impact
+- Confidence
+- Primary action
 
-Warning
-
-Error
-
-Information
-
-AI Recommendation
-
-Notifications should provide:
-
-Clear message
-
-Relevant action
-
-Dismiss option
+Recommendations should always explain why they exist.
 
 ---
 
-# Dialogs
+# Evidence Presentation
 
-Dialogs should interrupt only when necessary.
+Evidence should remain close to the insight it supports.
 
-Examples:
+Users should never need to search for supporting information.
 
-Delete confirmation
-
-Archive confirmation
-
-Generate report
-
-AI approval
-
-Dialogs should remain focused.
+Evidence panels should remain collapsible to reduce clutter.
 
 ---
 
-# Loading States
+# Navigation Consistency
 
-Every asynchronous action should display feedback.
+Navigation patterns should remain identical throughout the application.
 
-Preferred loading experiences:
+Users should never relearn navigation between modules.
 
-Skeleton screens
+Refer to NAVIGATION.md.
 
-Progress indicators
+---
 
-Loading messages
+# Motion Principles
 
-Avoid blank screens.
+Animations should:
+
+- Reinforce hierarchy
+- Communicate state changes
+- Improve orientation
+- Never delay workflows
+
+Motion should feel purposeful rather than decorative.
+
+Refer to ANIMATIONS_AND_MICROINTERACTIONS.md.
 
 ---
 
 # Empty States
 
-Empty states should educate users.
+Every empty state should include:
 
-Instead of:
+- Explanation
+- Encouragement
+- Primary action
 
-"No Data"
+Example:
 
-Provide:
+"No opportunities found."
 
-Explanation
+↓
 
-Illustration (future)
+Research another company.
 
-Suggested next action
+Empty states should always move users forward.
+
+---
+
+# Loading States
+
+Loading indicators should communicate progress.
 
 Examples:
 
-Analyze your first company
+Researching company...
 
-Generate your first report
+Analyzing opportunities...
 
-Add a company to monitor
+Preparing report...
+
+Avoid indefinite loading animations whenever possible.
 
 ---
 
@@ -623,98 +419,105 @@ Add a company to monitor
 
 Errors should explain:
 
-What happened
+- What happened
+- Why
+- How to recover
 
-Why it happened (when possible)
-
-How to fix it
-
-Avoid technical language.
+Every error should provide a clear recovery action.
 
 ---
 
-# Success States
+# Accessibility
 
-Successful actions should provide confirmation.
+Refer to ACCESSIBILITY.md.
 
-Examples:
+Every component shall support:
 
-Report Generated
+- Keyboard navigation
+- Screen readers
+- High contrast
+- Focus indicators
+- Accessible typography
 
-Analysis Complete
-
-Company Added
-
-Workflow Finished
-
-Users should never wonder whether an action completed successfully.
+Accessibility is a core design requirement, not an enhancement.
 
 ---
 
-# AI Components
+# Responsive Design
 
-AI-generated content should remain visually distinct.
+Refer to RESPONSIVENESS.md.
 
-Examples:
+Desktop
 
-AI Summary
+Optimized for analysis.
 
-AI Recommendation
+Tablet
 
-AI Insight
+Optimized for review.
 
-AI Warning
+Mobile
 
-AI Confidence Score
+Optimized for quick intelligence and preparation.
 
-Users should immediately recognize AI-generated information.
+No workflow should be unavailable on any supported device.
 
 ---
 
 # Consistency Rules
 
-Every new component must:
+Every module should reuse:
 
-Follow spacing standards
+- Layouts
+- Components
+- Typography
+- Colors
+- Buttons
+- Icons
+- Interaction patterns
 
-Use approved typography
-
-Use approved colors
-
-Match interaction patterns
-
-Support dark mode
-
-Support accessibility
-
-Support responsiveness
-
-Consistency is more important than novelty.
+Consistency should take precedence over introducing unique designs.
 
 ---
 
-# Future Expansion
+# Future Evolution
 
-As Scout grows, this document should evolve.
+The design system should support future capabilities including:
 
-New components should be added here before implementation.
+- Scout Copilot
+- Relationship Intelligence
+- Industry Benchmarking
+- Opportunity Simulator
+- Executive Briefing Mode
+- AI Sales Coach
 
-This ensures the platform continues to feel like one cohesive product rather than a collection of unrelated features.
+New features should extend the existing system rather than introducing new design languages.
+
+---
+
+# Success Criteria
+
+A successful design system enables users to:
+
+- Recognize patterns immediately.
+- Navigate confidently.
+- Understand information quickly.
+- Trust AI recommendations.
+- Complete workflows efficiently.
+
+Users should feel they are working within one cohesive product, regardless of which module they are using.
 
 ---
 
 # Final Principle
 
-Every UI component should answer one question:
+The Scout Design System should make complexity feel simple.
 
-**Does this improve clarity, consistency, or decision-making?**
-
-If it does not, it should be redesigned.
+Every visual and interactive decision should reinforce Scout's role as an intelligent sales strategist, helping users move seamlessly from insight to action with confidence.
 
 ---
 
-**Status:** Active Design System
+**Status:** Active Design System Specification
 
 **Priority:** Highest
 
-**Applies To:** Entire Scout Platform
+**Applies To:** Entire Scout Application

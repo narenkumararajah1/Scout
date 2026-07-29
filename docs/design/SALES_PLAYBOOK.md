@@ -2,529 +2,371 @@
 
 ## Purpose
 
-The Sales Playbook module transforms company intelligence into a structured sales engagement strategy.
+The Sales Playbook transforms Scout's intelligence into a practical, end-to-end engagement strategy.
 
-Rather than simply presenting information, Scout should guide sales teams through every stage of the customer engagement process.
+Rather than presenting recommendations in isolation, Scout should guide sales teams through every stage of the customer journey—from initial research to executive engagement, discovery, proposal development, and long-term relationship building.
 
-The Sales Playbook should function as an AI-powered strategic advisor that helps account teams prepare, engage, and win opportunities.
+Every playbook should answer:
 
-Every playbook should answer one primary question:
+- What challenges is this customer facing?
+- How should we engage them?
+- Why is Innominds the right partner?
+- What should we do next?
 
-**"How should we approach this customer?"**
+The Sales Playbook should function as an AI-powered enterprise account strategist that continuously adapts as new intelligence becomes available.
 
 ---
 
 # Design Objectives
 
-The Sales Playbook experience shall:
+The Sales Playbook shall:
 
-- Transform intelligence into strategy.
-- Recommend practical sales actions.
-- Personalize engagement for each company.
-- Connect business problems with Innominds capabilities.
-- Improve meeting quality.
+- Transform intelligence into actionable strategy.
+- Recommend personalized engagement plans.
+- Align customer priorities with Innominds capabilities.
+- Improve meeting quality and account planning.
 - Increase sales confidence.
-- Standardize account planning across teams.
-
-The playbook should evolve as company intelligence changes.
+- Standardize strategic planning across teams.
+- Continuously evolve as company intelligence changes.
 
 ---
 
 # Page Structure
 
-The Sales Playbook shall follow the following structure.
-
-Company Overview
-
-↓
-
-Account Strategy Summary
-
-↓
-
+```
+Account Overview
+        ↓
+AI Strategy Summary
+        ↓
 Business Challenges
-
-↓
-
-Opportunity Prioritization
-
-↓
-
+        ↓
+Strategic Opportunities
+        ↓
 Recommended Solutions
-
-↓
-
-Engagement Strategy
-
-↓
-
-Executive Engagement
-
-↓
-
+        ↓
+Executive Engagement Strategy
+        ↓
 Discovery Strategy
-
-↓
-
+        ↓
 Competitive Positioning
-
-↓
-
-Objection Handling
-
-↓
-
-Sales Timeline
-
-↓
-
+        ↓
+Objection Preparation
+        ↓
+90-Day Engagement Plan
+        ↓
 Next Actions
+```
+
+The playbook should move naturally from understanding the customer to executing a successful engagement strategy.
 
 ---
 
-# Account Strategy Summary
+# Account Overview
 
-Every playbook begins with an AI-generated strategic summary.
+Begin with a concise overview of the account.
 
-The summary shall explain:
+Display:
 
-- Current business direction
-- Major opportunities
-- Recommended engagement strategy
+- Company
+- Industry
+- Account Status
+- Opportunity Score
+- Strategic Priority
+- Estimated Opportunity Value
+- Relationship Status (Future)
+
+Users should immediately understand the strategic importance of the account.
+
+---
+
+# AI Strategy Summary
+
+Scout should generate a strategic overview explaining:
+
+- Current account situation
+- Primary business priorities
+- Largest opportunities
+- Recommended engagement approach
 - Overall account health
-- Strategic priorities
 
-The summary should be written from the perspective of a senior enterprise account executive.
+The summary should read like advice from a senior enterprise account executive.
 
 ---
 
 # Business Challenges
 
-Scout shall identify likely business challenges.
+Identify the customer's most significant business challenges.
 
-Examples include:
+Examples:
 
-Cloud modernization
+- AI adoption
+- Cloud modernization
+- Platform engineering
+- Data modernization
+- Legacy modernization
+- Operational efficiency
+- Customer experience
+- Engineering scalability
 
-AI adoption
+Each challenge should include:
 
-Operational efficiency
+- Supporting evidence
+- Business impact
+- Strategic importance
 
-Legacy systems
-
-Data modernization
-
-Platform scalability
-
-Application modernization
-
-Cybersecurity
-
-Customer experience
-
-Automation
-
-Business challenges should be supported with evidence whenever possible.
+Challenges should always be connected to observable business signals.
 
 ---
 
-# Opportunity Prioritization
+# Strategic Opportunities
 
-Display every identified opportunity ranked by priority.
+Present the highest-value opportunities identified by Scout.
 
-Each opportunity shall include:
+Each opportunity should include:
 
-Opportunity Name
+- Opportunity Description
+- Business Value
+- Confidence
+- Estimated Engagement Size
+- Strategic Importance
+- Recommended Next Step
 
-Business Value
-
-Confidence
-
-Strategic Importance
-
-Recommended Service
-
-Estimated Engagement Size
-
-Suggested Owner
-
-Priority should be clearly communicated.
+Prioritize opportunities according to customer impact rather than internal preferences.
 
 ---
 
 # Recommended Solutions
 
-For every identified challenge, Scout shall recommend relevant Innominds solutions.
+For every opportunity, Scout should recommend relevant Innominds capabilities.
 
 Each recommendation should explain:
 
-Business Challenge
+- Customer Challenge
+- Recommended Capability
+- Why It Fits
+- Expected Business Outcome
+- Customer Value
+- Suggested Delivery Approach
 
-Recommended Capability
-
-Why It Fits
-
-Expected Customer Value
-
-Potential Business Outcomes
-
-Suggested Delivery Model
-
-Recommendations should be solution-oriented rather than product-oriented.
-
----
-
-# Account Strategy
-
-Scout shall recommend an overall engagement strategy.
-
-Possible approaches include:
-
-Executive Engagement
-
-Technology Workshop
-
-Discovery Session
-
-AI Strategy Discussion
-
-Cloud Assessment
-
-Digital Transformation Workshop
-
-Architecture Review
-
-Innovation Session
-
-The strategy should align with the customer's current business priorities.
+Recommendations should focus on solving business problems rather than selling services.
 
 ---
 
 # Executive Engagement Strategy
 
-Scout shall identify:
+Scout should recommend how to engage leadership.
 
-Primary Decision Makers
+Include:
 
-Technical Influencers
+- Key Stakeholders
+- Decision Makers
+- Executive Sponsors
+- Technical Influencers
+- Business Champions
 
-Budget Owners
+For each stakeholder include:
 
-Executive Sponsors
+- Business interests
+- Suggested discussion topics
+- Communication approach
+- Expected concerns
 
-Potential Champions
-
-For each stakeholder:
-
-Reason for Engagement
-
-Recommended Discussion Topics
-
-Expected Interests
-
-Suggested Communication Style
+The strategy should help teams prepare meaningful executive conversations.
 
 ---
 
 # Discovery Strategy
 
-Scout shall recommend discovery topics.
+Recommend a structured discovery approach.
 
-Examples:
+Suggested areas include:
 
-Current Technology Landscape
+- Business priorities
+- Technology landscape
+- Current challenges
+- Transformation initiatives
+- Success metrics
+- Budget considerations
+- Decision-making process
 
-Business Priorities
-
-Transformation Goals
-
-Operational Challenges
-
-Engineering Processes
-
-Platform Strategy
-
-Customer Experience
-
-Future Initiatives
-
-Discovery should encourage consultative conversations.
-
----
-
-# Discovery Questions
-
-Generate thoughtful business questions.
-
-Examples:
-
-What strategic initiatives are receiving the highest investment this year?
-
-How are your engineering teams supporting business growth?
-
-What modernization challenges are creating the greatest operational impact?
-
-How is AI influencing your current technology roadmap?
-
-Questions should help uncover business needs.
-
----
-
-# Value Proposition
-
-Scout shall recommend a tailored value proposition.
-
-The value proposition should explain:
-
-Why Innominds
-
-Relevant Experience
-
-Business Value
-
-Expected Outcomes
-
-Potential ROI
-
-Competitive Advantages
-
-Every recommendation should be specific to the customer.
+Discovery should uncover customer needs rather than validate assumptions.
 
 ---
 
 # Competitive Positioning
 
-Scout should identify:
+Prepare sales teams for competitive conversations.
 
-Likely competitors
+Include:
 
-Alternative approaches
+- Likely competitors
+- Customer alternatives
+- Innominds differentiators
+- Potential risks
+- Strategic positioning
 
-Differentiators
-
-Potential risks
-
-Recommended positioning
-
-The objective is to prepare sales teams before customer discussions.
+Recommendations should remain consultative and evidence-based.
 
 ---
 
-# Objection Handling
+# Objection Preparation
 
-Scout shall anticipate possible objections.
+Scout should anticipate likely customer objections.
 
 Examples:
 
-Budget constraints
+- Budget limitations
+- Existing vendors
+- Internal capabilities
+- Competing priorities
+- Technical complexity
+- Implementation risk
 
-Internal resources
+Each objection should include:
 
-Competing priorities
+- Why it may arise
+- Suggested response
+- Supporting evidence
+- Recommended follow-up
 
-Technology concerns
-
-Vendor consolidation
-
-Project risk
-
-Existing partners
-
-For every objection, provide:
-
-Likely concern
-
-Suggested response
-
-Supporting evidence
-
-Recommended follow-up
-
-Responses should remain consultative rather than defensive.
+Responses should build trust rather than pressure the customer.
 
 ---
 
-# Engagement Timeline
+# 90-Day Engagement Plan
 
-Scout shall recommend a phased engagement strategy.
+Scout should recommend a phased engagement roadmap.
 
 Example:
 
-Initial Research
+Phase 1
+
+Research & Relationship Building
 
 ↓
+
+Phase 2
 
 Executive Outreach
 
 ↓
 
-Discovery Meeting
+Phase 3
+
+Discovery Workshop
 
 ↓
 
-Technical Workshop
-
-↓
+Phase 4
 
 Solution Alignment
 
 ↓
 
-Proposal
+Phase 5
+
+Proposal Development
 
 ↓
+
+Phase 6
 
 Executive Review
 
 ↓
 
+Phase 7
+
 Project Kickoff
 
-Users should understand the recommended progression.
-
----
-
-# Sales Readiness Score
-
-Scout shall calculate an overall Sales Readiness Score.
-
-Factors may include:
-
-Opportunity maturity
-
-Executive visibility
-
-Technology alignment
-
-Business urgency
-
-Evidence quality
-
-Capability alignment
-
-Relationship strength (Future)
-
-The score should always include supporting reasoning.
+Every phase should include clear objectives and recommended deliverables.
 
 ---
 
 # AI Recommendations
 
-Throughout the playbook, Scout shall recommend practical actions.
+Throughout the playbook Scout should continuously recommend practical next steps.
 
 Examples:
 
-Schedule executive meeting
+- Schedule executive meeting
+- Generate executive briefing
+- Draft personalized outreach
+- Prepare workshop agenda
+- Monitor hiring activity
+- Update account strategy
 
-Generate executive briefing
+Recommendations should always explain:
 
-Monitor hiring activity
-
-Prepare architecture workshop
-
-Compare competitors
-
-Draft personalized outreach
-
-Recommendations should remain actionable.
-
----
-
-# Visualizations
-
-Recommended visualizations include:
-
-Opportunity Funnel
-
-Capability Alignment Matrix
-
-Stakeholder Influence Map
-
-Sales Timeline
-
-Decision-Maker Matrix
-
-Opportunity Breakdown
-
-Business Challenge Distribution
-
-Technology Alignment
-
-Charts should support strategic planning.
+- Why now
+- Expected value
+- Confidence
+- Business impact
 
 ---
 
-# Collaboration
+# Intelligence Principles
 
-Future versions may support:
+Every recommendation shall include:
 
-Shared playbooks
+- Business reasoning
+- Supporting evidence
+- Confidence
+- Source attribution
+- Timestamp
 
-Team comments
-
-Approval workflows
-
-Assigned owners
-
-Task tracking
-
-Meeting notes
-
-Version history
-
-The playbook should become a living document.
+Recommendations should always be transparent and explainable.
 
 ---
 
-# Export Options
+# Interaction Model
 
-Users should be able to export playbooks as:
+Users should be able to:
 
-PDF
+- Expand strategic recommendations
+- Compare opportunities
+- Filter recommendations
+- Save strategies
+- Assign owners
+- Export playbooks
+- Generate related reports
+- Launch Meeting Preparation
+- Launch AI Outreach
 
-PowerPoint
-
-Word
-
-Markdown
-
-Future versions may include CRM synchronization.
+Interactions should encourage collaboration while reducing planning effort.
 
 ---
 
 # Accessibility
 
-The Sales Playbook shall support:
+Refer to ACCESSIBILITY.md.
 
-Keyboard navigation
+Additional requirements include:
 
-Screen readers
-
-Responsive layouts
-
-Accessible visualizations
-
-High contrast
-
-Logical reading order
+- Accessible engagement timelines
+- Keyboard navigation across strategic cards
+- Screen-reader support for AI summaries
+- Accessible stakeholder diagrams
 
 ---
 
 # Responsive Design
 
-Desktop
+Refer to RESPONSIVENESS.md.
 
-Multi-panel strategic workspace.
+Sales Playbook should preserve all strategic planning workflows across desktop, tablet, and mobile devices.
 
-Tablet
+---
 
-Adaptive card layout.
+# Next Step
 
-Mobile
+From Sales Playbook users should naturally continue to:
 
-Single-column layout with expandable sections.
+- Meeting Preparation
+- AI Outreach
+- Reports
 
-No strategic information should be hidden.
+The playbook should bridge planning and execution.
 
 ---
 
@@ -532,50 +374,38 @@ No strategic information should be hidden.
 
 Future versions may include:
 
-CRM integration
-
-Relationship mapping
-
-Buying committee prediction
-
-Proposal generation
-
-Pricing recommendations
-
-AI negotiation assistant
-
-Account health forecasting
-
-Sales coaching
-
-Executive relationship tracking
-
-Win probability prediction
+- Relationship Intelligence
+- Buying Committee Prediction
+- Win Probability Forecasting
+- Proposal Generation
+- Pricing Guidance
+- AI Sales Coach
+- Scout Copilot integration
+- CRM synchronization
 
 ---
 
 # Success Criteria
 
-A successful Sales Playbook enables users to answer the following questions within five minutes:
+A successful Sales Playbook enables users to answer:
 
-- What challenges is this customer facing?
-- Which opportunities should we pursue first?
-- Which services should we recommend?
+- What problems should we solve?
+- Which opportunities matter most?
+- Why is Innominds the right partner?
 - Who should we engage?
 - What should we discuss?
-- What objections might arise?
-- How should we position Innominds?
+- What objections should we expect?
 - What should we do next?
 
-If the playbook cannot guide a sales team through a customer engagement strategy, it should be redesigned.
+If a sales team cannot confidently execute an account strategy using only this playbook, the experience should be redesigned.
 
 ---
 
 # Final Principle
 
-The Sales Playbook should feel like guidance from an experienced enterprise account strategist.
+The Sales Playbook should transform intelligence into execution.
 
-It should transform intelligence into action, helping sales teams engage customers with confidence, relevance, and a clear understanding of how Innominds can deliver value.
+Rather than simply recommending opportunities, Scout should provide a complete strategic engagement plan that helps enterprise sales teams build relationships, create value, and win business with confidence.
 
 ---
 
@@ -584,4 +414,3 @@ It should transform intelligence into action, helping sales teams engage custome
 **Priority:** Highest
 
 **Applies To:** Sales Playbook Module
-```
