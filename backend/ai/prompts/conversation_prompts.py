@@ -9,6 +9,21 @@ conversation history (so a session feels continuous instead of each
 question starting cold) and an optional focus company (so a question
 asked from a company's page gets that company prioritized in the
 answer) - both purely additive to the original single-shot contract.
+
+V3 Enhancements Phase 1 adds retrieved Innominds knowledge
+(`knowledge_context`), so answers about Innominds' own services,
+expertise and past engagements are grounded in the Company Knowledge
+Engine rather than in the LLM's general impressions of the company.
+This is the change that makes 02_IMPLEMENTATION_ROADMAP.md's Phase 1
+success criterion true: "Scout can answer questions ... using
+Innominds-specific knowledge instead of relying solely on the LLM."
+
+Note the deliberate asymmetry in the instructions below: prospect
+intelligence stays strictly closed-book (inventing a signal would be
+fabricating a fact about a customer), while retrieved knowledge is
+supporting evidence the model may reason over and cite. Answering "what
+have we done in healthcare?" requires connecting retrieved case studies
+to the question, not just quoting them back.
 """
 
 import json
@@ -20,6 +35,7 @@ def build_conversation_prompt(
     context: list[dict],
     history: Optional[list[dict]] = None,
     focus_company: Optional[str] = None,
+    knowledge_context: Optional[str] = None,
 ) -> str:
     history_section = ""
     if history:
@@ -33,16 +49,30 @@ def build_conversation_prompt(
             f"information about {focus_company} unless the question is clearly about something else.\n\n"
         )
 
+    knowledge_section = ""
+    knowledge_instruction = ""
+    if knowledge_context:
+        knowledge_section = f"{knowledge_context}\n\n"
+        knowledge_instruction = (
+            "The Innominds knowledge above is retrieved from Scout's own knowledge base. Use it "
+            "whenever the question touches what Innominds does, has delivered, or is positioned "
+            "to help with, and cite it by its bracketed number (e.g. [1]) where it supports a "
+            "point. Do not claim Innominds capabilities or customer engagements that are not "
+            "present in it.\n\n"
+        )
+
     return (
         "You are Scout, an AI Sales Strategist for Innominds. "
-        "Answer the user's question using ONLY the intelligence data provided below. "
+        "Answer the user's question using ONLY the data provided below. "
         "Do not invent companies, signals, or opportunities that are not present in this "
         "data, and do not perform new research - you are retrieving from Scout's existing "
         "intelligence, not researching live.\n\n"
         f"Intelligence data (one entry per monitored company):\n{json.dumps(context, default=str)}\n\n"
+        f"{knowledge_section}"
         f"{history_section}"
         f"{focus_section}"
         f"Question: {question}\n\n"
+        f"{knowledge_instruction}"
         "If the data doesn't contain enough information to answer confidently, say so "
         "honestly rather than guessing. Reference specific companies, signals, or "
         "opportunities from the data to support your answer.\n\n"

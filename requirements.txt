@@ -27,6 +27,24 @@ psycopg2-binary==2.9.12
 # PDF export (V3 Phase 6). Pure Python, no external binary dependency.
 reportlab==4.2.5
 
+# PDF *reading* for the Company Knowledge Engine (V3 Enhancements Phase 1
+# - 03_COMPANY_KNOWLEDGE_ENGINE.md's PDF ingestion). Distinct from
+# reportlab above, which only writes PDFs. Pure Python like reportlab, so
+# no system binary (no poppler/pdftotext) is needed; imported lazily in
+# backend/integrations/document_extraction.py so a missing install
+# degrades to a per-document "PDF support requires pypdf" failure instead
+# of breaking app startup. HTML extraction deliberately uses the standard
+# library's html.parser rather than adding BeautifulSoup - see that
+# module's _TextExtractingHTMLParser docstring.
+pypdf==4.3.1
+
+# Multipart form parsing, required by FastAPI for the Knowledge Library's
+# file-upload endpoint (File/Form parameters in
+# backend/api/routers/knowledge.py). FastAPI raises at import time - not
+# request time - when a route declares Form data without this installed,
+# so it is a hard dependency of app startup, not an optional extra.
+python-multipart==0.0.20
+
 # JWT auth (V3 Phase 2 - ADR-020). bcrypt used directly rather than via
 # passlib: passlib 1.7.4 (unmaintained since 2020) is incompatible with
 # bcrypt>=4.1, which dropped the internal API passlib's self-test reads.

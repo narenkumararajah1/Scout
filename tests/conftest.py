@@ -162,12 +162,18 @@ async def postgres_available():
 
     async with postgres_module.get_session() as session:
         # CASCADE handles every other table's FK dependency on companies
-        # automatically, regardless of truncation order.
+        # automatically, regardless of truncation order - which is why
+        # company_views and company_relationships need no entry here.
+        # knowledge_documents does need one: Innominds' own organizational
+        # knowledge is global, so it has no company_id to cascade from,
+        # and without this a document ingested by one test would leak into
+        # the next one's Library listing and duplicate-detection results.
         await session.execute(
             text(
                 "TRUNCATE TABLE users, companies, executives, opportunities, evidence, "
                 "technologies, business_initiatives, notifications, sales_playbooks, "
-                "meeting_briefs, outreach_drafts, v3_reports RESTART IDENTITY CASCADE"
+                "meeting_briefs, outreach_drafts, v3_reports, knowledge_documents "
+                "RESTART IDENTITY CASCADE"
             )
         )
         await session.commit()

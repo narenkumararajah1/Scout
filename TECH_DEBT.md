@@ -251,6 +251,201 @@ earlier phase) plus frontend `tsc`/`lint`/`build` all pass clean.
 This closes out the Scout V3 Enhancement Roadmap engagement - all six
 phases implemented, tested, and verified against a real backend.
 
+## docs/v3-enhancements/ - Phase 1A (Company Knowledge Foundation, backend)
+
+`docs/v3-enhancements/` is a new, separate specification set (12
+documents) and is now the authoritative source for Scout's next
+evolution. Its own `02_IMPLEMENTATION_ROADMAP.md` defines six phases;
+its ordering was verified dependency-correct against the codebase and
+adopted unchanged. Phase 1 (Company Knowledge Foundation, covering
+`03_COMPANY_KNOWLEDGE_ENGINE.md` and `04_KNOWLEDGE_LIBRARY.md`) is split
+into 1A (backend engine) and 1B (Knowledge Library UI).
+
+**The problem Phase 1A fixes.** Scout already had a ChromaDB knowledge
+collection, but `backend/knowledge_ingestion.py` embedded each source
+file as **one single vector**. For the short `.txt` notes that directory
+was seeded with, that was adequate. For the corpus these documents call
+for - PDF whitepapers, service brochures, multi-page case studies - it
+is close to useless: one embedding averaged over twenty pages retrieves
+for no query in particular, and the one passage a query actually needed
+can never be returned on its own. There was also no document catalog of
+any kind, so nothing about a document's title, category, status, version
+or ingestion failure was knowable, and the entire "Document View" field
+list in `04_KNOWLEDGE_LIBRARY.md` was unbacked.
+
+**What 1A adds.** Chunking with overlap at natural boundaries
+(`backend/ai/knowledge_chunking.py`); PDF, HTML and text extraction plus
+single-page website fetch (`backend/integrations/document_extraction.py`,
+new `pypdf` dependency); a `KnowledgeDocument` catalog in Postgres
+(migration `0012`) holding metadata, status lifecycle, content hash and
+a version chain; an ingestion pipeline with dedup, versioning and
+per-document status (`backend/services/knowledge_ingestion_service.py`);
+a shared retrieval entry point with source attribution
+(`backend/services/knowledge_retrieval_service.py`); a
+`/api/v1/knowledge/*` API; and RAG wired into Ask Scout.
+
+**Split of stores.** ChromaDB stays the source of truth for semantic
+content per ADR-007/ADR-008 and the single-collection rule - chunks go
+into the *existing* `organizational_knowledge` collection alongside the
+curated Capability/CaseStudy entities, namespaced `document:<id>:<n>`
+with `entity_type="document"`, so `search_knowledge`'s existing
+`entity_type` filter and all three of its pre-existing callers are
+unaffected. Postgres holds only the catalog: a vector store has no
+notion of a document's lifecycle.
+
+**One earlier decision deliberately reversed.** `conversation_service`
+previously did *not* query ChromaDB per question, on the grounds that
+`CapabilityMatch.reasoning` already denormalizes what Capability
+Matching resolved (ADR-019). That still holds for prospect-shaped
+questions and those answer from `CapabilityMatch` exactly as before. It
+does not hold for questions about Innominds itself, because
+`CapabilityMatch` only ever contains capabilities some past analysis run
+matched to some monitored company - knowledge no run has touched is
+unreachable through it. Retrieval is additive; nothing that previously
+grounded an answer stopped doing so. Reasoning is recorded in that
+module's docstring rather than left as a silent overwrite.
+
+**Judgment calls worth knowing about.**
+- `04_KNOWLEDGE_LIBRARY.md` lists both "Indexed" and "Ready" as
+  statuses. They describe the same condition, and that document's stated
+  purpose for these values is fast problem-spotting, which two synonyms
+  for success works against - collapsed into `ready`. Every other
+  documented status is kept verbatim.
+- Extracted text is stored on the catalog row. Three requirements need
+  it and none can be met without it: document preview, re-index /
+  regenerate-embeddings, and re-chunking after a chunk-size change.
+  Reconstructing it from Chroma chunks was the alternative and is worse -
+  chunks overlap, so concatenation duplicates text at every boundary.
+- HTML extraction uses the standard library's `html.parser` rather than
+  adding BeautifulSoup, given this repo's history of transitive
+  dependency conflicts. Adequate for "extract the visible words"; the
+  point to reconsider is if real Innominds pages need smarter
+  main-content detection.
+- Website ingestion is single-page by design. A crawler needs
+  robots.txt handling, rate limiting and scope rules to be responsible,
+  and the documented sources are specific pages an administrator names.
+
+**Known remaining work in this area.**
+- Ingestion runs inline rather than through the `GenerationJob` queue.
+  Justified because status already lives on the document row, but a very
+  large PDF will hold an HTTP request open; if that becomes a real
+  problem the fix is to dispatch via `BackgroundTasks` and let the
+  existing status lifecycle carry the progress.
+- Version rollback is supported mechanically (archive current, restore
+  the one behind it in the chain) but has no one-click UI yet - deferred
+  to Phase 6 (Platform Experience) with the rest of the UI polish.
+- Scanned/image-only PDFs are correctly reported as needing OCR, but no
+  OCR path exists.
+- `technology_analysis_service.py` remains dead code (zero callers). It
+  is the natural home for `09_VISUAL_INTELLIGENCE.md`'s technology
+  adoption charts and is expected to be wired up in Phase 5, not deleted.
+
+**Verification status: VERIFIED.** Phase 1A was fully verified against
+real PostgreSQL, real ChromaDB, a real LLM provider and live network
+website ingestion before being committed.
+
+**Test suite: 673 passed, 0 failed, 0 skipped.** Note the skip count.
+The previously recorded baseline of "359 passed / 182 skipped" was
+misleading: `tests/conftest.py:25` defaults `DATABASE_URL` to a **TCP**
+address (`localhost:5432/scout_test`), but this machine's pgserver
+instance is **unix-socket only**, so every Postgres-gated test had been
+silently skipping - including tests written several phases ago that had
+therefore never once executed. Running them requires pointing
+`DATABASE_URL` at the socket and a `scout_test` database:
+
+```
+DATABASE_URL="postgresql+asyncpg://scout:scout@/scout_test?host=$PWD/data/pgdata" pytest
+```
+
+The `scout_test` database now exists in the dev instance (owner `scout`).
+Use that invocation for any future verification, or the Postgres half of
+the suite is not actually being tested. This is worth fixing properly in
+conftest.py rather than relying on the caller remembering.
+
+**Issues found and fixed during verification** (four; the first was a
+hard blocker):
+
+1. **`python-multipart` was missing from `requirements.txt`** - a genuine
+   packaging bug, not a test-environment quirk. FastAPI raises at *import*
+   time, not request time, when a route declares `File`/`Form` without it,
+   so the Knowledge Library upload endpoint took down the entire
+   application at startup and the whole test suite failed at collection.
+   Now pinned at `0.0.20`.
+2. **PDF placeholder metadata was stored as real data.** reportlab and
+   most authoring tools write `(anonymous)` into the PDF author field when
+   it was never set, and that string was being persisted and displayed as
+   a genuine author. `document_extraction._clean_metadata_value()` now
+   treats a known placeholder set as absent. Covered by two new tests
+   (placeholder dropped, real author preserved).
+3. **Refreshing a website document dropped its curated metadata** (found
+   in the pre-verification review). `refresh_document()` now forwards
+   title/description/tags/industries/technologies/related_services into
+   the re-ingest, so the superseding version keeps what an administrator
+   set. Covered by a new test.
+4. **`tests/test_sales_playbook_service.py` had a latent bug**, unrelated
+   to Phase 1A and pre-dating it - the test built an `Opportunity` in
+   memory and never persisted it, so `build_why_innominds_explanation()`'s
+   lookup by id correctly returned nothing and `customer_need` was None.
+   It had never failed before only because it had never run (see the skip
+   discussion above). The test now persists the opportunity; the
+   production code was correct and is unchanged.
+
+**End-to-end evidence** (all through the running API on the dev
+instance, then cleaned up - the dev corpus was returned to exactly its
+original 6 curated Chroma entries with 0 orphaned chunks):
+
+- 3-page PDF uploaded -> `status: ready`, `chunk_count: 3`, title taken
+  from PDF metadata.
+- Real Innominds page (`/enterprise-ai`) ingested over the network ->
+  `chunk_count: 16`, `<title>` and `<meta description>` extracted.
+- ChromaDB inspected directly: 3 chunks with real 384-dimension
+  embeddings (matching all-MiniLM-L6-v2), ids namespaced
+  `document:<uuid>:<index>`, catalog metadata denormalized onto every
+  chunk, and chunk overlap visible across boundaries.
+- Idempotence: re-ingesting the same URL was a no-op refresh (same id,
+  still version 1, `last_refreshed_at` advanced); re-uploading identical
+  bytes was rejected by content-hash duplicate detection.
+- Semantic search returned the correct passages and blended ingested
+  Documents with the pre-existing curated Capability/CaseStudy/ProofPoint
+  entities from the same collection - confirming the single-collection
+  design works and did not disturb existing knowledge.
+- **Ask Scout answered a question whose facts exist only in the uploaded
+  PDF** (19h -> 2h40m batch window, 61% cost reduction, the Kubernetes
+  Accelerator Framework, nine weeks -> eleven days), rendered bracketed
+  `[1] [2] [3]` citations, and returned 4 populated `knowledge_sources`
+  with document ids and relevance scores. This is the proof that
+  retrieval is real rather than the model confabulating.
+- Full lifecycle: metadata PATCH re-syncs chunks; archive removes vectors
+  (verified: the content stops being retrievable) while keeping the row;
+  restore re-indexes and it becomes retrievable again; refresh re-chunks
+  from stored text; delete removes both vectors and row. 404s correct on
+  every not-found path.
+- Migration `0012` applied to the dev database, schema confirmed
+  column-by-column, and the downgrade/upgrade round-trip is clean.
+- Regression sweep: every V2 and V3 endpoint returns its expected status,
+  Ask Scout's pre-existing company-context path still returns related
+  companies and suggested actions, and **zero tracebacks or 500s** appear
+  in the server log across the entire session. Startup's
+  `_sync_knowledge_library()` is a clean no-op as designed
+  (`data/knowledge_sources` does not exist).
+
+**Known issue, deliberately not fixed** (needs a product decision, not a
+bug fix): `knowledge_ingestion.ingest_documents()` now has no production
+caller. Startup calls `sync_local_directory()` instead, and that
+function's failure path logs and returns rather than falling back to the
+Chroma-only path. Consequence: a fresh install whose *first* startup has
+no Postgres leaves the local corpus unembedded until a later startup
+succeeds. Either wire it into `main.py`'s except branch (making the
+documented fallback real) or delete the module plus
+`tests/test_knowledge_ingestion.py`. Docstrings in both files now state
+the actual behavior rather than the intended behavior.
+
+**Not verified:** Run Analysis was not executed end-to-end (it is a
+long, multi-LLM-call pipeline and Phase 1A does not touch it); its
+coverage rests on the test suite, which passes. There is no frontend for
+the Knowledge Library yet - that is Phase 1B - so everything above was
+exercised through the API rather than a UI.
+
 ## Outreach workflow redesign - generation and delivery are now separate steps
 
 Previously, generating an Outreach Draft required an executive name -

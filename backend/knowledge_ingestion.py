@@ -6,6 +6,20 @@ directory is empty until real organizational knowledge (case studies,
 whitepapers, service offerings, marketing material) is supplied, per
 DECISIONS.md ("only approved sources ... do not assume access to
 confidential internal company data").
+
+NOTE (V3 Enhancements Phase 1): this is no longer the startup ingestion
+path, and currently has no production caller at all. backend/main.py now
+calls knowledge_ingestion_service.sync_local_directory(), which catalogs
+the same files in the Knowledge Library, chunks them, and tracks their
+status - none of which this function does, since it stores each whole
+file as one single embedding.
+
+It is left in place, unchanged, because it is the only Chroma-only
+ingestion path that does not need the Postgres catalog, which makes it
+the natural fallback for a Postgres outage. Be aware that nothing wires
+it up as that fallback today: main.py's sync failure path logs and
+continues, it does not call this. Either wire it in or delete this module
+and its tests - see TECH_DEBT.md. Prefer the service for anything new.
 """
 
 import logging

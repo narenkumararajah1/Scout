@@ -11,6 +11,7 @@ from backend.api.routers.auth import router as auth_v1_router
 from backend.api.routers.companies import router as companies_v1_router
 from backend.api.routers.generation_feedback import router as generation_feedback_v1_router
 from backend.api.routers.jobs import router as jobs_v1_router
+from backend.api.routers.knowledge import router as knowledge_v1_router
 from backend.api.routers.meeting_briefs import router as meeting_briefs_v1_router
 from backend.api.routers.notifications import router as notifications_v1_router
 from backend.api.routers.outreach_drafts import router as outreach_drafts_v1_router
@@ -18,7 +19,7 @@ from backend.api.routers.reports import router as reports_v1_router
 from backend.api.routers.sales_playbooks import router as sales_playbooks_v1_router
 from backend.api.routers.search import router as search_v1_router
 from backend.config import get_settings
-from backend.knowledge_ingestion import ingest_documents
+from backend.services.knowledge_ingestion_service import sync_local_directory
 from backend.utils.logging import configure_logging
 from backend.report_storage import init_reports_table
 from backend.repositories.capability_match_repository import init_capability_matches_table
@@ -56,11 +57,44 @@ async def lifespan(app: FastAPI):
     init_delivery_history_table()
     init_schedules_table()
     init_capability_matches_table()
-    ingest_documents()
+    await _sync_knowledge_library()
     _warn_if_live_delivery_in_non_production()
     start_scheduler()
     yield
     stop_scheduler()
+
+
+async def _sync_knowledge_library() -> None:
+    """Brings the knowledge_sources_dir corpus into the Knowledge Library
+    (V3 Enhancements Phase 1).
+
+    Replaces the direct ingest_documents() call this line used to make.
+    That function embedded each file as one whole-file vector and left it
+    invisible to the rest of the app; sync_local_directory() catalogues,
+    chunks and status-tracks the same files, and clears the old entries it
+    supersedes.
+
+    Never fatal. The new path needs Postgres for the catalog, which the
+    old Chroma-only one did not, so a Postgres outage must not stop the
+    app from starting - the corpus simply stays as it was until the next
+    startup or a manual refresh.
+
+    Note that this failure path does not fall back to
+    knowledge_ingestion.ingest_documents(); on a fresh install whose first
+    startup has no Postgres, the local corpus therefore stays unembedded
+    until a later startup succeeds. Tracked in TECH_DEBT.md.
+    """
+    try:
+        summary = await sync_local_directory()
+    except Exception as exc:
+        logger.warning(
+            "Knowledge Library sync skipped at startup (%s). Existing knowledge is unaffected; "
+            "retry from the Knowledge Library once the catalog database is reachable.",
+            exc,
+        )
+        return
+    if any(summary.values()):
+        logger.info("Knowledge Library sync complete: %s", summary)
 
 
 def _warn_if_live_delivery_in_non_production() -> None:
@@ -105,6 +139,7 @@ app.include_router(outreach_drafts_v1_router)
 app.include_router(jobs_v1_router)
 app.include_router(search_v1_router)
 app.include_router(generation_feedback_v1_router)
+app.include_router(knowledge_v1_router)
 
 register_error_handlers(app)
 

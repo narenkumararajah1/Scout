@@ -13,6 +13,7 @@ from backend.models.opportunity import Opportunity
 from backend.models.research import ResearchSession
 from backend.repositories.capability_match_repository import create_capability_match
 from backend.repositories.company_repository import create_company as create_sqlite_company
+from backend.repositories.opportunity_repository import create_opportunity
 from backend.repositories.postgres.company_repository import create_company
 from backend.repositories.research_repository import create_research_session
 from backend.services.sales_playbook_service import build_why_innominds_explanation, generate_sales_playbook
@@ -89,12 +90,17 @@ async def test_build_why_innominds_explanation_maps_need_to_practice_to_experien
             reasoning="Strong alignment with their AWS migration.",
         )
     )
-    opportunity = Opportunity(
-        company_id="sp-svc-company-2",
-        research_session_id=session.id,
-        title="Cloud Migration",
-        description="Accelerate cloud migration to AWS.",
-        capability_match_ids=[match.id],
+    # Persisted, not just constructed: build_why_innominds_explanation
+    # re-reads the opportunity by id to source customer_need, so an
+    # in-memory-only object leaves that field None.
+    opportunity = create_opportunity(
+        Opportunity(
+            company_id="sp-svc-company-2",
+            research_session_id=session.id,
+            title="Cloud Migration",
+            description="Accelerate cloud migration to AWS.",
+            capability_match_ids=[match.id],
+        )
     )
 
     with patch("backend.services.sales_playbook_service.generate_completion", return_value=_mock_response()):

@@ -10,13 +10,27 @@ initiating new research."
 
 Reads structured intelligence directly from the SQLite repositories
 built in earlier phases (Company, Research Session, Signal, Opportunity,
-Capability Match). Capability Match already denormalizes the capability
-name it matched (ADR-019), which is enough to answer "which companies
-align with X" questions without a second semantic search against
-ChromaDB for every conversational query - re-querying the Knowledge Base
-per question would duplicate what Capability Matching already resolved
-and persisted (IMPLEMENTATION_RULES.md: "do not duplicate knowledge in
-multiple locations").
+Capability Match).
+
+V3 Enhancements Phase 1 adds a second, complementary source: retrieved
+Innominds knowledge from the Company Knowledge Engine. This reverses an
+earlier decision that is worth stating explicitly rather than quietly
+overwriting. Previously this service deliberately did *not* query
+ChromaDB per question, on the grounds that CapabilityMatch.reasoning
+already denormalizes what Capability Matching resolved (ADR-019). That
+reasoning holds for prospect-shaped questions ("which companies align
+with X") and those still answer from CapabilityMatch as before.
+
+It does not hold for questions about Innominds itself - "what have we
+delivered in healthcare?", "which accelerators fit this?" - because
+CapabilityMatch only ever contains capabilities that some past analysis
+run happened to match to some monitored company. Knowledge that no
+analysis has touched is unreachable through it. Those questions were
+therefore being answered from the LLM's general priors, which is exactly
+what 02_IMPLEMENTATION_ROADMAP.md's Phase 1 sets out to fix
+("...using Innominds-specific knowledge instead of relying solely on the
+LLM"). Retrieval is additive here: nothing that previously grounded an
+answer stopped doing so.
 """
 
 import logging
@@ -28,8 +42,19 @@ from backend.repositories.capability_match_repository import list_capability_mat
 from backend.repositories.company_repository import list_companies
 from backend.repositories.opportunity_repository import list_opportunities
 from backend.repositories.research_repository import list_research_sessions, list_signals_for_session
+from backend.services.knowledge_retrieval_service import (
+    format_knowledge_for_prompt,
+    references_to_dicts,
+    retrieve_knowledge,
+)
 
 logger = logging.getLogger(__name__)
+
+# Retrieved passages per question. Kept small on purpose: the prompt
+# already carries a full per-company intelligence snapshot, and the
+# marginal passage past this point costs latency and dilutes attention
+# more than it adds grounding.
+KNOWLEDGE_RESULTS_PER_QUESTION = 4
 
 NO_INTELLIGENCE_MESSAGE = (
     "Scout has no monitored companies or intelligence yet. Add a company and run "
@@ -121,7 +146,15 @@ def answer_question(
 ) -> dict:
     """Answers `question` using Scout's existing intelligence.
 
-    Returns {"answer": str, "related_companies": list[dict], "suggested_actions": list[dict]}.
+    Returns {"answer": str, "related_companies": list[dict],
+    "suggested_actions": list[dict], "knowledge_sources": list[dict]}.
+
+    `knowledge_sources` (V3 Enhancements Phase 1) are the Innominds
+    knowledge passages retrieved for this question and given to the model.
+    They are returned so the UI can show the user what actually grounded
+    the answer - 03_COMPANY_KNOWLEDGE_ENGINE.md's explainability
+    requirement. These are the real passages the prompt contained, not a
+    self-report from the model about what it used.
 
     `company_id` (roadmap Phase 2, Scout Copilot) is the company the user
     was viewing when they asked - when given, that company is
@@ -146,29 +179,63 @@ def answer_question(
         # opportunity_analysis_service.py): nothing to answer from yet,
         # so skip the LLM call rather than asking it to answer from
         # nothing.
-        return {"answer": NO_INTELLIGENCE_MESSAGE, "related_companies": [], "suggested_actions": []}
+        return {
+            "answer": NO_INTELLIGENCE_MESSAGE,
+            "related_companies": [],
+            "suggested_actions": [],
+            "knowledge_sources": [],
+        }
 
     focus_company = next((c for c in companies if c.id == company_id), None) if company_id else None
+
+    # Retrieval is keyed on the question, biased toward the company in
+    # view when there is one - "what can we do for them?" carries no
+    # retrievable terms on its own, but gains them from the company name
+    # and industry. Returns [] when nothing has been ingested yet, which
+    # simply leaves the prompt as it was before this phase.
+    retrieval_query = question
+    if focus_company:
+        retrieval_query = " ".join(
+            part for part in (question, focus_company.name, focus_company.industry) if part
+        )
+    references = retrieve_knowledge(retrieval_query, n_results=KNOWLEDGE_RESULTS_PER_QUESTION)
+
     answer = generate_completion(
         build_conversation_prompt(
             question,
             context,
             history=history,
             focus_company=focus_company.name if focus_company else None,
+            knowledge_context=format_knowledge_for_prompt(references),
         )
     )
-    logger.info("Answered conversational question (%d companies in context).", len(context))
+    logger.info(
+        "Answered conversational question (%d companies in context, %d knowledge passages retrieved).",
+        len(context),
+        len(references),
+    )
+    knowledge_sources = references_to_dicts(references)
 
     if focus_company:
         suggested_actions = [
             {"label": _ACTION_LABELS[action_type], "action_type": action_type, "company_id": focus_company.id}
             for action_type in SUGGESTED_ACTION_TYPES
         ]
-        return {"answer": answer, "related_companies": [], "suggested_actions": suggested_actions}
+        return {
+            "answer": answer,
+            "related_companies": [],
+            "suggested_actions": suggested_actions,
+            "knowledge_sources": knowledge_sources,
+        }
 
     # No focus company given (asked from the global Ask Scout page,
     # possibly spanning several companies) - surface plain links to
     # whichever companies the answer actually mentions, rather than
     # generation buttons, since it'd be ambiguous which one to act on.
     related_companies = [{"id": c.id, "name": c.name} for c in companies if c.name.lower() in answer.lower()][:5]
-    return {"answer": answer, "related_companies": related_companies, "suggested_actions": []}
+    return {
+        "answer": answer,
+        "related_companies": related_companies,
+        "suggested_actions": [],
+        "knowledge_sources": knowledge_sources,
+    }

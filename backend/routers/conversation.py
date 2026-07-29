@@ -11,6 +11,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from backend.schemas.knowledge_document import KnowledgeReferenceOut
 from backend.services import conversation_service
 
 logger = logging.getLogger(__name__)
@@ -47,6 +48,11 @@ class ConversationResponse(BaseModel):
     answer: str
     related_companies: list[RelatedCompany] = Field(default_factory=list)
     suggested_actions: list[SuggestedAction] = Field(default_factory=list)
+    # The Innominds knowledge passages that grounded the answer, so the UI
+    # can show what it was based on (V3 Enhancements Phase 1). Reuses the
+    # Knowledge Library's own reference schema rather than restating its
+    # fields, so a citation looks identical here and on /knowledge/search.
+    knowledge_sources: list[KnowledgeReferenceOut] = Field(default_factory=list)
 
 
 @router.post("/ask", response_model=ConversationResponse)

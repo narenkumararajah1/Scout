@@ -98,32 +98,73 @@ def index_proof_point(proof_point: ProofPoint) -> None:
     _index_entity("proof_point", proof_point.id, proof_point.description, metadata)
 
 
-def search_knowledge(query: str, n_results: int = 5, entity_type: Optional[str] = None) -> list[dict]:
+def search_knowledge(
+    query: str,
+    n_results: int = 5,
+    entity_type: Optional[str] = None,
+    category: Optional[str] = None,
+) -> list[dict]:
     """Semantic search over the knowledge base, optionally filtered to one
     entity type (e.g. "capability", "case_study"). Returns a list of
-    {"content", "entity_type", "name", "source"} dicts, most relevant
+    {"content", "entity_type", "name", "source", ...} dicts, most relevant
     first - empty if the corpus is empty, mirroring KnowledgeAgent's
     (V1) handling of an empty collection rather than raising.
+
+    V3 Enhancements Phase 1 added the `category` filter (over ingested
+    Knowledge Library documents' catalog category) and
+    document_id/category/chunk_index in each result where present, so
+    callers can attribute an answer back to the Library document it came
+    from.
+
+    `category` is added after the existing parameters and defaults to
+    None, so the three pre-existing positional callers
+    (capability_matching_service, orchestration/stages.py's
+    KnowledgeFusionStage, technology_analysis_service) are unaffected.
     """
     collection = get_knowledge_collection()
     available = collection.count()
     if available == 0:
         return []
 
-    where = {"entity_type": entity_type} if entity_type else None
+    clauses = []
+    if entity_type:
+        clauses.append({"entity_type": entity_type})
+    if category:
+        clauses.append({"category": category})
+    # Chroma requires $and for more than one condition and rejects it for
+    # a single one, so the shape depends on how many filters were asked for.
+    if not clauses:
+        where = None
+    elif len(clauses) == 1:
+        where = clauses[0]
+    else:
+        where = {"$and": clauses}
+
     results = collection.query(query_texts=[query], n_results=min(n_results, available), where=where)
 
     documents = results.get("documents") or [[]]
     metadatas = results.get("metadatas") or [[]]
-    return [
-        {
+    # Cosine/L2 distance, lower is closer. Present on real queries but not
+    # on every stubbed collection in the test suite, so it is read
+    # defensively and simply omitted when absent.
+    distances = (results.get("distances") or [[]])[0]
+
+    items = []
+    for position, (document, metadata) in enumerate(zip(documents[0], metadatas[0])):
+        metadata = metadata or {}
+        item = {
             "content": document,
-            "entity_type": (metadata or {}).get("entity_type"),
-            "name": (metadata or {}).get("name"),
-            "source": (metadata or {}).get("source"),
+            "entity_type": metadata.get("entity_type"),
+            "name": metadata.get("name"),
+            "source": metadata.get("source"),
         }
-        for document, metadata in zip(documents[0], metadatas[0])
-    ]
+        for optional_key in ("document_id", "category", "chunk_index", "source_type", "source_ref"):
+            if metadata.get(optional_key) is not None:
+                item[optional_key] = metadata[optional_key]
+        if position < len(distances):
+            item["distance"] = distances[position]
+        items.append(item)
+    return items
 
 
 def delete_knowledge_entry(entity_type: str, entity_id: str) -> None:
