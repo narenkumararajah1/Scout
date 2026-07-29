@@ -6,6 +6,8 @@ import { AskScoutPage } from "./pages/AskScoutPage";
 import { CompaniesPage } from "./pages/CompaniesPage";
 import { CompanyDetailsPage } from "./pages/CompanyDetailsPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { KnowledgeDocumentDetailPage } from "./pages/KnowledgeDocumentDetailPage";
+import { KnowledgeLibraryPage } from "./pages/KnowledgeLibraryPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MeetingBriefDetailPage } from "./pages/MeetingBriefDetailPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
@@ -35,6 +37,8 @@ export default function App() {
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="sales-enablement" element={<SalesEnablementPage />} />
         <Route path="ask-scout" element={<AskScoutPage />} />
+        <Route path="knowledge" element={<KnowledgeLibraryPage />} />
+        <Route path="knowledge/:documentId" element={<KnowledgeDocumentDetailPage />} />
         <Route path="administration" element={<AdministrationPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="settings" element={<SettingsPage />} />

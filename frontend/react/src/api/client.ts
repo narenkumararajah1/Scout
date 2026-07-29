@@ -123,3 +123,42 @@ export async function apiRequestData<T>(path: string, options: RequestOptions = 
   const envelope = await apiRequest<Envelope<T>>(path, options);
   return envelope.data;
 }
+
+// Multipart upload (V3 Enhancements Phase 1B - the Knowledge Library's
+// file upload). Separate from apiRequest because that function always
+// JSON.stringify()s its body and sets Content-Type: application/json,
+// which a file upload cannot use.
+//
+// Content-Type is deliberately NOT set here: the browser has to generate
+// it itself so it can append the multipart boundary token. Setting it
+// manually produces a header with no boundary and the server rejects the
+// body as malformed.
+//
+// Returns the unwrapped `data` of a V3 envelope, matching apiRequestData.
+export async function apiUploadData<T>(path: string, formData: FormData): Promise<T> {
+  const headers: Record<string, string> = {};
+  const token = getStoredToken();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(path, { method: "POST", headers, body: formData });
+  } catch {
+    throw new ApiError(0, "Unable to reach the Scout API. Check your connection and try again.");
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  const payload: unknown =
+    response.status !== 204 && contentType.includes("application/json") ? await response.json() : undefined;
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      authEvents.dispatchEvent(new Event("unauthorized"));
+    }
+    throw new ApiError(response.status, extractErrorMessage(payload, response.statusText), extractErrors(payload));
+  }
+
+  return (payload as Envelope<T>).data;
+}

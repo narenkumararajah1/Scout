@@ -26,6 +26,7 @@ import { meetingBriefService } from "../services/meetingBriefService";
 import { outreachDraftService } from "../services/outreachDraftService";
 import { v3ReportService } from "../services/v3ReportService";
 import type { ConversationTurn, RelatedCompany, SuggestedAction } from "../types/conversation";
+import type { KnowledgeReference } from "../types/knowledgeDocument";
 import { getErrorMessage } from "../utils/errors";
 
 interface ConversationEntry {
@@ -35,6 +36,7 @@ interface ConversationEntry {
   error: string | null;
   relatedCompanies: RelatedCompany[];
   suggestedActions: SuggestedAction[];
+  knowledgeSources: KnowledgeReference[];
 }
 
 // How many prior turns get resent to the backend for conversational
@@ -85,6 +87,7 @@ export function AskScoutPage() {
             error: null,
             relatedCompanies: result.related_companies,
             suggestedActions: result.suggested_actions,
+            knowledgeSources: result.knowledge_sources ?? [],
           },
           ...current,
         ]);
@@ -98,6 +101,7 @@ export function AskScoutPage() {
             error: getErrorMessage(error),
             relatedCompanies: [],
             suggestedActions: [],
+            knowledgeSources: [],
           },
           ...current,
         ]);
@@ -211,6 +215,27 @@ export function AskScoutPage() {
                           </Link>
                         ))}
                       </div>
+                    )}
+                    {entry.knowledgeSources.length > 0 && (
+                      <details className="conversation-sources">
+                        <summary>
+                          Grounded in {entry.knowledgeSources.length} knowledge{" "}
+                          {entry.knowledgeSources.length === 1 ? "passage" : "passages"}
+                        </summary>
+                        <ol className="conversation-source-list">
+                          {entry.knowledgeSources.map((source, index) => (
+                            <li key={`${source.source ?? "source"}-${index}`}>
+                              <div className="conversation-source-header">
+                                <span className="conversation-source-label">{source.label ?? "Knowledge"}</span>
+                                {source.document_id && (
+                                  <Link to={`/knowledge/${source.document_id}`}>Open in Library</Link>
+                                )}
+                              </div>
+                              <p className="conversation-source-content">{source.content}</p>
+                            </li>
+                          ))}
+                        </ol>
+                      </details>
                     )}
                     {entry.suggestedActions.length > 0 && (
                       <div className="conversation-suggested-actions">

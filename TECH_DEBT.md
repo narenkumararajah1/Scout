@@ -442,9 +442,76 @@ the actual behavior rather than the intended behavior.
 
 **Not verified:** Run Analysis was not executed end-to-end (it is a
 long, multi-LLM-call pipeline and Phase 1A does not touch it); its
-coverage rests on the test suite, which passes. There is no frontend for
-the Knowledge Library yet - that is Phase 1B - so everything above was
-exercised through the API rather than a UI.
+coverage rests on the test suite, which passes.
+
+## docs/v3-enhancements/ - Phase 1B (Knowledge Library UI)
+
+Phase 1A's Company Knowledge Engine was API-only. Phase 1B gives it a
+user interface and makes its grounding visible.
+
+**Delivered:**
+
+- `/knowledge` - Knowledge Library: summary counters (documents, ready,
+  processing, failed, archived, searchable passages), semantic search
+  over the whole corpus, PDF/text/Markdown/HTML upload, website
+  ingestion, and a filterable document list (category, status,
+  title/description, include-archived).
+- `/knowledge/:documentId` - document detail: full metadata, bounded
+  content preview, version history, editable metadata, and the
+  refresh/archive/restore/delete lifecycle. Delete confirms first.
+- "Knowledge Library" is now a first-class sidebar item, next to Ask
+  Scout because it is what grounds those answers
+  (10_NAVIGATION_IMPROVEMENTS.md).
+- **Ask Scout now shows its sources.** Phase 1A returned
+  `knowledge_sources` from the backend, but `AskScoutResult` omitted the
+  field and the page never rendered it, so the citations existed only in
+  the API response. Answers now carry a "Grounded in N knowledge
+  passages" disclosure, each source linking to its Library page. Without
+  this, 03_COMPANY_KNOWLEDGE_ENGINE.md's explainability requirement was
+  not actually reaching users.
+
+**One client-layer extension was required:** `apiRequest()` always
+JSON-stringifies its body and sets `Content-Type: application/json`, so
+it cannot post a file. `apiUploadData()` was added alongside it for
+multipart, deliberately *not* setting Content-Type so the browser
+generates the header with its own boundary token - setting it manually
+produces a boundary-less header the server rejects.
+
+**Verification: tsc, eslint and `npm run build` all clean** (the
+>500 kB chunk warning is pre-existing, from recharts in Phase 5), the
+backend suite still passes at **673**, and the whole flow was driven in a
+real browser against the live backend: upload -> website ingest (a real
+page fetched over the network) -> list -> semantic search -> detail ->
+metadata edit -> archive -> restore -> Ask Scout citations. Zero console
+errors. Mobile checked at 375px: no horizontal overflow, and the metadata
+grid collapses from four columns to two. Test documents were deleted
+afterwards; the dev corpus is back to its original 6 curated entries with
+0 orphaned chunks.
+
+Two results worth recording because they prove behavior that is easy to
+assume and hard to see:
+
+- Archiving a document really does remove it from retrieval - a search
+  using its most distinctive terms stopped returning it, then returned it
+  again after restore. Refresh is also auto-disabled while archived.
+- Editing a document's category re-indexes its chunks, not just its
+  Postgres row: after moving one document from `accelerators` to
+  `customer_success`, a category-filtered search found it under the new
+  category and no longer under the old one.
+
+**Environment note for future browser verification:** the preview
+browser's synthetic mouse clicks (`computer` with coordinates or a ref)
+did not reach the page in this session - a capture-phase listener on the
+target button recorded nothing, while `read_page`, `form_input`,
+`navigate` and `javascript_tool` all worked. The UI was therefore driven
+with DOM-level `.click()` calls and React-aware value setting (the native
+property setter plus a bubbling `input` event, which is what React's
+value tracker requires for a programmatic edit). Real user input needs
+none of that. Also note a `<input type="file">` cannot be populated from
+the accessibility tree at all, so the upload was exercised by importing
+the application's own `knowledgeService` module in the page context -
+still the real client -> multipart -> backend path, but not a real file
+picker. If clicks start working again, prefer them.
 
 ## Outreach workflow redesign - generation and delivery are now separate steps
 

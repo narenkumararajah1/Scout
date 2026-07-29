@@ -1619,6 +1619,428 @@ a {
    horizontal link bar got unwieldy with this many nav items, so the
    drawer keeps the full-height, single-column list mobile/tablet users
    already know from GitHub/Notion/Jira rather than a cramped bar. */
+/* Knowledge Library (V3 Enhancements Phase 1B) */
+.knowledge-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.knowledge-stat {
+  display: flex;
+  flex-direction: column;
+  min-width: 110px;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.knowledge-stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.knowledge-stat-label {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+/* Failed ingestions are the one number an administrator has to act on. */
+.knowledge-stat-alert .knowledge-stat-value {
+  color: #b91c1c;
+}
+
+.knowledge-hint {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+.knowledge-optional {
+  color: #9ca3af;
+  font-weight: 400;
+  font-size: 0.75rem;
+}
+
+.knowledge-search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.knowledge-search-form input {
+  flex: 1 1 260px;
+  padding: 0.5rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+.knowledge-search-results {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.knowledge-search-result {
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  border-left: 3px solid #4338ca;
+}
+
+.knowledge-search-result-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.knowledge-search-result-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.knowledge-search-result-header a {
+  margin-left: auto;
+  color: #4338ca;
+  font-size: 0.85rem;
+}
+
+.knowledge-search-result-header a:hover {
+  text-decoration: underline;
+}
+
+.knowledge-search-result-content {
+  margin: 0;
+  color: #374151;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.knowledge-ingest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.knowledge-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.knowledge-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.knowledge-form input,
+.knowledge-form select,
+.knowledge-form textarea {
+  padding: 0.5rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.knowledge-form button {
+  align-self: flex-start;
+}
+
+.knowledge-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.knowledge-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.knowledge-filters select,
+.knowledge-filters input[type="search"] {
+  padding: 0.4rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+.knowledge-filter-text {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.knowledge-archived-toggle {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 400;
+}
+
+.knowledge-document-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.knowledge-document-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.knowledge-document-main {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.knowledge-document-title {
+  display: block;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.35rem;
+}
+
+.knowledge-document-title:hover {
+  text-decoration: underline;
+}
+
+.knowledge-document-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.knowledge-document-description {
+  margin: 0.4rem 0 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.knowledge-document-failure {
+  margin: 0.4rem 0 0;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.knowledge-document-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(80px, auto));
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.knowledge-document-meta dt {
+  color: #9ca3af;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.knowledge-document-meta dd {
+  margin: 0;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Knowledge document detail */
+.knowledge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.knowledge-actions button.danger {
+  color: #b91c1c;
+}
+
+.knowledge-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 0;
+}
+
+.knowledge-detail-grid dt {
+  color: #9ca3af;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.knowledge-detail-grid dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+}
+
+/* A URL or long filename must not push the grid wider than the page. */
+.knowledge-detail-ref {
+  overflow-wrap: anywhere;
+}
+
+.knowledge-detail-ref a {
+  color: #4338ca;
+}
+
+.knowledge-detail-ref a:hover {
+  text-decoration: underline;
+}
+
+.knowledge-detail-description {
+  margin: 1rem 0 0;
+  color: #374151;
+}
+
+.knowledge-tag-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.knowledge-tag-groups > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.knowledge-tag-label {
+  color: #9ca3af;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-right: 0.25rem;
+}
+
+.knowledge-preview {
+  margin: 0;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  max-height: 320px;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.knowledge-version-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.knowledge-version-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.knowledge-version-item.current {
+  background: #eef2ff;
+}
+
+.knowledge-version-item a {
+  margin-left: auto;
+  color: #4338ca;
+}
+
+.knowledge-version-item a:hover {
+  text-decoration: underline;
+}
+
+/* Ask Scout citations (V3 Enhancements Phase 1B) - collapsed by default
+   so the answer stays the focus, but always present when the answer was
+   grounded, which is what makes the grounding checkable. */
+.conversation-sources {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.conversation-sources summary {
+  cursor: pointer;
+  color: #4338ca;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.conversation-source-list {
+  margin: 0.6rem 0 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.conversation-source-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.conversation-source-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.conversation-source-header a {
+  color: #4338ca;
+  font-size: 0.8rem;
+}
+
+.conversation-source-header a:hover {
+  text-decoration: underline;
+}
+
+.conversation-source-content {
+  margin: 0.25rem 0 0;
+  color: #374151;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 @media (max-width: 768px) {
   /* The top bar itself stays reachable the same way the desktop
      sidebar does, just via position: sticky instead of the desktop's
@@ -1721,5 +2143,11 @@ a {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.35rem;
+  }
+
+  /* Four metadata columns don't fit a phone; two keeps the labels
+     readable without the values wrapping mid-word. */
+  .knowledge-document-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

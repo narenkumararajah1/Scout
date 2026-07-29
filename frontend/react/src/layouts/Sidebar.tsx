@@ -7,6 +7,11 @@ const NAV_ITEMS: Array<{ to: string; label: string; end: boolean }> = [
   { to: "/analytics", label: "Analytics", end: false },
   { to: "/sales-enablement", label: "Sales Enablement", end: false },
   { to: "/ask-scout", label: "Ask Scout", end: false },
+  // First-class rather than buried under Administration
+  // (10_NAVIGATION_IMPROVEMENTS.md: "The library should feel like an
+  // integral part of Scout rather than an administrative tool"), and
+  // placed next to Ask Scout because it is what grounds those answers.
+  { to: "/knowledge", label: "Knowledge Library", end: false },
   { to: "/notifications", label: "Notifications", end: false },
   { to: "/administration", label: "Administration", end: false },
   { to: "/settings", label: "Settings", end: false },
