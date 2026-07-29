@@ -181,6 +181,10 @@ class PipelineContext:
     evidence_citations: dict = field(default_factory=dict)
     metrics: dict = field(default_factory=dict)  # stage_name -> StageMetrics
     comparison_report: Optional[ComparisonReport] = None
+    # V3 Enhancements Phase 2 - the Company Refresh Engine's summary for
+    # this run. None when the refresh stage failed (it is best-effort) or
+    # when it has not run yet.
+    refresh_summary: Optional[dict] = None
 
 
 @dataclass
@@ -197,6 +201,7 @@ class PipelineResult:
     evidence_citations: dict = field(default_factory=dict)
     comparison_report: Optional[ComparisonReport] = None
     metrics: dict = field(default_factory=dict)
+    refresh_summary: Optional[dict] = None
 
 
 class PipelineStage(ABC):

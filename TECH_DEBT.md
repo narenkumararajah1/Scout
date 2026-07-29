@@ -444,6 +444,96 @@ the actual behavior rather than the intended behavior.
 long, multi-LLM-call pipeline and Phase 1A does not touch it); its
 coverage rests on the test suite, which passes.
 
+## docs/v3-enhancements/ - Phase 2A (Company Refresh Engine, backend)
+
+Run Analysis now also captures a snapshot of what it learned, diffs it
+against the previous run, and stores a refresh summary - what changed, why
+it matters, what to do next (07_COMPANY_REFRESH_ENGINE.md).
+
+**Report generation was deliberately left in place.** That document frames
+Run Analysis as becoming "update everything Scout knows" instead of
+"generate another report". This phase delivers the first half by adding
+the refresh summary; it does not delete the second, because V2's reports
+are wired into the scheduler, Report Distribution and the reports API, and
+removing that would break working systems to satisfy a wording. What
+changed is where attention goes.
+
+**The snapshot captures signals, opportunities, capability names and a
+small company profile - not the richer intelligence entities.** This is
+the phase's most important design constraint and it came out of reading
+the code rather than the docs. Scout has `Executive`, `Technology` and
+`BusinessInitiative` models with repositories and a
+`persist_extracted_entities()` writer, and diffing those would be the
+obvious way to detect "executive appointments" and "technology adoption".
+They are all effectively empty in production:
+
+- `KnowledgeExtractionStage` only runs outside `legacy` mode.
+- `ai_orchestration_mode` defaults to `legacy`
+  (`backend/config/settings.py`), which is what ships.
+- `company_intelligence_service.persist_extracted_entities()` has **no
+  caller** outside `tests/test_company_intelligence_service.py`.
+
+So a snapshot built on those entities would have reliably detected
+nothing. Signals, opportunities and capability matches are written on
+every run in every mode, which is why detection works today. Widening the
+snapshot is a small change once those entities have a populating path -
+wiring `persist_extracted_entities()` into the pipeline is the missing
+link, and is worth doing on its own merits.
+
+**Detection is deliberately LLM-free.** `backend/ai/change_detection.py`
+is a pure function of two snapshots. 01_VISION.md puts evidence and
+explainability above automation, and asking a model whether two lists
+differ is both less reliable and less explainable than comparing them. One
+LLM call adds the narrative and recommended actions on top of the verified
+findings, and is skipped entirely for a first refresh or a no-change
+refresh (07's "minimize unnecessary AI calls").
+
+**A real defect found by end-to-end verification, and fixed.** Two
+consecutive real analyses of the same company were compared, and exact
+title matching reported 14 changes of which 4 were major. Inspecting them
+showed the research layer rewords the same development between runs:
+
+- "Sovereign AI and Global Infrastructure Expansion" ->
+  "Sovereign AI Infrastructure Expansion"
+- "AI Ready Data Pipelines for Enterprise AI and NIMs Deployment" ->
+  "AI-Ready Data Pipelines for Enterprise NIM & Omniverse Workloads"
+
+Each pair was being reported as one item appearing and another
+disappearing, and because a new opportunity is major, Scout was announcing
+significant new developments that had not happened. Token-overlap (Jaccard)
+similarity matching at a 0.45 threshold now collapses such pairs into a
+single minor "updated" change. Re-diffing the identical two snapshots
+after the fix: **14 changes -> 12, and major changes 4 -> 2**, with both
+false majors correctly reclassified and the previous wording shown.
+
+**Known limit of that fix.** Lexical similarity cannot catch a rewording
+that shares few words - "Aggressive Workforce Scaling in Engineering and
+AI" versus "Aggressive Global Hiring in Silicon Engineering and Software"
+scores ~0.22 and still reads as two changes. The threshold is set where it
+is on purpose: merging distinct developments hides a real change, which is
+worse than reporting noise. The real fix is **stable identifiers assigned
+where a signal is created**, upstream in the research layer, rather than
+inferred downstream from its title. Until then, expect some appeared/
+resolved churn on technology and hiring signals.
+
+**Notifications were not rerouted through change detection.** The existing
+signal-based notifications still fire per run from raw signals, which is
+noisier than 07's "prioritize meaningful business events". Routing them
+through detected changes would cut that noise substantially, but it
+reduces the number of notifications users currently receive - a product
+decision, not a refactor, so it is left for an explicit call.
+
+**Verification:** full suite **742 passed, 0 failed, 0 skipped** against
+real Postgres (up from 673 at the end of Phase 1B; 32 of the new tests are
+pure unit tests for detection). Migration `0013` applied with a clean
+downgrade/upgrade round-trip and schema confirmed column-by-column. Three
+real Run Analysis executions against the live API: the first correctly
+established a baseline and spent no LLM call, the second and third
+produced real change sets with narrative and concrete recommended actions,
+and the intelligence history endpoint returned all three. Zero tracebacks
+or 500s. Existing pipeline tests pass unchanged, and a new test asserts
+that a failing refresh cannot fail an analysis or lose its report.
+
 ## docs/v3-enhancements/ - Phase 1B (Knowledge Library UI)
 
 Phase 1A's Company Knowledge Engine was API-only. Phase 1B gives it a

@@ -16,7 +16,7 @@ backend/routers/companies.py, so this router and V2's (mounted at the
 unversioned /companies prefix) never collide.
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from backend.api.dependencies import get_current_user
 from backend.api.error_handlers import APIError
@@ -24,11 +24,13 @@ from backend.database.models import User
 from backend.repositories.research_repository import list_research_sessions
 from backend.schemas.company_intelligence import CompanyIntelligenceResponse
 from backend.schemas.company_relationship import CompanyRelationshipOut, CreateCompanyRelationshipRequest
+from backend.schemas.company_snapshot import CompanySnapshotOut, RefreshSummaryResponse
 from backend.schemas.company_view import CompanyVisitChangesResponse
 from backend.schemas.sales_coach import SalesCoachRecommendation
 from backend.services import company_relationship_service, company_service
 from backend.services.ai_sales_coach_service import what_would_you_do
 from backend.services.company_intelligence_service import build_company_intelligence_profile
+from backend.services.company_refresh_service import get_latest_refresh_summary, list_snapshot_history
 from backend.services.company_view_service import get_changes_since_last_visit
 
 router = APIRouter(prefix="/api/v1/companies", tags=["companies"])
@@ -83,6 +85,55 @@ async def get_sales_coach_recommendation(company_id: str, current_user: User = D
     recommendation = await what_would_you_do(company)
     data = SalesCoachRecommendation.model_validate(recommendation)
     return {"success": True, "message": "Sales coach recommendation generated successfully.", "data": data.model_dump()}
+
+
+@router.get("/{company_id}/refresh-summary")
+async def get_company_refresh_summary(
+    company_id: str, current_user: User = Depends(get_current_user)
+) -> dict:
+    """What changed at this company since the previous analysis run (V3
+    Enhancements Phase 2 - 07_COMPANY_REFRESH_ENGINE.md).
+
+    Read-only and cheap: it returns the summary already computed and
+    stored by the refresh stage of the last run, so opening a company page
+    costs no LLM call and shows the same answer every time until the next
+    run. 204 when the company has never been analysed - an absent summary
+    is a normal state for a newly added company, not an error.
+    """
+    try:
+        company_service.get_company(company_id)
+    except ValueError as exc:
+        raise APIError(404, str(exc)) from exc
+
+    summary = await get_latest_refresh_summary(company_id)
+    if summary is None:
+        return {
+            "success": True,
+            "message": "No refresh history for this company yet - run an analysis to create one.",
+            "data": None,
+        }
+
+    data = RefreshSummaryResponse.model_validate(summary)
+    return {"success": True, "message": "Refresh summary retrieved successfully.", "data": data.model_dump()}
+
+
+@router.get("/{company_id}/snapshots")
+async def list_company_snapshots(
+    company_id: str,
+    limit: int = Query(default=20, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """The company's intelligence history, newest first
+    (07_COMPANY_REFRESH_ENGINE.md's "Intelligence Timeline").
+    """
+    try:
+        company_service.get_company(company_id)
+    except ValueError as exc:
+        raise APIError(404, str(exc)) from exc
+
+    snapshots = await list_snapshot_history(company_id, limit=limit)
+    data = [CompanySnapshotOut.model_validate(row, from_attributes=True).model_dump() for row in snapshots]
+    return {"success": True, "message": "Intelligence history retrieved successfully.", "data": data}
 
 
 @router.get("/{company_id}/relationships")

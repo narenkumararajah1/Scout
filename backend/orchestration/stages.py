@@ -13,6 +13,7 @@ is_enabled() - see backend/orchestration/pipeline.py.
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 
 from backend.orchestration.pipeline import (
@@ -24,6 +25,8 @@ from backend.orchestration.pipeline import (
     estimate_cost_usd,
     estimate_tokens,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ResearchStage(PipelineStage):
@@ -221,6 +224,62 @@ class EvidenceStage(PipelineStage):
                 stored_evidence.append(evidence)
             context.evidence_citations[opportunity.id] = cite_evidence(stored_evidence)
         context.metrics[self.name].retrieval_latency_seconds = time.perf_counter() - start
+
+
+class CompanyRefreshStage(PipelineStage):
+    """Company Refresh Engine (V3 Enhancements Phase 2 -
+    07_COMPANY_REFRESH_ENGINE.md). Captures a snapshot of what this run
+    learned, diffs it against the previous run, and stores the resulting
+    refresh summary.
+
+    Unlike the Phase 4B AI stages above, this one runs in **every** mode
+    including legacy. Those stages opt out of legacy because they are
+    alternative implementations of work the legacy stages already do, and
+    running both would double it. This stage is additive - nothing else
+    produces a change summary - and legacy is the default mode, so opting
+    out of it would mean this phase delivered nothing in the configuration
+    the product actually ships with.
+
+    Ordered after ReportingStage so the report is already generated and
+    persisted before this runs: it reads the run's outputs and writes only
+    its own table, so it cannot alter what the legacy stages produced.
+
+    Best-effort, matching manual_analysis._generate_notifications(): by
+    this point the report exists and the run has succeeded, so a snapshot
+    or LLM failure must be logged and swallowed rather than turned into a
+    failed analysis.
+    """
+
+    name = "company_refresh"
+
+    async def run(self, context: PipelineContext) -> None:
+        from backend.repositories.research_repository import list_signals_for_session
+        from backend.services.company_refresh_service import refresh_company
+
+        try:
+            signals = []
+            if context.research_session is not None:
+                signals = await asyncio.to_thread(
+                    list_signals_for_session, context.research_session.id
+                )
+
+            start = time.perf_counter()
+            context.refresh_summary = await refresh_company(
+                context.company,
+                signals=signals,
+                opportunities=context.opportunities,
+                capability_matches=context.capability_matches,
+                research_session_id=(
+                    context.research_session.id if context.research_session is not None else None
+                ),
+            )
+            context.metrics[self.name].llm_latency_seconds = time.perf_counter() - start
+        except Exception:
+            logger.exception(
+                "Company refresh failed for %s (%s); the analysis result is unaffected.",
+                context.company.name,
+                context.company.id,
+            )
 
 
 class ComparisonReportStage(PipelineStage):

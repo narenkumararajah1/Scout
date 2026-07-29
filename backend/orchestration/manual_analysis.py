@@ -35,6 +35,7 @@ from backend.models.report import Report
 from backend.orchestration.pipeline import OrchestrationMode, Pipeline, PipelineContext, PipelineResult
 from backend.orchestration.stages import (
     CapabilityMatchingStage,
+    CompanyRefreshStage,
     ComparisonReportStage,
     ConfidenceScoringStage,
     EvidenceStage,
@@ -71,6 +72,11 @@ def _build_pipeline() -> Pipeline:
             ConfidenceScoringStage(),
             EvidenceStage(),
             ReportingStage(generate_report),
+            # After Reporting: the refresh engine reads this run's outputs
+            # and writes only its own snapshot table, so the report is
+            # already generated and persisted before it runs (V3
+            # Enhancements Phase 2).
+            CompanyRefreshStage(),
             ComparisonReportStage(),
         ]
     )
@@ -125,6 +131,7 @@ async def run_manual_analysis_pipeline(company: Company) -> PipelineResult:
         evidence_citations=context.evidence_citations,
         comparison_report=context.comparison_report,
         metrics=context.metrics,
+        refresh_summary=context.refresh_summary,
     )
 
 

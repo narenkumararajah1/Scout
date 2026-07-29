@@ -229,3 +229,114 @@ async def test_delete_relationship_returns_404_for_an_unknown_id(client, postgre
     )
 
     assert response.status_code == 404
+
+
+# --- Refresh summary and intelligence history (V3 Enhancements Phase 2) ---
+
+
+def test_refresh_summary_rejects_a_missing_token(client, require_auth):
+    response = client.get("/api/v1/companies/does-not-exist/refresh-summary")
+
+    assert response.status_code == 401
+
+
+async def test_refresh_summary_returns_404_for_an_unknown_company(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("refresh-api-1@example.com")
+
+    response = client.get("/api/v1/companies/does-not-exist/refresh-summary", headers=headers)
+
+    assert response.status_code == 404
+
+
+async def test_refresh_summary_is_null_before_any_analysis_has_run(client, postgres_available):
+    # A newly added company simply has no history yet - that is a normal
+    # state to render, not an error.
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="refresh-api-co-1", name="RefreshApiCo1"))
+    await create_postgres_company(PostgresCompany(id="refresh-api-co-1", name="RefreshApiCo1"))
+    headers = await _auth_headers("refresh-api-2@example.com")
+
+    response = client.get("/api/v1/companies/refresh-api-co-1/refresh-summary", headers=headers)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["data"] is None
+
+
+async def test_refresh_summary_returns_the_stored_summary(client, postgres_available):
+    import json
+    from types import SimpleNamespace
+    from unittest.mock import patch
+
+    from backend.services import company_refresh_service
+
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="refresh-api-co-2", name="RefreshApiCo2"))
+    await create_postgres_company(PostgresCompany(id="refresh-api-co-2", name="RefreshApiCo2"))
+    headers = await _auth_headers("refresh-api-3@example.com")
+
+    company = SimpleNamespace(
+        id="refresh-api-co-2",
+        name="RefreshApiCo2",
+        industry=None,
+        headquarters=None,
+        website=None,
+        monitoring_status="enabled",
+    )
+    narrative = json.dumps({"narrative": "A new CTO changes the entry point.", "recommended_actions": ["Ask for an intro"]})
+
+    with patch.object(company_refresh_service, "generate_completion", return_value=narrative):
+        await company_refresh_service.refresh_company(
+            company, signals=[], opportunities=[], capability_matches=[]
+        )
+        await company_refresh_service.refresh_company(
+            company,
+            signals=[SimpleNamespace(type="leadership", title="New CTO", description=None)],
+            opportunities=[],
+            capability_matches=[],
+        )
+    await reset_postgres_engine()
+
+    response = client.get("/api/v1/companies/refresh-api-co-2/refresh-summary", headers=headers)
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["is_first_refresh"] is False
+    assert data["major_change_count"] == 1
+    assert [change["title"] for change in data["changes"]] == ["New CTO"]
+    assert data["narrative"] == "A new CTO changes the entry point."
+    assert data["recommended_actions"] == ["Ask for an intro"]
+
+
+async def test_snapshots_history_returns_404_for_an_unknown_company(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("refresh-api-4@example.com")
+
+    response = client.get("/api/v1/companies/does-not-exist/snapshots", headers=headers)
+
+    assert response.status_code == 404
+
+
+async def test_snapshots_history_is_empty_before_any_analysis(client, postgres_available):
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="refresh-api-co-3", name="RefreshApiCo3"))
+    await create_postgres_company(PostgresCompany(id="refresh-api-co-3", name="RefreshApiCo3"))
+    headers = await _auth_headers("refresh-api-5@example.com")
+
+    response = client.get("/api/v1/companies/refresh-api-co-3/snapshots", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["data"] == []
+
+
+async def test_snapshots_history_rejects_an_out_of_range_limit(client, postgres_available):
+    clear_v2_tables()
+    create_sqlite_company(SqliteCompany(id="refresh-api-co-4", name="RefreshApiCo4"))
+    await create_postgres_company(PostgresCompany(id="refresh-api-co-4", name="RefreshApiCo4"))
+    headers = await _auth_headers("refresh-api-6@example.com")
+
+    response = client.get("/api/v1/companies/refresh-api-co-4/snapshots?limit=500", headers=headers)
+
+    assert response.status_code == 422
