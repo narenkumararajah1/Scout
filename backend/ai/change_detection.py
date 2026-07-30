@@ -497,6 +497,93 @@ def _detect_capability_changes(previous: list, current: list) -> list:
     return changes
 
 
+def _detect_executive_changes(previous: Optional[list], current: Optional[list]) -> list:
+    """People joining, leaving, and changing title (V3 Enhancements Phase 4).
+
+    Leadership movement is among the strongest buying signals a company
+    emits - a new CTO reorganises priorities, and a departure stalls
+    whatever the previous one sponsored - so an arrival or departure at
+    any level is major, matching how CATEGORY_LEADERSHIP signals are
+    already treated.
+
+    **Matched on name, not title.** Unlike signals and opportunities,
+    whose titles are LLM prose and need the similarity machinery above, a
+    person's name is close to a stable identifier across runs. Applying
+    similarity matching here would be actively wrong: "David Chen" and
+    "Daniel Chen" share most of their tokens and are two people.
+
+    **A NULL previous list means "unknown", not "nobody".** Snapshots
+    captured before this phase have no executives column, and reporting
+    every executive as newly arrived on the first post-upgrade run would
+    manufacture a wave of leadership changes that never happened.
+    """
+    if previous is None or current is None:
+        return []
+
+    def by_name(entries):
+        return {
+            _normalize(entry.get("name")): entry
+            for entry in entries or []
+            if _normalize(entry.get("name"))
+        }
+
+    previous_by_name = by_name(previous)
+    current_by_name = by_name(current)
+
+    changes = []
+    for key, entry in current_by_name.items():
+        if key not in previous_by_name:
+            title = entry.get("title")
+            changes.append(
+                DetectedChange(
+                    category=CATEGORY_LEADERSHIP,
+                    change_type=CHANGE_APPEARED,
+                    title=entry.get("name"),
+                    detail=f"Newly identified{f' as {title}' if title else ''}.",
+                    significance=SIGNIFICANCE_MAJOR,
+                    source="executive",
+                    current_value=title,
+                )
+            )
+            continue
+
+        old_title = previous_by_name[key].get("title")
+        new_title = entry.get("title")
+        if _normalize(old_title) != _normalize(new_title):
+            changes.append(
+                DetectedChange(
+                    category=CATEGORY_LEADERSHIP,
+                    change_type=CHANGE_UPDATED,
+                    title=entry.get("name"),
+                    detail=f"Title changed from '{old_title or 'not recorded'}' to '{new_title or 'not recorded'}'.",
+                    significance=SIGNIFICANCE_MAJOR,
+                    source="executive",
+                    previous_value=old_title,
+                    current_value=new_title,
+                )
+            )
+
+    for key, entry in previous_by_name.items():
+        if key not in current_by_name:
+            changes.append(
+                DetectedChange(
+                    category=CATEGORY_LEADERSHIP,
+                    change_type=CHANGE_RESOLVED,
+                    title=entry.get("name"),
+                    # Deliberately not "has left the company". Research not
+                    # mentioning someone this run is weak evidence of a
+                    # departure, and stating it as fact is the kind of claim
+                    # a salesperson could repeat to a customer.
+                    detail="No longer appearing in research for this company.",
+                    significance=SIGNIFICANCE_MAJOR,
+                    source="executive",
+                    previous_value=entry.get("title"),
+                )
+            )
+
+    return changes
+
+
 # Profile fields worth reporting, with the labels used in the summary.
 # monitoring_status is included because pausing monitoring changes what
 # Scout will tell you next, which is exactly the kind of thing a user
@@ -558,8 +645,15 @@ def detect_changes(previous: Optional[object], current: object) -> ChangeSet:
         previous.capabilities or [], current.capabilities or []
     )
     profile_changes = _detect_profile_changes(previous.profile or {}, current.profile or {})
+    # Passed through without the `or []` the others use: None and [] mean
+    # different things for executives - see _detect_executive_changes.
+    executive_changes = _detect_executive_changes(
+        getattr(previous, "executives", None), getattr(current, "executives", None)
+    )
 
-    changes = signal_changes + opportunity_changes + capability_changes + profile_changes
+    changes = (
+        signal_changes + opportunity_changes + capability_changes + profile_changes + executive_changes
+    )
     changes.sort(key=lambda change: (0 if change.significance == SIGNIFICANCE_MAJOR else 1, change.category))
 
     return ChangeSet(

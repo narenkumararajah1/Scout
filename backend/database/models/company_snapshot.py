@@ -73,6 +73,14 @@ class CompanySnapshot(Base):
     # Small dict of company profile fields (industry, headquarters,
     # website, monitoring status) so profile edits show up in history.
     profile: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    # Each entry: {"name", "title"}. Added in V3 Enhancements Phase 4 for
+    # executive movement tracking - people joining, leaving and changing
+    # title are among the strongest buying signals a company emits, and
+    # this is the only place Scout records what it knew and when. Nullable
+    # rather than defaulted: snapshots captured before Phase 4 genuinely
+    # had no executive data, and a NULL says that honestly where an empty
+    # list would claim the company had no executives at the time.
+    executives: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
 
     # Denormalized counts, so the timeline and history views can render
     # without deserializing every JSONB collection on every row.

@@ -26,12 +26,17 @@ from backend.ai.change_detection import (
 )
 
 
-def _snapshot(signals=None, opportunities=None, capabilities=None, profile=None):
+def _snapshot(signals=None, opportunities=None, capabilities=None, profile=None, executives=None):
+    # `executives` deliberately keeps its None rather than defaulting to
+    # [] like the others: None means "this run did not look at people",
+    # which the detector must treat differently from "looked, found none"
+    # (V3 Enhancements Phase 4).
     return SimpleNamespace(
         signals=signals or [],
         opportunities=opportunities or [],
         capabilities=capabilities or [],
         profile=profile or {},
+        executives=executives,
     )
 
 
@@ -468,3 +473,109 @@ def test_a_pure_rewording_shows_the_two_titles_not_two_identical_scores():
     assert change.change_type == CHANGE_UPDATED
     assert change.previous_value == "AI Ready Data Pipelines for Enterprise AI and NIMs Deployment"
     assert change.current_value == "AI-Ready Data Pipelines for Enterprise NIM & Omniverse Workloads"
+
+
+# --- Executive movement (V3 Enhancements Phase 4) ----------------------
+
+
+def _executive(name, title=None):
+    return {"name": name, "title": title}
+
+
+def test_a_newly_identified_executive_is_a_major_leadership_change():
+    changes = detect_changes(
+        _snapshot(executives=[_executive("Ann Lee", "CFO")]),
+        _snapshot(executives=[_executive("Ann Lee", "CFO"), _executive("Bo Chen", "CTO")]),
+    ).changes
+
+    arrival = [c for c in changes if c.title == "Bo Chen"]
+    assert len(arrival) == 1
+    assert arrival[0].category == CATEGORY_LEADERSHIP
+    assert arrival[0].change_type == CHANGE_APPEARED
+    assert arrival[0].significance == SIGNIFICANCE_MAJOR
+    assert "CTO" in arrival[0].detail
+
+
+def test_a_title_change_is_reported_with_both_titles():
+    changes = detect_changes(
+        _snapshot(executives=[_executive("Ann Lee", "VP Finance")]),
+        _snapshot(executives=[_executive("Ann Lee", "Chief Financial Officer")]),
+    ).changes
+
+    assert len(changes) == 1
+    assert changes[0].change_type == CHANGE_UPDATED
+    assert changes[0].previous_value == "VP Finance"
+    assert changes[0].current_value == "Chief Financial Officer"
+
+
+def test_a_departure_is_worded_as_absence_from_research_not_as_a_departure():
+    # Research failing to mention someone is weak evidence they left, and
+    # stating it as fact is a claim a salesperson could repeat to a
+    # customer.
+    changes = detect_changes(
+        _snapshot(executives=[_executive("Ann Lee", "CFO")]),
+        _snapshot(executives=[]),
+    ).changes
+
+    assert changes[0].change_type == CHANGE_RESOLVED
+    assert "No longer appearing in research" in changes[0].detail
+    assert "left" not in changes[0].detail.lower()
+
+
+def test_an_unchanged_roster_reports_nothing():
+    roster = [_executive("Ann Lee", "CFO"), _executive("Bo Chen", "CTO")]
+
+    assert detect_changes(_snapshot(executives=roster), _snapshot(executives=list(roster))).changes == []
+
+
+def test_names_are_matched_case_and_whitespace_insensitively():
+    changes = detect_changes(
+        _snapshot(executives=[_executive("ann lee", "CFO")]),
+        _snapshot(executives=[_executive("  Ann Lee  ", "CFO")]),
+    ).changes
+
+    assert changes == []
+
+
+def test_similar_names_are_two_people_not_one_reworded_person():
+    # Unlike signal titles, names must NOT go through similarity matching:
+    # "David Chen" and "Daniel Chen" share most of their tokens and are
+    # two different people.
+    changes = detect_changes(
+        _snapshot(executives=[_executive("David Chen", "CTO")]),
+        _snapshot(executives=[_executive("Daniel Chen", "CTO")]),
+    ).changes
+
+    assert {c.change_type for c in changes} == {CHANGE_APPEARED, CHANGE_RESOLVED}
+
+
+def test_a_snapshot_that_never_looked_at_people_reports_no_movement():
+    # The upgrade case: snapshots captured before Phase 4 have a NULL
+    # executives column. Diffing against it would announce every executive
+    # as newly arrived on the first post-upgrade run.
+    changes = detect_changes(
+        _snapshot(executives=None),
+        _snapshot(executives=[_executive("Ann Lee", "CFO")]),
+    ).changes
+
+    assert changes == []
+
+
+def test_a_failed_persistence_run_does_not_report_everyone_as_departed():
+    # The inverse: the pipeline stage is best-effort, so a failure leaves
+    # executives as None rather than [].
+    changes = detect_changes(
+        _snapshot(executives=[_executive("Ann Lee", "CFO")]),
+        _snapshot(executives=None),
+    ).changes
+
+    assert changes == []
+
+
+def test_an_unnamed_executive_entry_is_skipped_rather_than_crashing():
+    changes = detect_changes(
+        _snapshot(executives=[]),
+        _snapshot(executives=[_executive(None, "CTO"), _executive("  ", "CFO")]),
+    ).changes
+
+    assert changes == []

@@ -619,6 +619,102 @@ the Sales Playbook page, but Meeting Brief and Outreach Draft pages do not
 show what grounded them, and there is no "sources" affordance equivalent to
 Ask Scout's citations. That is the phase's user-facing payoff.
 
+## docs/v3-enhancements/ - Phase 4A (Relationship Intelligence, backend)
+
+Roadmap Phase 4's success criterion is that Scout "recommends not only
+who to contact, but why they matter and the strongest path into the
+organization". **It was unreachable for a reason that has nothing to do
+with LinkedIn: Scout knew no people at all.** Five analysed companies in
+the dev database held zero executive rows. Two causes, both confirmed by
+grep before any code was written:
+
+  - `KnowledgeExtractionStage` only runs when `mode != LEGACY`, and
+    `ai_orchestration_mode` defaults to `"legacy"`.
+  - Even outside legacy, `persist_extracted_entities()` had no callers.
+    Extracted executives were counted in one `ComparisonReport.as_text()`
+    log line and then dropped.
+
+So this phase's foundation is `ExecutivePersistenceStage`, which connects
+the two. **It runs in every mode**, on the same reasoning as
+`CompanyRefreshStage` in Phase 2: legacy is the default, so a stage that
+opted out of it would deliver the phase to nobody. In legacy it extracts
+for itself rather than enabling `KnowledgeExtractionStage` there, which
+would change what legacy mode computes. That costs one extraction call
+per analysis in legacy and none in the other three modes.
+
+**This is a deliberate, narrow change to legacy mode's contract**, and
+`tests/test_orchestration_pipeline.py` was updated to say so rather than
+worked around. Legacy still runs no stage that *duplicates* legacy work -
+no fusion, no alternative confidence scoring, no alternative evidence, no
+comparison report - and the legacy stages remain the sole authority over
+the returned report. What it no longer guarantees is "makes no extraction
+call".
+
+**None / [] is load-bearing for executives**, in `PipelineContext`, the
+snapshot column and the detector. `None` means "this run did not look",
+`[]` means "looked, found nobody". Conflating them causes two real bugs:
+diffing against `[]` when the best-effort stage merely *failed* reports
+every known executive as departed, and diffing pre-Phase-4 snapshots
+(whose column is NULL) announces a company's entire leadership as newly
+arrived on the first post-upgrade run. Both are covered by tests, and the
+second was confirmed live - the NVIDIA run captured 3 executives against
+3 NULL predecessors and produced **zero** executive-sourced changes.
+
+**Seniority, department and path ranking contain no LLM call**, matching
+`change_detection.py`'s reasoning: this ranking tells a salesperson who
+to approach first, and a recommendation Scout cannot justify is one the
+user has to re-derive before trusting. Titles are matched on **word
+boundaries, not substrings** - "vp" inside "VPN" and "head" inside
+"headcount" would otherwise misclassify silently, and a wrong tier still
+renders as a perfectly plausible label. The specific technical areas
+(Data & AI, Security, Product) are ordered before the general Technology
+bucket, or "VP of Data Engineering" gets filed with every other
+engineering leader.
+
+**LinkedIn ships as a null client with a deep-link fallback, and that is
+the honest end state, not a stub.** See this file's Phase 4 note below and
+`docs/v3-enhancements/12_API_EVALUATIONS.md`. Scout cannot see a member's
+connections, but LinkedIn shows them natively on a profile page, so
+`profile_url()` builds a deterministic people-search URL that works with
+no credentials at all. `profile_url_is_search` is on every response so the
+UI can say "Find on LinkedIn" rather than implying a verified match.
+
+**Open decision blocking a real LinkedIn integration.** The Member Data
+Portability API (EU Digital Markets Act) does expose a consenting
+member's own first-degree connections via its `CONNECTIONS` snapshot
+domain - name, position, company, connection date. Two constraints decide
+whether it is usable: **only EEA members may consent**, and the
+connections are third-party personal data needing a lawful basis and a
+DPIA before Scout stores them. Whether Innominds has EEA-based sellers is
+unanswered, and until it is, the null client is correct.
+
+**Test-database drift, worth knowing before the next migration.**
+`tests/conftest.py` builds the test schema with
+`Base.metadata.create_all`, which creates missing *tables* but never adds
+columns to existing ones. Migration 0014's `executives` column therefore
+did not appear in an already-created `scout_test`, and 15 tests failed
+with `UndefinedColumnError` until it was applied by hand. A fresh test
+database is fine; an existing one silently lags every future
+`op.add_column`. This belongs with the `conftest.py` TCP `DATABASE_URL`
+default already noted below - both are ways the test database can
+disagree with the real one without saying so.
+
+**Suite: 812 passed, 0 failed, 0 skipped** against real Postgres (from
+768). 44 new tests across four files. Verified live, not only in tests: a
+real NVIDIA analysis persisted Jensen Huang (Founder / General
+Management), Michael Kagan (C-Suite / Technology) and Bill Dally
+(C-Suite / Data & AI), each with a stated ranking reason and a working
+LinkedIn search link. Zero server tracebacks.
+
+**Remaining for Phase 4B:** none of this is visible in the UI. The
+endpoint returns the org map and the ranked paths, and nothing renders
+them. Also still dead: `generate_executive_profile()` in
+`executive_intelligence_service.py` has no callers, so `biography`,
+`responsibilities`, `business_priorities` and `technology_focus` remain
+NULL on every executive - the columns exist and the generator works, but
+enriching N people per analysis is N model calls, so it wants to be an
+on-demand action rather than a pipeline stage.
+
 ## docs/v3-enhancements/ - Phase 3B (Enrichment Explainability UI)
 
 Phase 3A grounded every generated artifact and stored what grounded it as

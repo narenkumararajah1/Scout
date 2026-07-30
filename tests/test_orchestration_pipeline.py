@@ -70,7 +70,23 @@ def _patch_legacy_stages(company, session, matches, opportunities, report):
     )
 
 
-async def test_legacy_mode_runs_only_the_four_original_stages():
+async def test_legacy_mode_runs_no_alternative_ai_stage():
+    """Legacy mode still computes nothing the legacy stages already compute.
+
+    This originally asserted `not extraction_mock.called`. V3 Enhancements
+    Phase 4 changed that deliberately: ExecutivePersistenceStage runs in
+    every mode, and in legacy it has to extract for itself because
+    KnowledgeExtractionStage is disabled there. Nothing else in the
+    pipeline identifies people, so a stage that opted out of legacy - the
+    default mode - would have delivered that phase's entire foundation to
+    nobody. CompanyRefreshStage set the same precedent in Phase 2.
+
+    What legacy mode still guarantees, and what this test now pins, is
+    that no stage *duplicating legacy work* runs: no fusion, no
+    alternative confidence scoring, no alternative evidence, no comparison
+    report. The legacy stages remain the sole authority over the report
+    that is returned.
+    """
     company = Company(name="Acme Corp")
     session, matches, opportunities, report = _fake_pipeline_inputs(company)
 
@@ -82,14 +98,11 @@ async def test_legacy_mode_runs_only_the_four_original_stages():
         "backend.orchestration.manual_analysis.generate_report", return_value=report
     ) as p4, patch(
         "backend.ai.knowledge_fusion.fuse_knowledge"
-    ) as fusion_mock, patch(
-        "backend.ai.knowledge_extraction.extract_entities"
-    ) as extraction_mock:
+    ) as fusion_mock:
         result = await run_manual_analysis_pipeline(company)
 
     assert p1.called and p2.called and p3.called and p4.called
     assert not fusion_mock.called
-    assert not extraction_mock.called
     assert result.mode == OrchestrationMode.LEGACY
     assert result.report is report
     assert result.confidence_results == {}

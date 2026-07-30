@@ -185,6 +185,16 @@ class PipelineContext:
     # this run. None when the refresh stage failed (it is best-effort) or
     # when it has not run yet.
     refresh_summary: Optional[dict] = None
+    # V3 Enhancements Phase 4 - the Executive rows this run persisted.
+    #
+    # None and [] mean different things and the difference is load-bearing:
+    # None is "executive persistence did not complete" (it is best-effort,
+    # so it can fail or be skipped), [] is "it ran and this company has no
+    # identifiable executives". The refresh snapshot stores that
+    # distinction verbatim, because diffing against [] when the stage
+    # merely failed would report every previously-known executive as having
+    # departed.
+    persisted_executives: Optional[list] = None
 
 
 @dataclass

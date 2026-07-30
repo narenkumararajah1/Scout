@@ -340,3 +340,84 @@ async def test_snapshots_history_rejects_an_out_of_range_limit(client, postgres_
     response = client.get("/api/v1/companies/refresh-api-co-4/snapshots?limit=500", headers=headers)
 
     assert response.status_code == 422
+
+
+# --- GET /{company_id}/executives (V3 Enhancements Phase 4) -------------
+
+
+async def test_executives_returns_the_flat_list_org_map_and_ranked_paths(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("execs-test-1@example.com")
+
+    company = create_sqlite_company(SqliteCompany(name="Acme Corp"))
+    await create_postgres_company(PostgresCompany(id=company.id, name="Acme Corp"))
+    await create_executive(
+        Executive(id="exec-p4-1", company_id=company.id, name="Ann Lee", title="Chief Technology Officer")
+    )
+    await create_executive(
+        Executive(id="exec-p4-2", company_id=company.id, name="Bo Chen", title="Software Engineer")
+    )
+    await reset_postgres_engine()
+
+    response = client.get(f"/api/v1/companies/{company.id}/executives", headers=headers)
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert {e["name"] for e in data["executives"]} == {"Ann Lee", "Bo Chen"}
+    assert data["decision_maker_count"] == 1
+    # Seniority decides the default ranking.
+    assert data["paths"][0]["executive"]["name"] == "Ann Lee"
+    assert data["paths"][0]["reasons"]
+    assert [g["department"] for g in data["org_map"]] == ["Technology"]
+
+
+async def test_executives_derives_seniority_and_a_linkedin_search_link(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("execs-test-2@example.com")
+
+    company = create_sqlite_company(SqliteCompany(name="Acme Corp"))
+    await create_postgres_company(PostgresCompany(id=company.id, name="Acme Corp"))
+    await create_executive(
+        Executive(id="exec-p4-3", company_id=company.id, name="Ann Lee", title="VP of Data Engineering")
+    )
+    await reset_postgres_engine()
+
+    response = client.get(f"/api/v1/companies/{company.id}/executives", headers=headers)
+
+    executive = response.json()["data"]["executives"][0]
+    assert executive["seniority_label"] == "Executive (SVP/VP)"
+    assert executive["department"] == "Data & AI"
+    assert executive["is_inferred"] is True
+    # No stored profile URL exists for anyone today, so the response must
+    # say the link is a search rather than a verified profile.
+    assert executive["profile_url_is_search"] is True
+    assert "Ann+Lee" in executive["linkedin_url"]
+
+
+async def test_executives_returns_an_empty_payload_for_a_company_with_none(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("execs-test-3@example.com")
+
+    company = create_sqlite_company(SqliteCompany(name="Empty Corp"))
+    await create_postgres_company(PostgresCompany(id=company.id, name="Empty Corp"))
+    await reset_postgres_engine()
+
+    response = client.get(f"/api/v1/companies/{company.id}/executives", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["data"] == {
+        "executives": [],
+        "org_map": [],
+        "paths": [],
+        "decision_maker_count": 0,
+    }
+
+
+async def test_executives_returns_404_for_an_unknown_company(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("execs-test-4@example.com")
+
+    response = client.get("/api/v1/companies/does-not-exist/executives", headers=headers)
+
+    assert response.status_code == 404
+    assert response.json()["success"] is False

@@ -60,35 +60,56 @@ MAX_CHANGES_IN_PROMPT = 25
 MAX_RECOMMENDED_ACTIONS = 3
 
 
-def _content_hash(signals: list, opportunities: list, capabilities: list, profile: dict) -> str:
+def _content_hash(
+    signals: list, opportunities: list, capabilities: list, profile: dict, executives: Optional[list] = None
+) -> str:
     """Stable hash of a snapshot's comparable content.
 
     sort_keys makes it independent of dict ordering, and the collections
     are sorted so that the same intelligence arriving in a different order
     hashes identically - otherwise every run would look changed.
+
+    `executives` defaults to None and is omitted from the payload entirely
+    when absent, so snapshots taken before V3 Enhancements Phase 4 keep
+    hashing to the same value they did. Including an empty list instead
+    would change every historical hash and make the first post-upgrade
+    refresh of every company report as changed.
     """
-    payload = json.dumps(
-        {
-            "signals": sorted(
-                [f"{item.get('type')}|{item.get('title')}" for item in signals]
-            ),
-            "opportunities": sorted(
-                [f"{item.get('title')}|{item.get('confidence_score')}" for item in opportunities]
-            ),
-            "capabilities": sorted(capabilities),
-            "profile": profile,
-        },
-        sort_keys=True,
-    )
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    payload = {
+        "signals": sorted(
+            [f"{item.get('type')}|{item.get('title')}" for item in signals]
+        ),
+        "opportunities": sorted(
+            [f"{item.get('title')}|{item.get('confidence_score')}" for item in opportunities]
+        ),
+        "capabilities": sorted(capabilities),
+        "profile": profile,
+    }
+    if executives is not None:
+        payload["executives"] = sorted(
+            [f"{item.get('name')}|{item.get('title')}" for item in executives]
+        )
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
 
 
-def build_snapshot_content(company, signals: list, opportunities: list, capability_matches: list) -> dict:
+def build_snapshot_content(
+    company,
+    signals: list,
+    opportunities: list,
+    capability_matches: list,
+    executives: Optional[list] = None,
+) -> dict:
     """Shapes the live objects into the snapshot's stored form.
 
     Kept separate from persistence so it can be unit-tested without a
     database, and so a caller that already has these objects loaded (the
     pipeline stage does) never has to re-query for them.
+
+    `executives` defaults to None rather than an empty list, and that
+    distinction is carried all the way to the stored column: None means
+    "this run did not look", [] means "this run looked and found nobody".
+    Only the second is safe to diff against - see
+    change_detection._detect_executive_changes.
     """
     signal_payload = [
         {
@@ -118,11 +139,20 @@ def build_snapshot_content(company, signals: list, opportunities: list, capabili
         "website": getattr(company, "website", None),
         "monitoring_status": getattr(company, "monitoring_status", None),
     }
+    executive_payload = (
+        None
+        if executives is None
+        else [
+            {"name": getattr(executive, "name", None), "title": getattr(executive, "title", None)}
+            for executive in executives
+        ]
+    )
     return {
         "signals": signal_payload,
         "opportunities": opportunity_payload,
         "capabilities": capability_payload,
         "profile": profile_payload,
+        "executives": executive_payload,
     }
 
 
@@ -180,6 +210,7 @@ async def refresh_company(
     signals: list,
     opportunities: list,
     capability_matches: list,
+    executives: Optional[list] = None,
     research_session_id: Optional[str] = None,
 ) -> dict:
     """Captures a snapshot, diffs it against the previous one, and returns
@@ -190,7 +221,7 @@ async def refresh_company(
     otherwise return the row we just inserted and every company would
     appear to have changed nothing.
     """
-    content = build_snapshot_content(company, signals, opportunities, capability_matches)
+    content = build_snapshot_content(company, signals, opportunities, capability_matches, executives)
     previous = await repository.get_latest_snapshot(company.id)
 
     snapshot = CompanySnapshot(
@@ -198,12 +229,17 @@ async def refresh_company(
         company_id=company.id,
         research_session_id=research_session_id,
         content_hash=_content_hash(
-            content["signals"], content["opportunities"], content["capabilities"], content["profile"]
+            content["signals"],
+            content["opportunities"],
+            content["capabilities"],
+            content["profile"],
+            content["executives"],
         ),
         signals=content["signals"],
         opportunities=content["opportunities"],
         capabilities=content["capabilities"],
         profile=content["profile"],
+        executives=content["executives"],
         signal_count=len(content["signals"]),
         opportunity_count=len(content["opportunities"]),
     )

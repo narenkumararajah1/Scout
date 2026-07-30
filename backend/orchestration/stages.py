@@ -269,6 +269,12 @@ class CompanyRefreshStage(PipelineStage):
                 signals=signals,
                 opportunities=context.opportunities,
                 capability_matches=context.capability_matches,
+                # Set by ExecutivePersistenceStage, which runs just before
+                # this one. Stays None if that stage failed or found no
+                # research to work from, which the snapshot records as
+                # "did not look" rather than "found nobody" - see
+                # PipelineContext.persisted_executives.
+                executives=context.persisted_executives,
                 research_session_id=(
                     context.research_session.id if context.research_session is not None else None
                 ),
@@ -280,6 +286,84 @@ class CompanyRefreshStage(PipelineStage):
                 context.company.name,
                 context.company.id,
             )
+
+
+class ExecutivePersistenceStage(PipelineStage):
+    """Persists the people found during research (V3 Enhancements Phase 4 -
+    06_LINKEDIN_INTELLIGENCE.md, roadmap Phase 4).
+
+    **This stage exists because Scout knew nobody.** Knowledge Extraction
+    has always returned executives, and `persist_extracted_entities()` has
+    always been able to store them, but nothing connected the two: the
+    extracted executives were counted in ComparisonReport.as_text() and
+    then dropped. Five analysed companies in the dev database had zero
+    executive rows. Phase 4's success criterion is recommending "the
+    strongest path into the organization", which is unreachable while
+    Scout has no people to rank - so this is the phase's foundation, not
+    an incidental fix.
+
+    **Runs in every mode, for the same reason CompanyRefreshStage does.**
+    Legacy is the default, so a stage that opted out of it would deliver
+    nothing in the configuration the product actually ships with. That
+    creates one wrinkle: KnowledgeExtractionStage is disabled in legacy,
+    so in legacy there is no context.extracted_entities to persist. Rather
+    than enable that stage in legacy - which would change what legacy mode
+    computes, and legacy's whole contract is being byte-identical to
+    pre-Phase-4B behaviour - this stage extracts on its own when it has to
+    and reuses the existing result when one is already there. The cost is
+    one extraction call per analysis in legacy mode, and none at all in
+    the other three.
+
+    Ordered after ReportingStage: it reads the run's research output and
+    writes only executives/technologies/business_initiatives, so it cannot
+    alter what the legacy stages produced.
+
+    Best-effort, like CompanyRefreshStage. By this point the report exists
+    and the analysis has succeeded; losing the people is a much smaller
+    harm than failing a run that otherwise worked.
+    """
+
+    name = "executive_persistence"
+
+    async def run(self, context: PipelineContext) -> None:
+        from backend.services.company_intelligence_service import persist_extracted_entities
+
+        try:
+            extracted = context.extracted_entities
+            if extracted is None:
+                extracted = await self._extract(context)
+            if extracted is None:
+                return
+
+            start = time.perf_counter()
+            _, _, executives = await persist_extracted_entities(context.company.id, extracted)
+            context.metrics[self.name].execution_time_seconds = time.perf_counter() - start
+            context.persisted_executives = executives
+        except Exception:
+            logger.exception(
+                "Executive persistence failed for %s (%s); the analysis result is unaffected.",
+                context.company.name,
+                context.company.id,
+            )
+
+    async def _extract(self, context: PipelineContext):
+        """Legacy-mode fallback: KnowledgeExtractionStage did not run."""
+        from backend.ai.knowledge_extraction import extract_entities
+
+        research_summary = (
+            context.research_session.research_summary if context.research_session is not None else ""
+        ) or ""
+        if not research_summary:
+            return None
+
+        start = time.perf_counter()
+        result = await asyncio.to_thread(extract_entities, research_summary, context.company.name)
+        context.metrics[self.name].extraction_latency_seconds = time.perf_counter() - start
+
+        tokens = estimate_tokens(research_summary, str(result))
+        context.metrics[self.name].token_usage = tokens
+        context.metrics[self.name].estimated_cost_usd = estimate_cost_usd(tokens)
+        return result
 
 
 class ComparisonReportStage(PipelineStage):

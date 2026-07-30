@@ -39,6 +39,7 @@ from backend.orchestration.stages import (
     ComparisonReportStage,
     ConfidenceScoringStage,
     EvidenceStage,
+    ExecutivePersistenceStage,
     KnowledgeExtractionStage,
     KnowledgeFusionStage,
     OpportunityAnalysisStage,
@@ -76,6 +77,12 @@ def _build_pipeline() -> Pipeline:
             # and writes only its own snapshot table, so the report is
             # already generated and persisted before it runs (V3
             # Enhancements Phase 2).
+            #
+            # Executive persistence goes *before* the refresh stage on
+            # purpose: the snapshot captures the executives this run found,
+            # so movement tracking only works if they are already written
+            # (V3 Enhancements Phase 4).
+            ExecutivePersistenceStage(),
             CompanyRefreshStage(),
             ComparisonReportStage(),
         ]

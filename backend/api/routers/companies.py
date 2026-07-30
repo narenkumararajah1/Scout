@@ -16,18 +16,21 @@ backend/routers/companies.py, so this router and V2's (mounted at the
 unversioned /companies prefix) never collide.
 """
 
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Query
 
 from backend.api.dependencies import get_current_user
 from backend.api.error_handlers import APIError
 from backend.database.models import User
+from backend.repositories.postgres.executive_repository import list_executives_for_company
 from backend.repositories.research_repository import list_research_sessions
 from backend.schemas.company_intelligence import CompanyIntelligenceResponse
 from backend.schemas.company_relationship import CompanyRelationshipOut, CreateCompanyRelationshipRequest
 from backend.schemas.company_snapshot import CompanySnapshotOut, RefreshSummaryResponse
 from backend.schemas.company_view import CompanyVisitChangesResponse
 from backend.schemas.sales_coach import SalesCoachRecommendation
-from backend.services import company_relationship_service, company_service
+from backend.services import company_relationship_service, company_service, executive_relationship_service
 from backend.services.ai_sales_coach_service import what_would_you_do
 from backend.services.company_intelligence_service import build_company_intelligence_profile
 from backend.services.company_refresh_service import get_latest_refresh_summary, list_snapshot_history
@@ -180,3 +183,33 @@ async def delete_company_relationship(
         await company_relationship_service.remove_relationship(company_id, relationship_id)
     except ValueError as exc:
         raise APIError(404, str(exc)) from exc
+
+
+@router.get("/{company_id}/executives")
+async def get_company_executives(
+    company_id: str,
+    focus: Optional[list] = Query(None, description="Functional areas this ranking should favour."),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """The people Scout knows at this company, grouped and ranked.
+
+    One endpoint rather than three, because the org map and the path
+    ranking are two orderings of the same executives - splitting them
+    would make a page fetch the same rows twice and risk the two views
+    disagreeing (V3 Enhancements Phase 4).
+
+    `focus` biases the ranking toward the functional areas an opportunity
+    is about. Omitted, the ranking falls back to seniority alone, which is
+    the right default for "who runs this company" rather than "who do I
+    call about this deal".
+    """
+    try:
+        company = company_service.get_company(company_id)
+    except ValueError as exc:
+        raise APIError(404, str(exc)) from exc
+
+    executives = await list_executives_for_company(company_id)
+    data = executive_relationship_service.build_executive_overview(
+        executives, company.name, focus_departments=focus
+    )
+    return {"success": True, "message": "Executives retrieved successfully.", "data": data}
