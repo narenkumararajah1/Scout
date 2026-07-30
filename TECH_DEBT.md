@@ -619,6 +619,60 @@ the Sales Playbook page, but Meeting Brief and Outreach Draft pages do not
 show what grounded them, and there is no "sources" affordance equivalent to
 Ask Scout's citations. That is the phase's user-facing payoff.
 
+## docs/v3-enhancements/ - Phase 4B (Relationship Intelligence UI)
+
+Phase 4A made Scout know people. Phase 4B is where a user sees them, and
+where roadmap Phase 4's success criterion actually lands: the Key People
+card leads with the *ranking* and its reasons, not the roster.
+
+**The card replaces a surface rather than adding one.** Company Details
+already listed executives, as bare "Name - Title" strings inside the
+Company Intelligence card. Keeping both would have shown the same people
+twice on one page, the second time with strictly less information - the
+identical mistake Phase 3B caught with `why_innominds.relevant_experience`.
+That section is gone and a comment in `CompanyDetailsPage.tsx` says why,
+so it does not get restored by someone who assumes it was dropped by
+accident.
+
+**Two views, never both at once.** "Who do I approach first" (ranked, the
+default) and "who else is there" (grouped by function) answer different
+questions about the same people. Showing them simultaneously reads as
+duplication rather than as two lenses, so they are tabs.
+
+**Every claim is labelled for what it is**, per
+06_LINKEDIN_INTELLIGENCE.md's requirement that limitations be indicated
+rather than papered over. Seniority and department carry an "inferred
+from job titles" caveat; the org view carries a stronger one, because
+grouping by function invites the reader to see a reporting hierarchy that
+no source Scout has actually states. LinkedIn links read "Find on
+LinkedIn" rather than "LinkedIn profile" whenever they are a constructed
+search - which today is all of them - since calling a search a profile
+would claim Scout matched the person to an account.
+
+One caveat wording bug was caught in the browser and fixed: the org view
+rendered both its own caveat and the generic inferred-fields one,
+stacking two sentences that said the same thing. The generic one is now
+paths-view only.
+
+**Verified in the browser against real data**, not fixtures: NVIDIA's
+three Phase 4A executives render with correct tiers and departments
+(Bill Dally C-Suite / Data & AI, Michael Kagan C-Suite / Technology,
+Jensen Huang Founder / General Management), both tabs switch, the
+Company Intelligence card's section list is now Technologies / Business
+Initiatives / Recent Signals / Glean Knowledge with no Executives entry,
+and a never-analysed company renders the empty state with a working "Run
+analysis" button. Zero console errors; `tsc`, `eslint` and `npm run
+build` clean.
+
+**Remaining after this phase:** `generate_executive_profile()` is still
+uncalled, so the richer per-person fields (`biography`,
+`responsibilities`, `business_priorities`, `technology_focus`) are NULL
+and nothing renders them - the card shows what titles support and no
+more. Wiring it means N model calls per analysis, so it wants to be an
+on-demand action. Executive movement changes reach the UI already, via
+the Phase 2B refresh summary that renders any `leadership`-category
+change, so no separate surface was built for them.
+
 ## docs/v3-enhancements/ - Phase 4A (Relationship Intelligence, backend)
 
 Roadmap Phase 4's success criterion is that Scout "recommends not only

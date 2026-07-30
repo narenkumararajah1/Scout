@@ -10,6 +10,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { GenerationStatus } from "../components/ui/GenerationStatus";
 import { IntelligenceTimeline } from "../components/ui/IntelligenceTimeline";
+import { KeyPeople } from "../components/ui/KeyPeople";
 import { LoadingState } from "../components/ui/LoadingState";
 import { RefreshSummaryCard } from "../components/ui/RefreshSummaryCard";
 import { ToastContainer } from "../components/ui/Toast";
@@ -20,6 +21,7 @@ import { useCompanies } from "../hooks/useCompanies";
 import { useCompany } from "../hooks/useCompany";
 import { useConfirm } from "../hooks/useConfirm";
 import { useCompanyIntelligence } from "../hooks/useCompanyIntelligence";
+import { useCompanyExecutives } from "../hooks/useCompanyExecutives";
 import { useCompanyRelationships } from "../hooks/useCompanyRelationships";
 import { useCompanySnapshots } from "../hooks/useCompanySnapshots";
 import { useCompanyTrends } from "../hooks/useCompanyTrends";
@@ -85,6 +87,7 @@ export function CompanyDetailsPage() {
   const snapshotsQuery = useCompanySnapshots(companyId);
   const salesCoach = useSalesCoach(companyId);
   const relationshipsQuery = useCompanyRelationships(companyId);
+  const executivesQuery = useCompanyExecutives(companyId);
   const allCompaniesQuery = useCompanies();
   const addRelationship = useAddCompanyRelationship(companyId);
   const removeRelationship = useRemoveCompanyRelationship(companyId);
@@ -470,6 +473,18 @@ export function CompanyDetailsPage() {
         </dl>
       </Card>
 
+      {/* Above Company Intelligence, because "who do I call and why" is a
+          more actionable answer than the technology and initiative lists
+          below it (V3 Enhancements Phase 4B). */}
+      <KeyPeople
+        overview={executivesQuery.data}
+        isLoading={executivesQuery.isLoading}
+        error={executivesQuery.isError ? executivesQuery.error : undefined}
+        errorMessage={executivesQuery.error ? getErrorMessage(executivesQuery.error) : undefined}
+        onRunAnalysis={handleRunAnalysis}
+        isRunning={analyzeCompany.isPending}
+      />
+
       <Card title="Company Intelligence">
         {intelligenceQuery.isLoading ? (
           <LoadingState message="Loading intelligence..." />
@@ -508,21 +523,12 @@ export function CompanyDetailsPage() {
               )}
             </section>
 
-            <section>
-              <h3>Executives</h3>
-              {intelligence.executives.length === 0 ? (
-                <EmptyState message="No executives identified yet." />
-              ) : (
-                <ul>
-                  {intelligence.executives.map((executive) => (
-                    <li key={executive.id}>
-                      {executive.name}
-                      {executive.title ? ` - ${executive.title}` : ""}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
+            {/* Executives deliberately do NOT appear here. They used to,
+                as bare "Name - Title" strings, which is the roster the
+                Key People card above replaces with a ranked path in and
+                a functional org map. Keeping both would show the same
+                people twice on one page, the second time with less
+                information (V3 Enhancements Phase 4B). */}
 
             <section>
               <h3>Recent Signals</h3>

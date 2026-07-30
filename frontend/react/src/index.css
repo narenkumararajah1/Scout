@@ -2258,6 +2258,142 @@ a {
   white-space: pre-wrap;
 }
 
+/* Key People - the ranked path into an organisation and the functional
+   org map (V3 Enhancements Phase 4B) */
+.key-people-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.key-people-tabs {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.key-people-tabs button {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+}
+
+.key-people-tabs button.is-active {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+}
+
+.key-people-paths {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* Numbering is suppressed rather than shown: the order already reads as
+     a ranking, and a hard "1." on an inferred, tied-score list overstates
+     how precisely these are separated. */
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  counter-reset: none;
+}
+
+.key-person {
+  padding: 0.7rem 0.85rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  border-left: 3px solid #c7d2fe;
+}
+
+.key-person-identity {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.key-person-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.key-person-title {
+  color: #4b5563;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.key-person-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
+.key-person-reasons {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.key-person-reasons li {
+  color: #374151;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.key-person-linkedin {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #4338ca;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.key-person-linkedin:hover {
+  text-decoration: underline;
+}
+
+.key-people-org {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.key-people-org h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.key-people-org ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.key-people-caveat {
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin: 0.75rem 0 0;
+}
+
 @media (max-width: 768px) {
   /* The top bar itself stays reachable the same way the desktop
      sidebar does, just via position: sticky instead of the desktop's
@@ -2366,5 +2502,11 @@ a {
      readable without the values wrapping mid-word. */
   .knowledge-document-meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* margin-left: auto pushes the badges off the right edge once the name
+     and title have wrapped, so on a phone they start a new line instead. */
+  .key-person-badges {
+    margin-left: 0;
   }
 }

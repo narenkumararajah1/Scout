@@ -10,6 +10,7 @@ import type { Company, CreateCompanyInput } from "../types/company";
 import type { CompanyIntelligence } from "../types/companyIntelligence";
 import type { CompanyRelationship, CreateCompanyRelationshipInput } from "../types/companyRelationship";
 import type { CompanyVisitChanges } from "../types/companyView";
+import type { ExecutiveOverview } from "../types/executive";
 import type { CompanySnapshot, RefreshSummary } from "../types/refreshSummary";
 import type { Report } from "../types/report";
 import type { SalesCoachRecommendation } from "../types/salesCoach";
@@ -59,6 +60,14 @@ export const companyService = {
   // render rather than an error.
   async getRefreshSummary(companyId: string): Promise<RefreshSummary | null> {
     return apiRequestData<RefreshSummary | null>(`/api/v1/companies/${companyId}/refresh-summary`);
+  },
+
+  // One request returns the flat list, the org map and the ranked paths,
+  // because they are three orderings of the same executives - fetching
+  // them separately would let two views of one person disagree (V3
+  // Enhancements Phase 4B).
+  async getExecutives(companyId: string): Promise<ExecutiveOverview> {
+    return apiRequestData<ExecutiveOverview>(`/api/v1/companies/${companyId}/executives`);
   },
 
   async listSnapshots(companyId: string, limit = 20): Promise<CompanySnapshot[]> {
