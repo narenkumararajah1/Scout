@@ -4,11 +4,15 @@ backend work. Confirms it reuses Phase 5's company_intelligence_service
 unchanged and never collides with V2's existing /companies/* routes.
 """
 
-from backend.database.models import Executive, Technology
+import uuid
+from datetime import datetime, timedelta, timezone
+
+from backend.database.models import CompanySnapshot, Executive, Technology
 from backend.database.models import Company as PostgresCompany
 from backend.models.company import Company as SqliteCompany
 from backend.repositories.company_repository import create_company as create_sqlite_company
 from backend.repositories.postgres.company_repository import create_company as create_postgres_company
+from backend.repositories.postgres.company_snapshot_repository import create_snapshot
 from backend.repositories.postgres.executive_repository import create_executive
 from backend.repositories.postgres.technology_repository import upsert_technology
 from backend.services.auth_service import create_access_token, hash_password
@@ -418,6 +422,84 @@ async def test_executives_returns_404_for_an_unknown_company(client, postgres_av
     headers = await _auth_headers("execs-test-4@example.com")
 
     response = client.get("/api/v1/companies/does-not-exist/executives", headers=headers)
+
+    assert response.status_code == 404
+    assert response.json()["success"] is False
+
+
+# --- GET /{company_id}/visual-trends (V3 Enhancements Phase 5) ----------
+
+
+async def test_visual_trends_returns_captures_and_technology_breakdown(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("trends-test-1@example.com")
+
+    company = create_sqlite_company(SqliteCompany(name="Chart Corp"))
+    await create_postgres_company(PostgresCompany(id=company.id, name="Chart Corp"))
+    now = datetime.now(timezone.utc)
+    for offset, signals in ((1, [{"type": "hiring", "title": "a"}]), (0, [{"type": "leadership", "title": "b"}])):
+        await create_snapshot(
+            CompanySnapshot(
+                id=str(uuid.uuid4()),
+                company_id=company.id,
+                captured_at=now - timedelta(days=offset),
+                content_hash=str(uuid.uuid4()),
+                signals=signals,
+                opportunities=[],
+                capabilities=[],
+                profile={},
+            )
+        )
+    await upsert_technology(
+        Technology(id=str(uuid.uuid4()), company_id=company.id, name="EKS", category="Cloud")
+    )
+    await reset_postgres_engine()
+
+    response = client.get(f"/api/v1/companies/{company.id}/visual-trends", headers=headers)
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["capture_count"] == 2
+    assert data["has_history"] is True
+    assert [c["hiring"] for c in data["captures"]] == [1, 0]
+    assert [c["leadership"] for c in data["captures"]] == [0, 1]
+    assert data["technology_categories"] == [{"category": "Cloud", "count": 1}]
+
+
+async def test_visual_trends_reports_no_history_for_a_single_capture(client, postgres_available):
+    # The honest-degradation case: a chart must not draw a trend line
+    # through one point.
+    clear_v2_tables()
+    headers = await _auth_headers("trends-test-2@example.com")
+
+    company = create_sqlite_company(SqliteCompany(name="One Run Corp"))
+    await create_postgres_company(PostgresCompany(id=company.id, name="One Run Corp"))
+    await create_snapshot(
+        CompanySnapshot(
+            id=str(uuid.uuid4()),
+            company_id=company.id,
+            captured_at=datetime.now(timezone.utc),
+            content_hash=str(uuid.uuid4()),
+            signals=[],
+            opportunities=[],
+            capabilities=[],
+            profile={},
+        )
+    )
+    await reset_postgres_engine()
+
+    response = client.get(f"/api/v1/companies/{company.id}/visual-trends", headers=headers)
+
+    data = response.json()["data"]
+    assert data["capture_count"] == 1
+    assert data["has_history"] is False
+
+
+async def test_visual_trends_returns_404_for_an_unknown_company(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("trends-test-3@example.com")
+
+    response = client.get("/api/v1/companies/does-not-exist/visual-trends", headers=headers)
 
     assert response.status_code == 404
     assert response.json()["success"] is False

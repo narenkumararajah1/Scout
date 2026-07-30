@@ -1070,6 +1070,16 @@ a {
   margin-top: 0.75rem;
 }
 
+/* Sits directly under a chart-section-title, so it needs no top margin
+   of its own - the title already provides the separation (V3
+   Enhancements Phase 5). */
+.chart-section-hint {
+  margin: 0 0 0.6rem;
+  color: #6b7280;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
 .intelligence-timeline {
   list-style: none;
   margin: 0;

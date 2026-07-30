@@ -619,6 +619,74 @@ the Sales Playbook page, but Meeting Brief and Outreach Draft pages do not
 show what grounded them, and there is no "sources" affordance equivalent to
 Ask Scout's citations. That is the phase's user-facing payoff.
 
+## docs/v3-enhancements/ - Phase 5 (Visual Intelligence)
+
+**Half of this phase was already built - by the previous roadmap.**
+`recharts` was already a dependency and `CategoryBarChart`,
+`OpportunityScoreChart` and `OpportunityTrendChart` already existed. So
+the work here was not "add charts", it was finding the deliverables that
+genuinely had no visualisation: hiring trends, executive movement and
+growth indicators.
+
+**The data was already there too.** Phase 2A has written a
+`company_snapshots` row per analysis run since it shipped, and Phase 4A
+added executives to it. That is a real time series - signals by type,
+opportunity/capability/executive counts, change volume, per capture - and
+nothing read it. `Signal.type` has carried
+`hiring`/`leadership`/`technology`/`strategic` since V2, which means the
+roadmap's hiring-trend and executive-movement charts needed **no new
+collection whatsoever**, only something to plot what had been
+accumulating.
+
+`backend/services/visual_intelligence_service.py` is that reader: pure
+re-counting of persisted rows, no AI call, no new table, no migration. It
+is a separate module rather than an addition to `analytics_service.py`
+because that one is V2's synchronous SQLite aggregation - folding async
+Postgres reads in would have meant converting it and every existing
+caller, a rewrite of working code to accommodate an addition.
+
+**Scoped out explicitly, not overlooked.** 09_VISUAL_INTELLIGENCE.md also
+asks for revenue, employee count, global presence, AI maturity and cloud
+maturity charts, plus geographic maps. Scout stores none of that - no
+revenue field, no headcount, no coordinates - so building those would
+have meant charting invented numbers. They are not deferred pending
+effort; they are blocked on data Scout does not collect.
+
+**Honest degradation is enforced in the backend, not per chart.**
+`has_history` is False below two captures and every surface reads it, so
+two charts on one page can never disagree about whether a trend exists. A
+line through one point invites a reader to see direction the data does
+not contain.
+
+**None survives all the way to the pixel.** A snapshot captured before
+Phase 4A has a NULL executive count, and `connectNulls={false}` renders
+that as a gap - verified live on NVIDIA, whose People series is a single
+dot at the one post-Phase-4A run rather than a line rising from zero. A
+zero there would have described when Scout started looking, not anything
+the company did.
+
+**One bug found in the browser and fixed:** the X axis read "Jul 29"
+three times, because three of NVIDIA's four captures share a date - which
+is the normal case for a scheduled refresh, not an artefact of testing.
+`utils/visualTrends.ts::captureLabels` now appends the time only to dates
+that actually repeat. It lives in a shared util rather than in either
+chart because both plot the same captures on the same axis, and
+independent formatting would let two stacked charts label one analysis
+run differently.
+
+**Suite: 830 passed, 0 failed, 0 skipped** against real Postgres (from
+812), 18 new tests. `tsc`, `eslint` and `npm run build` clean, no console
+errors. Verified in the browser across all three real states: NVIDIA (4
+captures, full trends), Hertz (1 capture, both new charts correctly
+showing "not enough history" while the differently-sourced opportunity
+chart still renders), and a company with no technologies showing that
+empty state.
+
+**Remaining:** the roadmap's "Comparative Intelligence" (company vs
+company) and "Interactive Exploration" (drill-down from a chart to its
+underlying evidence) are unbuilt. Neither is blocked on data - both are
+scope this phase did not take on.
+
 ## docs/v3-enhancements/ - Phase 4B (Relationship Intelligence UI)
 
 Phase 4A made Scout know people. Phase 4B is where a user sees them, and

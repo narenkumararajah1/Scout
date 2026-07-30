@@ -11,6 +11,7 @@ import type { CompanyIntelligence } from "../types/companyIntelligence";
 import type { CompanyRelationship, CreateCompanyRelationshipInput } from "../types/companyRelationship";
 import type { CompanyVisitChanges } from "../types/companyView";
 import type { ExecutiveOverview } from "../types/executive";
+import type { CompanyVisualTrends } from "../types/visualTrends";
 import type { CompanySnapshot, RefreshSummary } from "../types/refreshSummary";
 import type { Report } from "../types/report";
 import type { SalesCoachRecommendation } from "../types/salesCoach";
@@ -68,6 +69,13 @@ export const companyService = {
   // Enhancements Phase 4B).
   async getExecutives(companyId: string): Promise<ExecutiveOverview> {
     return apiRequestData<ExecutiveOverview>(`/api/v1/companies/${companyId}/executives`);
+  },
+
+  // The company's intelligence history shaped for charts. One request
+  // feeds every visualisation on the page, so two charts can never
+  // disagree about the same analysis run (V3 Enhancements Phase 5).
+  async getVisualTrends(companyId: string): Promise<CompanyVisualTrends> {
+    return apiRequestData<CompanyVisualTrends>(`/api/v1/companies/${companyId}/visual-trends`);
   },
 
   async listSnapshots(companyId: string, limit = 20): Promise<CompanySnapshot[]> {

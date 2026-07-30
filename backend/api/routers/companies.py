@@ -35,6 +35,7 @@ from backend.services.ai_sales_coach_service import what_would_you_do
 from backend.services.company_intelligence_service import build_company_intelligence_profile
 from backend.services.company_refresh_service import get_latest_refresh_summary, list_snapshot_history
 from backend.services.company_view_service import get_changes_since_last_visit
+from backend.services.visual_intelligence_service import company_visual_trends
 
 router = APIRouter(prefix="/api/v1/companies", tags=["companies"])
 
@@ -213,3 +214,24 @@ async def get_company_executives(
         executives, company.name, focus_departments=focus
     )
     return {"success": True, "message": "Executives retrieved successfully.", "data": data}
+
+
+@router.get("/{company_id}/visual-trends")
+async def get_company_visual_trends(
+    company_id: str,
+    limit: Optional[int] = Query(None, ge=1, le=200, description="Most recent captures to include."),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """The company's intelligence history, shaped for visualisation.
+
+    One endpoint for every chart on the page: the per-capture time series
+    and the technology breakdown come from the same read, so two charts
+    can never disagree about the same run (V3 Enhancements Phase 5).
+    """
+    try:
+        company_service.get_company(company_id)
+    except ValueError as exc:
+        raise APIError(404, str(exc)) from exc
+
+    data = await company_visual_trends(company_id, limit=limit)
+    return {"success": True, "message": "Visual trends retrieved successfully.", "data": data}

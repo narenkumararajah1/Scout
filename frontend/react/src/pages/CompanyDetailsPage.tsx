@@ -4,7 +4,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { BulletList } from "../components/ui/BulletList";
 import { Card } from "../components/ui/Card";
+import { CategoryBarChart } from "../components/charts/CategoryBarChart";
+import { IntelligenceVolumeChart } from "../components/charts/IntelligenceVolumeChart";
 import { OpportunityTrendChart } from "../components/charts/OpportunityTrendChart";
+import { SignalCategoryTrendChart } from "../components/charts/SignalCategoryTrendChart";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
@@ -22,6 +25,7 @@ import { useCompany } from "../hooks/useCompany";
 import { useConfirm } from "../hooks/useConfirm";
 import { useCompanyIntelligence } from "../hooks/useCompanyIntelligence";
 import { useCompanyExecutives } from "../hooks/useCompanyExecutives";
+import { useCompanyVisualTrends } from "../hooks/useCompanyVisualTrends";
 import { useCompanyRelationships } from "../hooks/useCompanyRelationships";
 import { useCompanySnapshots } from "../hooks/useCompanySnapshots";
 import { useCompanyTrends } from "../hooks/useCompanyTrends";
@@ -88,6 +92,7 @@ export function CompanyDetailsPage() {
   const salesCoach = useSalesCoach(companyId);
   const relationshipsQuery = useCompanyRelationships(companyId);
   const executivesQuery = useCompanyExecutives(companyId);
+  const visualTrendsQuery = useCompanyVisualTrends(companyId);
   const allCompaniesQuery = useCompanies();
   const addRelationship = useAddCompanyRelationship(companyId);
   const removeRelationship = useRemoveCompanyRelationship(companyId);
@@ -322,6 +327,7 @@ export function CompanyDetailsPage() {
   const intelligence = intelligenceQuery.data;
 
   const trends = trendsQuery.data;
+  const visualTrends = visualTrendsQuery.data;
 
   // One timeline entry per analysis run, built from the Company Refresh
   // Engine's snapshots (V3 Enhancements Phase 2B). This replaced
@@ -584,6 +590,33 @@ export function CompanyDetailsPage() {
             </dl>
             <h4 className="chart-section-title">Opportunity Trends</h4>
             <OpportunityTrendChart data={trends.opportunity_history} />
+
+            {/* Three charts, three different questions, all from the
+                snapshot history Phases 2A and 4A have been accumulating:
+                how much Scout knows, what kind of activity is moving, and
+                what the company runs on (V3 Enhancements Phase 5). */}
+            <h4 className="chart-section-title">Intelligence Volume</h4>
+            <IntelligenceVolumeChart
+              captures={visualTrends?.captures ?? []}
+              hasHistory={Boolean(visualTrends?.has_history)}
+            />
+
+            <h4 className="chart-section-title">Signal Activity</h4>
+            <p className="chart-section-hint">
+              Hiring, leadership, technology and strategic signals per analysis run - a rise in hiring or
+              leadership activity often precedes a buying decision.
+            </p>
+            <SignalCategoryTrendChart
+              captures={visualTrends?.captures ?? []}
+              hasHistory={Boolean(visualTrends?.has_history)}
+            />
+
+            <h4 className="chart-section-title">Technology Adoption</h4>
+            <CategoryBarChart
+              data={visualTrends?.technology_categories ?? []}
+              emptyMessage="No technologies detected yet."
+            />
+
             <h4 className="chart-section-title">Refresh history</h4>
             <IntelligenceTimeline
               events={refreshTimeline}
