@@ -15,6 +15,7 @@ import { BulletList } from "../components/ui/BulletList";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
+import { GroundedIn } from "../components/ui/GroundedIn";
 import { LoadingState } from "../components/ui/LoadingState";
 import { ProseSection } from "../components/ui/ProseSection";
 import { ToastContainer } from "../components/ui/Toast";
@@ -184,6 +185,11 @@ export function MeetingBriefDetailPage() {
           <Link to={`/companies/${brief.company_id}`}>View Company</Link>
         </div>
       </Card>
+
+      {/* Placed just before the feedback control on purpose: a reviewer
+          deciding whether this brief is any good is exactly who wants to
+          see what it was built from (V3 Enhancements Phase 3B). */}
+      <GroundedIn items={brief.grounded_in} />
 
       <AIFeedback targetType="meeting_brief" targetId={brief.id} companyId={brief.company_id} />
     </div>

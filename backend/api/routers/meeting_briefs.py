@@ -18,12 +18,14 @@ from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from pydantic import BaseModel, Field
 
+from backend.ai.evidence_manager import get_evidence_for_entity
 from backend.api.dependencies import get_current_user
 from backend.api.error_handlers import APIError
 from backend.database.models import User
 from backend.repositories.postgres.meeting_brief_repository import get_meeting_brief, list_meeting_briefs_for_company
 from backend.repositories.research_repository import list_research_sessions
 from backend.schemas.generation_job import GenerationJobOut
+from backend.schemas.grounded_in import build_grounded_in
 from backend.schemas.meeting_brief import MeetingBriefOut
 from backend.services import company_service
 from backend.services.generation_job_service import create_job, execute_job, reject_if_duplicate
@@ -53,6 +55,11 @@ async def get_meeting_brief_detail(brief_id: str, current_user: User = Depends(g
         raise APIError(404, f"Meeting brief {brief_id} does not exist.")
 
     data = MeetingBriefOut.model_validate(brief).model_dump()
+    # The Innominds knowledge that was available when this brief was
+    # generated (V3 Enhancements Phase 3B). Attached here rather than served
+    # from a separate evidence endpoint, matching how the Sales Playbook
+    # detail response already attaches why_innominds.
+    data["grounded_in"] = build_grounded_in(await get_evidence_for_entity("meeting_brief", brief.id))
     return {"success": True, "message": "Meeting brief retrieved successfully.", "data": data}
 
 

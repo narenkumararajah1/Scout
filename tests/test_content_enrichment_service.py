@@ -190,3 +190,25 @@ def test_the_grounding_instruction_forbids_inventing_references():
 
     assert "Do not invent" in instruction
     assert "case studies" in instruction
+
+
+def test_both_retrievals_happen_on_one_thread():
+    # Regression: this originally ran the two passes as parallel
+    # asyncio.to_thread calls. ChromaDB's client is lru_cached and backed by
+    # SQLite, so two worker threads querying it at once raises "Incorrect
+    # number of bindings supplied" and retrieval degrades silently to empty.
+    # It was intermittent - fine in one run, empty in the next - and was
+    # caught only by generating a real artifact against the live server.
+    import threading
+
+    seen_threads = []
+
+    def record(*args, **kwargs):
+        seen_threads.append(threading.current_thread().name)
+        return []
+
+    with patch.object(service, "retrieve_knowledge", side_effect=record):
+        _enrich(industry="Healthcare")
+
+    assert len(seen_threads) == 2
+    assert seen_threads[0] == seen_threads[1], "both retrievals must share one thread"

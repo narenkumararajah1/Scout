@@ -1,5 +1,7 @@
 // Mirrors backend/schemas/meeting_brief.py's MeetingBriefOut exactly.
 
+import type { GroundedInItem } from "./groundedIn";
+
 export interface ExecutiveProfile {
   name: string;
   title: string | null;
@@ -22,4 +24,7 @@ export interface MeetingBrief {
   related_opportunities: string[];
   confidence_score: number | null;
   created_at: string;
+  // Only present on the detail response, not in list results (V3
+  // Enhancements Phase 3B).
+  grounded_in?: GroundedInItem[];
 }

@@ -26,6 +26,7 @@ from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from pydantic import BaseModel, Field
 
+from backend.ai.evidence_manager import get_evidence_for_entity
 from backend.api.dependencies import get_current_user
 from backend.api.error_handlers import APIError
 from backend.database.models import User
@@ -39,6 +40,7 @@ from backend.repositories.postgres.outreach_draft_repository import (
 )
 from backend.repositories.report_repository import list_reports
 from backend.schemas.generation_job import GenerationJobOut
+from backend.schemas.grounded_in import build_grounded_in
 from backend.schemas.outreach_draft import OutreachDraftOut
 from backend.services import company_service
 from backend.services.generation_job_service import create_job, execute_job, reject_if_duplicate
@@ -87,6 +89,10 @@ async def get_outreach_draft_detail(draft_id: str, current_user: User = Depends(
         raise APIError(404, f"Outreach draft {draft_id} does not exist.")
 
     data = OutreachDraftOut.model_validate(draft).model_dump()
+    # Matters most on this artifact: a reviewer is about to decide whether
+    # to send this to a customer, so any claim it makes should be checkable
+    # against the knowledge that produced it.
+    data["grounded_in"] = build_grounded_in(await get_evidence_for_entity("outreach_draft", draft.id))
     return {"success": True, "message": "Outreach draft retrieved successfully.", "data": data}
 
 

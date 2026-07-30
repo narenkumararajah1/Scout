@@ -4,6 +4,8 @@
 // POST /{id}/send (outreach workflow redesign - generation itself never
 // changes status).
 
+import type { GroundedInItem } from "./groundedIn";
+
 export interface OutreachDraft {
   id: string;
   company_id: string;
@@ -13,4 +15,7 @@ export interface OutreachDraft {
   content: string;
   status: string;
   created_at: string;
+  // Only present on the detail response, not in list results (V3
+  // Enhancements Phase 3B).
+  grounded_in?: GroundedInItem[];
 }

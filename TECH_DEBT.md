@@ -619,6 +619,73 @@ the Sales Playbook page, but Meeting Brief and Outreach Draft pages do not
 show what grounded them, and there is no "sources" affordance equivalent to
 Ask Scout's citations. That is the phase's user-facing payoff.
 
+## docs/v3-enhancements/ - Phase 3B (Enrichment Explainability UI)
+
+Phase 3A grounded every generated artifact and stored what grounded it as
+Evidence, but none of it was visible. Phase 3B is that payoff:
+08_SALES_CONTENT_ENRICHMENT.md's Explainability requirement - a user can
+see "which knowledge influenced it" - now holds on all three artifact
+pages.
+
+**No new persistence, no migration.** The three detail endpoints
+(`meeting_briefs.py`, `outreach_drafts.py`, `sales_playbooks.py`) read the
+Evidence rows Phase 3A already writes and attach them as a `grounded_in`
+array via one shared serializer, `backend/schemas/grounded_in.py`, sorted
+by confidence with unscored items last. Artifacts generated before Phase 3A
+simply come back with an empty array, which every surface treats as "show
+nothing".
+
+**A bug this phase found, worth reading before touching enrichment.**
+Phase 3A's `enrich()` ran its two retrieval passes as two parallel
+`asyncio.to_thread` calls. ChromaDB's client is `lru_cache`d and backed by
+SQLite, so two worker threads querying it concurrently raise `Incorrect
+number of bindings supplied`, and `retrieve_knowledge` - which correctly
+swallows its own failures - degraded **silently to empty**. The artifact
+still generated, still looked fine, and had zero grounding. It was
+intermittent, depending purely on thread timing: the Phase 3A verification
+run succeeded by luck, which is why it shipped. It was caught only by
+generating a real artifact against the live server and noticing
+`grounded_in` came back empty when the same corpus had produced five
+references an hour earlier. Fixed by `_retrieve_both()`, which does both
+passes sequentially inside a single `to_thread`; there was never anything
+to gain from parallelism, as both calls are a local embed plus a local
+index lookup. `tests/test_content_enrichment_service.py` now asserts both
+retrievals share one thread name. **Do not reintroduce concurrent
+ChromaDB access** - the failure mode is invisible rather than loud.
+
+**Removed a duplicate rather than adding a second card.** The Sales
+Playbook page already showed grounding, unlabelled, through
+`why_innominds.relevant_experience`. Adding a separate sources card would
+have printed the same passages twice on one page, so the labelled
+`grounded_in` list renders *inside* the existing "Relevant Experience" row
+instead, with `relevant_experience` kept as the fallback for playbooks
+generated before this phase. Meeting Brief and Outreach Draft, which had no
+such surface, get the standalone card.
+
+**Placement is deliberate on each page.** The card sits immediately before
+`AIFeedback`: the person deciding whether an artifact is any good is
+exactly the person who wants to see what it was built from. On the Outreach
+Draft page this matters most - that reviewer is about to send the content to
+a customer, so any claim it makes should be checkable against its source.
+
+**The disclosure is honest about what it is.** Collapsed by default, and
+the hint reads "Retrieved and given to Scout when this was generated. Scout
+may not have used every passage." That is not hedging - Phase 3A's
+retrieval is permissive by design while the prompt is disciplined, so the
+stored Evidence genuinely can contain a passage the model correctly
+ignored. Labelling it "sources" or "citations" would overclaim.
+
+**Suite: 768 passed, 0 failed, 0 skipped** against real Postgres (from
+764), with `tsc -b`, `eslint` and `npm run build` clean. Verified in the
+browser against real artifacts and the real ingested corpus: the playbook
+page shows six labelled rows inside Why Innominds and no duplicate card;
+the outreach page's toggle reads "Show the 5 pieces of Innominds knowledge
+Scout drew on" and expands to five rows. The draft generated for that check
+names a real curated case study ("Global Fleet Logistics Co.") in its body
+rather than making a generic claim, which is the whole point of Phase 3. No
+console errors, no server tracebacks. The test draft was archived
+afterwards.
+
 ## docs/v3-enhancements/ - Phase 2B (Refresh Engine UI)
 
 Phase 2A's Company Refresh Engine was API-only. Phase 2B makes it the

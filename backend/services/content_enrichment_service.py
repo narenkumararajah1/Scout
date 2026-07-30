@@ -142,6 +142,15 @@ def build_enrichment_query(
     return " ".join(part.strip() for part in parts if part and str(part).strip())
 
 
+def _retrieve_both(query: str, general_results: int, case_study_results: int) -> tuple:
+    """Both retrieval passes, on one thread. See enrich()'s note on why this
+    must not be parallelised.
+    """
+    general = retrieve_knowledge(query, general_results, None, None)
+    case_studies = retrieve_knowledge(query, case_study_results, _CASE_STUDY_ENTITY_TYPE, None)
+    return general, case_studies
+
+
 async def enrich(
     company_name: str,
     *,
@@ -169,11 +178,17 @@ async def enrich(
     if not query:
         return EnrichmentContext()
 
-    # to_thread because retrieval is synchronous (ChromaDB plus a
-    # sentence-transformers encode) and these callers are async.
-    general, case_studies = await asyncio.gather(
-        asyncio.to_thread(retrieve_knowledge, query, general_results, None, None),
-        asyncio.to_thread(retrieve_knowledge, query, case_study_results, _CASE_STUDY_ENTITY_TYPE, None),
+    # One thread, both retrievals, sequentially. **Not** two parallel
+    # to_thread calls, which is what this originally did: ChromaDB's client
+    # is lru_cached and backed by SQLite, so two worker threads querying it
+    # at once raises "Incorrect number of bindings supplied" and retrieval
+    # silently degrades to empty. That failure was intermittent - it
+    # depended on thread timing, so it looked fine in one run and returned
+    # nothing in the next - which is exactly why it is worth a comment.
+    # There is nothing to gain from parallelism here anyway: both calls are
+    # a local embed plus a local index lookup.
+    general, case_studies = await asyncio.to_thread(
+        _retrieve_both, query, general_results, case_study_results
     )
 
     # A case study surfaced by the general pass would otherwise be printed

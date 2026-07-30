@@ -1,6 +1,8 @@
 // Mirrors backend/schemas/sales_playbook.py's SalesPlaybookOut exactly -
 // a structured artifact, never flattened into free-form text.
 
+import type { GroundedInItem } from "./groundedIn";
+
 export interface ObjectionHandlingItem {
   objection: string;
   response: string;
@@ -30,4 +32,9 @@ export interface SalesPlaybook {
   confidence_score: number | null;
   created_at: string;
   why_innominds?: WhyInnominds;
+  // The same Evidence why_innominds.relevant_experience is derived from,
+  // but labelled. The page renders this inside the Why Innominds card
+  // instead of that unlabelled list, rather than showing both (V3
+  // Enhancements Phase 3B).
+  grounded_in?: GroundedInItem[];
 }

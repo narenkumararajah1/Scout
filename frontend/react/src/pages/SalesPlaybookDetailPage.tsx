@@ -9,6 +9,7 @@ import { BulletList } from "../components/ui/BulletList";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
+import { GroundedInList } from "../components/ui/GroundedIn";
 import { LoadingState } from "../components/ui/LoadingState";
 import { ProseSection } from "../components/ui/ProseSection";
 import { useSalesPlaybook } from "../hooks/useSalesPlaybook";
@@ -127,7 +128,17 @@ export function SalesPlaybookDetailPage() {
             </li>
             <li>
               <span className="why-innominds-label">Relevant Experience</span>
-              {playbook.why_innominds.relevant_experience.length === 0 ? (
+              {/* grounded_in carries the same Evidence why_innominds
+                  .relevant_experience is derived from, but with readable
+                  labels ("Case Study: ...", "Capability: ..."). Rendering
+                  the labelled form here rather than adding a separate
+                  sources card avoids showing identical content twice on one
+                  page; relevant_experience is the fallback for playbooks
+                  generated before Phase 3B, whose responses predate the
+                  labelled field (V3 Enhancements Phase 3B). */}
+              {playbook.grounded_in && playbook.grounded_in.length > 0 ? (
+                <GroundedInList items={playbook.grounded_in} />
+              ) : playbook.why_innominds.relevant_experience.length === 0 ? (
                 <EmptyState message="Not available." />
               ) : (
                 <BulletList items={playbook.why_innominds.relevant_experience} />

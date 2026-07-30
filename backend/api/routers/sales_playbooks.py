@@ -19,6 +19,7 @@ import asyncio
 from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from pydantic import BaseModel, Field
 
+from backend.ai.evidence_manager import get_evidence_for_entity
 from backend.api.dependencies import get_current_user
 from backend.api.error_handlers import APIError
 from backend.database.models import User
@@ -28,6 +29,7 @@ from backend.repositories.postgres.sales_playbook_repository import (
     list_sales_playbooks_for_company,
 )
 from backend.schemas.generation_job import GenerationJobOut
+from backend.schemas.grounded_in import build_grounded_in
 from backend.schemas.sales_playbook import SalesPlaybookOut
 from backend.services import company_service
 from backend.services.generation_job_service import create_job, execute_job, reject_if_duplicate
@@ -60,6 +62,11 @@ async def get_sales_playbook_detail(playbook_id: str, current_user: User = Depen
 
     data = SalesPlaybookOut.model_validate(playbook).model_dump()
     data["why_innominds"] = await build_why_innominds_explanation(playbook)
+    # Same Evidence rows why_innominds' relevant_experience is derived from,
+    # but labelled. The frontend renders the labelled form inside the Why
+    # Innominds card rather than adding a second list of identical content -
+    # see the Phase 3B note in TECH_DEBT.md.
+    data["grounded_in"] = build_grounded_in(await get_evidence_for_entity("sales_playbook", playbook.id))
     return {"success": True, "message": "Sales playbook retrieved successfully.", "data": data}
 
 

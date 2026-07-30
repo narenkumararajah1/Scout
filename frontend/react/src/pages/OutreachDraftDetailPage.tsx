@@ -11,6 +11,7 @@ import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { ErrorState } from "../components/ui/ErrorState";
+import { GroundedIn } from "../components/ui/GroundedIn";
 import { LoadingState } from "../components/ui/LoadingState";
 import { ToastContainer } from "../components/ui/Toast";
 import { useConfirm } from "../hooks/useConfirm";
@@ -246,6 +247,11 @@ export function OutreachDraftDetailPage() {
           <p className="report-section-text">{draft.content}</p>
         )}
       </Card>
+
+      {/* Most consequential placement of this component: the reviewer is
+          about to decide whether to send this to a customer, so any claim
+          the draft makes should be checkable against what produced it. */}
+      <GroundedIn items={draft.grounded_in} />
 
       <AIFeedback targetType="outreach_draft" targetId={draft.id} companyId={draft.company_id} />
     </div>
