@@ -20,7 +20,18 @@ export interface OpportunityHistoryPoint {
   priority: number | null;
 }
 
-export interface TimelineEvent {
+// Named distinctly from IntelligenceTimeline.tsx's own TimelineEvent,
+// which is that component's prop shape and has since diverged (it carries
+// a `detail` line and a "refresh" type). Two differently-shaped types
+// sharing one name is a trap for the next reader.
+//
+// No longer rendered anywhere: V3 Enhancements Phase 2B repointed the
+// company page's timeline at the Refresh Engine's snapshots, which carry
+// per-run change counts. Kept because analytics_service.company_trends()
+// still returns the field and this type should describe the payload
+// honestly - see TECH_DEBT.md for the open question of whether the
+// backend should stop computing it.
+export interface CompanyTrendsTimelineEvent {
   date: string;
   type: "research" | "opportunity" | "report";
   label: string;
@@ -37,5 +48,5 @@ export interface CompanyTrends {
   research_sessions: ResearchSessionSummary[];
   reports: Report[];
   opportunity_history: OpportunityHistoryPoint[];
-  timeline: TimelineEvent[];
+  timeline: CompanyTrendsTimelineEvent[];
 }

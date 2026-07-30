@@ -2041,6 +2041,149 @@ a {
   line-height: 1.5;
 }
 
+/* Company Refresh Engine (V3 Enhancements Phase 2B) */
+.refresh-meta {
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin: 0 0 0.6rem;
+}
+
+.refresh-narrative {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: #1f2937;
+}
+
+.refresh-hint,
+.refresh-empty {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem;
+}
+
+.refresh-counts {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 0.5rem;
+}
+
+.refresh-change-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.refresh-change {
+  padding: 0.6rem 0.75rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  /* A left rail encodes significance in form as well as wording, so what
+     needs attention reads at a glance without parsing the badges. */
+  border-left: 3px solid #d1d5db;
+}
+
+.refresh-change-major {
+  border-left-color: #4338ca;
+  background: #eef2ff;
+}
+
+.refresh-change-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.refresh-change-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.refresh-change-detail {
+  margin: 0.35rem 0 0;
+  color: #4b5563;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.refresh-change-values {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.refresh-change-was {
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.refresh-change-now {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.refresh-change-source {
+  margin: 0.3rem 0 0;
+  color: #9ca3af;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.refresh-toggle-minor {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #4338ca;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.refresh-toggle-minor:hover {
+  text-decoration: underline;
+}
+
+.refresh-actions {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.refresh-actions h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #6b7280;
+}
+
+.refresh-actions ol {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+}
+
+/* Refresh entries in the timeline, alongside the existing
+   research/opportunity/report markers. */
+.intelligence-timeline-refresh .intelligence-timeline-marker {
+  background: #4338ca;
+}
+
+.intelligence-timeline-detail {
+  display: block;
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
 @media (max-width: 768px) {
   /* The top bar itself stays reachable the same way the desktop
      sidebar does, just via position: sticky instead of the desktop's

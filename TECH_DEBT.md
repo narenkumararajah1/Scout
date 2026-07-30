@@ -534,6 +534,85 @@ and the intelligence history endpoint returned all three. Zero tracebacks
 or 500s. Existing pipeline tests pass unchanged, and a new test asserts
 that a failing refresh cannot fail an analysis or lose its report.
 
+## docs/v3-enhancements/ - Phase 2B (Refresh Engine UI)
+
+Phase 2A's Company Refresh Engine was API-only. Phase 2B makes it the
+thing a user actually sees on a company page.
+
+**Delivered:**
+
+- A "What changed" card, placed above Overview because
+  07_COMPANY_REFRESH_ENGINE.md makes the refresh summary the primary
+  output of a run. Renders three deliberately differently-worded states -
+  first refresh (no baseline existed), no changes (a comparison ran and
+  found nothing), and changes - because conflating them misleads.
+- Major changes always visible with an indigo left rail; minor ones behind
+  a disclosure. That is the document's noise instruction applied to
+  layout: a typical refresh has a few significant changes and a longer
+  tail of restatements.
+- Each change shows its category, human-readable type ("No longer
+  reported" rather than "resolved" - research coverage varies between
+  runs, so absence is weaker evidence than presence), before/after values
+  where something actually moved, and its source attribution.
+- "Run Analysis" is now "Refresh Intelligence", and its success toast
+  points at what changed rather than announcing a report.
+- The company page's timeline was repointed from
+  `analytics_service.company_trends()`'s derived timeline to the Refresh
+  Engine's snapshots, which carry per-run change counts.
+
+**Two "what changed" surfaces, kept and differentiated.** The page already
+had a since-last-visit banner (`CompanyView`, which diffs timestamps
+against when *you* last opened the page). The refresh summary diffs actual
+intelligence between runs. Two similarly-worded panels would read as one
+feature duplicated, so the banner was rescoped to "While you were away"
+(counts plus new alert titles, never restating detected changes) and the
+card owns the company-changed story. Dropping the banner entirely is still
+a reasonable future simplification.
+
+**Three issues found during browser verification and fixed:**
+
+1. **Two buttons, two labels, one action.** The empty-state button said
+   "Run Analysis" while the header now says "Refresh Intelligence".
+   Changed to "Run first analysis" - same action, no competing label, and
+   accurate since there is nothing to refresh yet.
+2. **A first-refresh summary contradicted itself.** Hertz showed the
+   narrative "No meaningful changes since the last refresh" directly above
+   the hint "This was the first analysis". Cause: that snapshot predates
+   Phase 2A's `build_first_refresh_narrative`, and narratives are
+   persisted on purpose so a summary does not shift under the user. The
+   card now suppresses the narrative when `is_first_refresh` - for a first
+   run the meta line and hint already say everything, so it is redundant
+   as well as potentially stale.
+3. **A misleading history label.** Snapshot rows with `change_count == 0`
+   were initially labelled "baseline"; that is true of the first run but
+   also of a later run where nothing moved, and a history row cannot tell
+   those apart. Now reads "no changes detected".
+
+**Also cleaned up:** `types/analytics.ts`'s `TimelineEvent` was renamed
+`CompanyTrendsTimelineEvent`. It had become a second differently-shaped
+type sharing a name with `IntelligenceTimeline.tsx`'s own prop type, which
+is a trap for the next reader.
+
+**Open item this created:** the frontend no longer consumes
+`company_trends()`'s `timeline` field, but the backend still computes it on
+every trends request. Either the field should find a consumer or that
+computation should go - a small decision, deliberately not made
+unilaterally since the endpoint is shared.
+
+**Verification:** tsc, eslint and `npm run build` clean; backend suite
+unchanged at **742** (this phase touched no backend file). Driven in a
+real browser against the live backend across all three states: NVIDIA with
+three real snapshots (12 changes, 2 major, narrative and three recommended
+actions, disclosure expanding to all 12, refresh history listing every
+run), Hertz for the first-refresh state, and OpenAI for never-analysed.
+Both new endpoints returned 200 and there were no console errors.
+
+**Not verified:** true 375px mobile. The preview pane in this environment
+would not size below 584px wide, where there is no horizontal overflow and
+no element exceeds the viewport. The card uses the same flex-wrap patterns
+already checked at 375px in Phase 1B, but that specific width is untested
+here.
+
 ## docs/v3-enhancements/ - Phase 1B (Knowledge Library UI)
 
 Phase 1A's Company Knowledge Engine was API-only. Phase 1B gives it a

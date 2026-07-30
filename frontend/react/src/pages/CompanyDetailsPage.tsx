@@ -11,6 +11,7 @@ import { ErrorState } from "../components/ui/ErrorState";
 import { GenerationStatus } from "../components/ui/GenerationStatus";
 import { IntelligenceTimeline } from "../components/ui/IntelligenceTimeline";
 import { LoadingState } from "../components/ui/LoadingState";
+import { RefreshSummaryCard } from "../components/ui/RefreshSummaryCard";
 import { ToastContainer } from "../components/ui/Toast";
 import { useAddCompanyRelationship } from "../hooks/useAddCompanyRelationship";
 import { useAnalyzeCompany } from "../hooks/useAnalyzeCompany";
@@ -20,6 +21,7 @@ import { useCompany } from "../hooks/useCompany";
 import { useConfirm } from "../hooks/useConfirm";
 import { useCompanyIntelligence } from "../hooks/useCompanyIntelligence";
 import { useCompanyRelationships } from "../hooks/useCompanyRelationships";
+import { useCompanySnapshots } from "../hooks/useCompanySnapshots";
 import { useCompanyTrends } from "../hooks/useCompanyTrends";
 import { useCompanyVisit } from "../hooks/useCompanyVisit";
 import { useGenerateMeetingBrief } from "../hooks/useGenerateMeetingBrief";
@@ -30,6 +32,7 @@ import { useGenerationJob } from "../hooks/useGenerationJob";
 import { useIntelligenceReports } from "../hooks/useIntelligenceReports";
 import { useMeetingBriefs } from "../hooks/useMeetingBriefs";
 import { useOutreachDrafts } from "../hooks/useOutreachDrafts";
+import { useRefreshSummary } from "../hooks/useRefreshSummary";
 import { useRemoveCompany } from "../hooks/useRemoveCompany";
 import { useRemoveCompanyRelationship } from "../hooks/useRemoveCompanyRelationship";
 import { useRestoreCompany } from "../hooks/useRestoreCompany";
@@ -39,6 +42,7 @@ import { useToasts } from "../hooks/useToasts";
 import { companyService } from "../services/companyService";
 import type { GenerationJob } from "../types/generationJob";
 import { RELATIONSHIP_TYPES, type RelationshipType } from "../types/companyRelationship";
+import type { TimelineEvent } from "../components/ui/IntelligenceTimeline";
 import { getErrorMessage } from "../utils/errors";
 import { outreachStatusVariant } from "../utils/outreachDraft";
 
@@ -77,6 +81,8 @@ export function CompanyDetailsPage() {
   const outreachDraftsQuery = useOutreachDrafts(companyId);
   const reportsQuery = useIntelligenceReports(companyId);
   const visitChanges = useCompanyVisit(companyId);
+  const refreshSummaryQuery = useRefreshSummary(companyId);
+  const snapshotsQuery = useCompanySnapshots(companyId);
   const salesCoach = useSalesCoach(companyId);
   const relationshipsQuery = useCompanyRelationships(companyId);
   const allCompaniesQuery = useCompanies();
@@ -184,9 +190,17 @@ export function CompanyDetailsPage() {
   }
 
   function handleRunAnalysis() {
-    pushToast("Analysis started - this can take a minute.", "progress");
+    pushToast("Refreshing intelligence - this can take a minute.", "progress");
     analyzeCompany.mutate(undefined, {
-      onSuccess: () => pushToast("Analysis complete - a new report is ready.", "success"),
+      onSuccess: () => {
+        // POST /companies/{id}/analyze still returns a Report - that V2
+        // contract was deliberately preserved in Phase 2A - so the refresh
+        // summary has to be refetched rather than read from the response.
+        // Snapshots too, since the run added one.
+        void queryClient.invalidateQueries({ queryKey: ["refresh-summary", companyId] });
+        void queryClient.invalidateQueries({ queryKey: ["company-snapshots", companyId] });
+        pushToast("Intelligence refreshed - see what changed below.", "success");
+      },
       onError: (error) => pushToast(getErrorMessage(error), "error"),
     });
   }
@@ -306,6 +320,25 @@ export function CompanyDetailsPage() {
 
   const trends = trendsQuery.data;
 
+  // One timeline entry per analysis run, built from the Company Refresh
+  // Engine's snapshots (V3 Enhancements Phase 2B). This replaced
+  // company_trends()'s derived timeline, which re-listed individual
+  // opportunities and reports that already have their own cards below.
+  const refreshTimeline: TimelineEvent[] = (snapshotsQuery.data ?? []).map((snapshot) => ({
+    date: snapshot.captured_at,
+    type: "refresh",
+    label: `${snapshot.signal_count} signal${snapshot.signal_count === 1 ? "" : "s"}, ${
+      snapshot.opportunity_count
+    } opportunit${snapshot.opportunity_count === 1 ? "y" : "ies"}`,
+    // Deliberately not labelled "baseline" for a zero count: that is true
+    // of the very first run, but also of a later run where nothing moved,
+    // and a history row carries no way to tell those apart.
+    detail:
+      snapshot.change_count > 0
+        ? `${snapshot.change_count} change${snapshot.change_count === 1 ? "" : "s"} detected`
+        : "no changes detected",
+  }));
+
   return (
     <div className="company-details-page">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
@@ -354,8 +387,13 @@ export function CompanyDetailsPage() {
             Archive company
           </button>
         )}
+        {/* "Refresh Intelligence" rather than "Run Analysis": the run now
+            updates what Scout knows and reports what changed, and the
+            report is a by-product rather than the point
+            (07_COMPANY_REFRESH_ENGINE.md, and the wording
+            10_NAVIGATION_IMPROVEMENTS.md uses for this action). */}
         <button type="button" onClick={handleRunAnalysis} disabled={analyzeCompany.isPending}>
-          {analyzeCompany.isPending ? "Running analysis..." : "Run Analysis"}
+          {analyzeCompany.isPending ? "Refreshing..." : "Refresh Intelligence"}
         </button>
         <Link to={`/ask-scout?companyId=${company.id}`} className="ask-scout-link-button">
           Ask Scout about {company.name}
@@ -374,9 +412,14 @@ export function CompanyDetailsPage() {
         (visitChanges.new_notifications.length > 0 ||
           visitChanges.new_opportunity_count > 0 ||
           visitChanges.new_report_count > 0) && (
+          // Scoped to *your absence* - what landed while you were away -
+          // whereas the "What changed" card below is about the *company*
+          // moving between analysis runs. Two similarly-worded panels
+          // would read as one feature duplicated, so this stays counts
+          // plus new alert titles and never restates detected changes.
           <div className="since-last-visit-banner">
             <p>
-              Since your last visit{visitChanges.since ? ` (${new Date(visitChanges.since).toLocaleString()})` : ""}:{" "}
+              While you were away{visitChanges.since ? ` (since ${new Date(visitChanges.since).toLocaleString()})` : ""}:{" "}
               {visitChanges.new_opportunity_count > 0 &&
                 `${visitChanges.new_opportunity_count} new opportunit${
                   visitChanges.new_opportunity_count === 1 ? "y" : "ies"
@@ -404,6 +447,17 @@ export function CompanyDetailsPage() {
         )}
 
       {toggleMonitoring.isError && <p className="form-error">{getErrorMessage(toggleMonitoring.error)}</p>}
+
+      {/* Placed above Overview on purpose: 07_COMPANY_REFRESH_ENGINE.md
+          makes this the primary output of an analysis run, so it should be
+          the first thing read on the page rather than buried under static
+          profile fields. */}
+      <RefreshSummaryCard
+        summary={refreshSummaryQuery.data}
+        isLoading={refreshSummaryQuery.isLoading}
+        onRunAnalysis={handleRunAnalysis}
+        isRunning={analyzeCompany.isPending}
+      />
 
       <Card title="Overview">
         <dl className="company-overview">
@@ -524,8 +578,11 @@ export function CompanyDetailsPage() {
             </dl>
             <h4 className="chart-section-title">Opportunity Trends</h4>
             <OpportunityTrendChart data={trends.opportunity_history} />
-            <h4 className="chart-section-title">Timeline of Scout Intelligence</h4>
-            <IntelligenceTimeline events={trends.timeline} />
+            <h4 className="chart-section-title">Refresh history</h4>
+            <IntelligenceTimeline
+              events={refreshTimeline}
+              emptyMessage="No analysis runs recorded yet."
+            />
           </>
         )}
       </Card>

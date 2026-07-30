@@ -10,6 +10,7 @@ import type { Company, CreateCompanyInput } from "../types/company";
 import type { CompanyIntelligence } from "../types/companyIntelligence";
 import type { CompanyRelationship, CreateCompanyRelationshipInput } from "../types/companyRelationship";
 import type { CompanyVisitChanges } from "../types/companyView";
+import type { CompanySnapshot, RefreshSummary } from "../types/refreshSummary";
 import type { Report } from "../types/report";
 import type { SalesCoachRecommendation } from "../types/salesCoach";
 
@@ -49,6 +50,19 @@ export const companyService = {
   // it's opt-in from the UI (a button), not fetched automatically.
   async getSalesCoachRecommendation(companyId: string): Promise<SalesCoachRecommendation> {
     return apiRequestData<SalesCoachRecommendation>(`/api/v1/companies/${companyId}/sales-coach`);
+  },
+
+  // V3 Enhancements Phase 2 - the Company Refresh Engine. Read-only and
+  // cheap: returns the summary already computed and stored by the last
+  // analysis run, so opening a company page costs no LLM call. null when
+  // the company has never been analysed, which is a normal state to
+  // render rather than an error.
+  async getRefreshSummary(companyId: string): Promise<RefreshSummary | null> {
+    return apiRequestData<RefreshSummary | null>(`/api/v1/companies/${companyId}/refresh-summary`);
+  },
+
+  async listSnapshots(companyId: string, limit = 20): Promise<CompanySnapshot[]> {
+    return apiRequestData<CompanySnapshot[]>(`/api/v1/companies/${companyId}/snapshots?limit=${limit}`);
   },
 
   async analyzeCompany(companyId: string): Promise<Report> {
