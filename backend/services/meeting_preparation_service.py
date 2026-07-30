@@ -23,6 +23,7 @@ from backend.repositories.opportunity_repository import list_opportunities
 from backend.repositories.postgres.meeting_brief_repository import create_meeting_brief
 from backend.repositories.research_repository import list_signals_for_session
 from backend.services.company_intelligence_service import build_company_intelligence_profile
+from backend.services.content_enrichment_service import enrich, persist_enrichment
 from backend.services.executive_intelligence_service import generate_engagement_strategy
 
 
@@ -66,10 +67,28 @@ async def generate_meeting_brief(
     related_opportunities = [opportunity.title for opportunity in opportunities]
 
     title = meeting_title or f"Meeting with {company.name}"
-    objectives_prompt = build_meeting_objectives_prompt(company.name, title, business_priorities)
+
+    # Sales Content Enrichment (V3 Enhancements Phase 3). Retrieved once and
+    # reused across both calls below rather than per prompt: the two are
+    # about the same meeting, so a second retrieval would spend another
+    # embedding to get materially the same passages.
+    enrichment = await enrich(
+        company.name,
+        industry=getattr(company, "industry", None),
+        focus=title,
+        technologies=business_priorities,
+    )
+
+    objectives_prompt = build_meeting_objectives_prompt(
+        company.name, title, business_priorities, enrichment_block=enrichment.prompt_block
+    )
     objectives_response = await asyncio.to_thread(generate_completion, objectives_prompt)
     meeting_objectives = parse_json_array(objectives_response, "Meeting Preparation Service")
 
+    # Risks are deliberately left un-enriched. Innominds' own capability
+    # knowledge says nothing about what could go wrong at the customer, and
+    # supplying it here invites the model to reframe risks as reasons to buy
+    # - the opposite of what this field is for.
     risks_prompt = build_risks_prompt(company.name, business_priorities, recent_developments)
     risks_response = await asyncio.to_thread(generate_completion, risks_prompt)
     risks = parse_json_array(risks_response, "Meeting Preparation Service")
@@ -89,4 +108,8 @@ async def generate_meeting_brief(
         risks=risks,
         related_opportunities=related_opportunities,
     )
-    return await create_meeting_brief(brief)
+    created = await create_meeting_brief(brief)
+
+    await persist_enrichment("meeting_brief", created.id, enrichment)
+
+    return created

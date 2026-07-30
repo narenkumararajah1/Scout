@@ -23,6 +23,7 @@ from backend.ai.evidence_manager import get_evidence_for_entity, store_evidence
 from backend.ai.llm_gateway import generate_completion, parse_json_object
 from backend.ai.prompts.sales_playbook_prompts import build_sales_playbook_prompt
 from backend.database.models import SalesPlaybook
+from backend.services.content_enrichment_service import enrich, persist_enrichment
 from backend.models.opportunity import Opportunity
 from backend.repositories.capability_match_repository import get_capability_match
 from backend.repositories.opportunity_repository import get_opportunity
@@ -52,7 +53,24 @@ async def generate_sales_playbook(company_id: str, company_name: str, opportunit
         for match in matches
     ]
 
-    prompt = build_sales_playbook_prompt(company_name, opportunity.title, opportunity.description, match_payload)
+    # Sales Content Enrichment (V3 Enhancements Phase 3). The opportunity
+    # is the focus, and the matched capability names act as the technology
+    # hint, so retrieval is scoped to this pursuit rather than the company
+    # in general. Returns an empty context - and changes nothing about the
+    # prompt - when no knowledge has been ingested.
+    enrichment = await enrich(
+        company_name,
+        focus=f"{opportunity.title} {opportunity.description or ''}",
+        technologies=[match.capability_name for match in matches],
+    )
+
+    prompt = build_sales_playbook_prompt(
+        company_name,
+        opportunity.title,
+        opportunity.description,
+        match_payload,
+        enrichment_block=enrichment.prompt_block,
+    )
     response = await asyncio.to_thread(generate_completion, prompt)
     parsed = parse_json_object(response, "Sales Playbook Service")
 
@@ -88,6 +106,12 @@ async def generate_sales_playbook(company_id: str, company_name: str, opportunit
             entity_id=created.id,
             confidence_score=match.confidence,
         )
+
+    # The knowledge that grounded this playbook, stored the same way as the
+    # capability evidence above. build_why_innominds_explanation() already
+    # reads Evidence for this entity, so its "relevant experience" now
+    # cites real Innominds customer work without that function changing.
+    await persist_enrichment("sales_playbook", created.id, enrichment)
 
     return created
 

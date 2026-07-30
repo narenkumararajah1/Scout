@@ -9,6 +9,8 @@ only to draft content for human review.
 
 from typing import Optional
 
+from backend.ai.prompts.enrichment_prompts import grounding_instruction, knowledge_section
+
 
 def build_outreach_prompt(
     company_name: str,
@@ -16,6 +18,7 @@ def build_outreach_prompt(
     outreach_type: str,
     talking_points: list,
     context: str,
+    enrichment_block: Optional[str] = None,
 ) -> str:
     recipient_description = f'"{executive_name}"' if executive_name else "the most relevant executive contact"
     return (
@@ -32,9 +35,11 @@ def build_outreach_prompt(
         + "\n\n"
         f"Talking points to draw from:\n{talking_points}\n\n"
         f"Additional context:\n{context or 'None provided.'}\n\n"
+        f"{knowledge_section(enrichment_block)}"
         "Respond with ONLY a JSON object, no other text, with exactly these keys:\n"
         '{"subject": "a short subject line (empty string if not applicable, e.g. for a LinkedIn '
         'message)", "content": "the drafted message body"}\n\n'
         "Keep it concise and professional. This is a draft for a human to review, edit, and approve - "
         "never a message that will be sent as-is."
+        f"{grounding_instruction(enrichment_block)}"
     )

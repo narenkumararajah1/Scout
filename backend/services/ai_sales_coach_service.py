@@ -22,6 +22,7 @@ from backend.models.company import Company
 from backend.repositories.opportunity_repository import list_opportunities
 from backend.repositories.research_repository import list_research_sessions, list_signals_for_session
 from backend.services.company_intelligence_service import build_company_intelligence_profile
+from backend.services.content_enrichment_service import enrich
 
 
 async def what_would_you_do(company: Company) -> dict:
@@ -43,8 +44,24 @@ async def what_would_you_do(company: Company) -> dict:
         top = max(opportunities, key=lambda o: (o.priority or 0, o.confidence_score or 0))
         top_opportunity = {"title": top.title, "description": top.description}
 
+    # Sales Content Enrichment (V3 Enhancements Phase 3). No persistence
+    # here: the coach is deliberately ephemeral (see this module's
+    # docstring - it is a live answer, not a saved artifact), so there is no
+    # entity to attach evidence to.
+    enrichment = await enrich(
+        company.name,
+        industry=getattr(company, "industry", None),
+        focus=(top_opportunity or {}).get("title"),
+        technologies=business_priorities,
+    )
+
     prompt = build_sales_coach_prompt(
-        company.name, executives_payload, business_priorities, top_opportunity, recent_developments
+        company.name,
+        executives_payload,
+        business_priorities,
+        top_opportunity,
+        recent_developments,
+        enrichment_block=enrichment.prompt_block,
     )
     response = await asyncio.to_thread(generate_completion, prompt)
     parsed = parse_json_object(response, "AI Sales Coach Service")

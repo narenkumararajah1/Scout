@@ -534,6 +534,91 @@ and the intelligence history endpoint returned all three. Zero tracebacks
 or 500s. Existing pipeline tests pass unchanged, and a new test asserts
 that a failing refresh cannot fail an analysis or lose its report.
 
+## docs/v3-enhancements/ - Phase 3A (Sales Content Enrichment)
+
+08_SALES_CONTENT_ENRICHMENT.md's problem statement is that generated
+content is "professional but often lacks sufficient organizational
+context - generic recommendations, limited reference to Innominds
+services, no supporting case studies". That was literally true: **none of
+the generation services retrieved any organizational knowledge at all**
+(verified by grep - zero calls). Phase 1A grounded Ask Scout and nothing
+else. Every generated artifact was composed from company data plus, at
+best, `CapabilityMatch.reasoning`.
+
+**One shared pipeline, per that document's central requirement** ("Every
+AI-generated output should use the same enrichment pipeline"):
+`backend/services/content_enrichment_service.py`. It layers on Phase 1A's
+`knowledge_retrieval_service` rather than querying ChromaDB directly, so
+relevance scoring, entity labelling and graceful degradation stay
+identical between Ask Scout and every artifact - if they diverged, the same
+query would ground differently depending on which surface asked.
+
+**Two retrievals per artifact, not one.** A general pass plus a pass
+filtered to `entity_type="case_study"`. A single similarity search over a
+corpus dominated by service and capability content rarely surfaces a case
+study, yet that document gives Case Study Matching its own section and asks
+every artifact to answer "which case studies support this recommendation?".
+The targeted pass is what makes that reliable rather than incidental.
+
+**Prospect scoping biases the query instead of filtering metadata.** A hard
+`industry == "Healthcare"` filter returns nothing when no document carries
+that tag, which for a sparse corpus is most of the time; biasing the query
+returns the closest available knowledge instead. This is the reasoning
+recorded in Phase 1A when prospect-scoped retrieval was deliberately
+deferred until a real call site existed - this phase is that call site.
+
+**Explainability reuses the Evidence layer rather than adding columns.**
+`evidence_manager` already stores source-attributed content per entity, and
+Sales Playbook already wrote capability evidence that way. Adding a
+`knowledge_sources` column to sales_playbooks, meeting_briefs,
+outreach_drafts and v3_reports would have been a four-table migration to
+duplicate an existing mechanism. A useful consequence: because
+`build_why_innominds_explanation()` already reads Evidence, its "relevant
+experience" now cites real customer work **with no change to that function
+at all**.
+
+**Two scope decisions, both deliberate:**
+
+- `v3_report_service` is **not** enriched. It is pure assembly with no LLM
+  call, so there is no prompt to ground; it inherits enrichment from the
+  playbook, brief and drafts it assembles. Forcing enrichment in would have
+  been inventing work.
+- The Meeting Brief's **risks** prompt is left un-enriched while its
+  objectives prompt is enriched. Innominds' own capability knowledge says
+  nothing about what could go wrong at the customer, and supplying it there
+  invites the model to reframe risks as reasons to buy - the opposite of
+  what that field is for.
+
+**Verified end to end, not just unit tested.** A real case study was
+ingested through the Knowledge Library and a Sales Playbook generated
+through the live API. Its "relevant experience" came back citing five
+distinct pieces of organizational knowledge - a Capability, a curated Case
+Study, two Proof Points and the newly ingested Library document - each
+stored as Evidence with a readable typed label and a relevance score
+(`Case Study: Global Fleet Logistics Co.`, `Document: Meridian Health
+Systems`, ...). Before this phase that field contained only the single
+capability-match string.
+
+Worth noting from that run: the healthcare case study *was* retrieved for a
+semiconductor prospect, which is the similarity-not-filter design behaving
+as documented. The generated strategy correctly did not mention it, which
+is the grounding instruction ("if a supplied passage is not actually
+relevant, ignore it rather than forcing it in") working. That is the right
+division - retrieval is permissive, the prompt is disciplined - but it does
+mean the stored Evidence can include a passage the artifact did not use.
+
+**Suite: 764 passed, 0 failed, 0 skipped** against real Postgres (from 742).
+22 new tests: 15 unit tests for the pipeline with retrieval patched, 7
+Postgres-gated for Evidence attribution. Zero tracebacks or 500s. Test
+knowledge was deleted afterwards; the dev corpus is back to its original 6
+curated entries.
+
+**Remaining for Phase 3B:** none of this is visible in the UI yet. The
+Evidence rows exist and `why_innominds` already surfaces some of them on
+the Sales Playbook page, but Meeting Brief and Outreach Draft pages do not
+show what grounded them, and there is no "sources" affordance equivalent to
+Ask Scout's citations. That is the phase's user-facing payoff.
+
 ## docs/v3-enhancements/ - Phase 2B (Refresh Engine UI)
 
 Phase 2A's Company Refresh Engine was API-only. Phase 2B makes it the

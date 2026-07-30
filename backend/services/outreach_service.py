@@ -33,6 +33,7 @@ from backend.ai.prompts.outreach_prompts import build_outreach_prompt
 from backend.database.models import OutreachDraft
 from backend.models.company import Company
 from backend.repositories.postgres.outreach_draft_repository import create_outreach_draft
+from backend.services.content_enrichment_service import enrich, persist_enrichment
 
 SUPPORTED_OUTREACH_TYPES = ("Email", "Follow-up", "Meeting Request", "LinkedIn Message")
 
@@ -50,7 +51,24 @@ async def generate_outreach_draft(
             f"Unsupported outreach type {outreach_type!r}; expected one of {SUPPORTED_OUTREACH_TYPES}"
         )
 
-    prompt = build_outreach_prompt(company.name, executive_name, outreach_type, talking_points or [], context)
+    # Sales Content Enrichment (V3 Enhancements Phase 3). The talking
+    # points are the sharpest available focus signal for an outreach draft -
+    # they are what the message is actually about - with the caller's free
+    # -text context behind them.
+    enrichment = await enrich(
+        company.name,
+        industry=getattr(company, "industry", None),
+        focus=" ".join([*(talking_points or []), context]).strip() or None,
+    )
+
+    prompt = build_outreach_prompt(
+        company.name,
+        executive_name,
+        outreach_type,
+        talking_points or [],
+        context,
+        enrichment_block=enrichment.prompt_block,
+    )
     response = await asyncio.to_thread(generate_completion, prompt)
     parsed = parse_json_object(response, "Outreach Service")
 
@@ -62,4 +80,11 @@ async def generate_outreach_draft(
         subject=parsed.get("subject") or None,
         content=parsed.get("content", ""),
     )
-    return await create_outreach_draft(draft)
+    created = await create_outreach_draft(draft)
+
+    # Attribution: which Innominds knowledge shaped this draft. Matters more
+    # here than elsewhere, because a reviewer is about to decide whether to
+    # send it to a customer and should be able to check any claim it makes.
+    await persist_enrichment("outreach_draft", created.id, enrichment)
+
+    return created
