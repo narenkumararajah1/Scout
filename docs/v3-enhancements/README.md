@@ -45,6 +45,7 @@ Together, these enhancements aim to transform Scout from an AI-powered sales int
 | 09_VISUAL_INTELLIGENCE.md | Executive dashboards and visual analytics |
 | 10_NAVIGATION_IMPROVEMENTS.md | Navigation and workflow enhancements |
 | 11_API_RESEARCH_PLAN.md | Enterprise API research and integration strategy |
+| 12_API_EVALUATIONS.md | Per-provider evaluations and recommendations - the output of 11's method, and the input to roadmap Phase 7 |
 
 ---
 

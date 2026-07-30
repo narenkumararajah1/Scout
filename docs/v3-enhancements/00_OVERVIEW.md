@@ -105,6 +105,7 @@ This enhancement set is organized into focused capability documents.
 - Visual Intelligence
 - Navigation Improvements
 - API Research Plan
+- API Evaluations
 
 Each document serves as the authoritative specification for its respective capability.
 
