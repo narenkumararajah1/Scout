@@ -5,7 +5,9 @@
 // page that can send a real message, gated behind a confirmation
 // dialog exactly like Report Distribution already is).
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { Breadcrumbs } from "../components/ui/Breadcrumbs";
+import { RelatedArtifacts } from "../components/ui/RelatedArtifacts";
 import { AIFeedback } from "../components/ui/AIFeedback";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
@@ -136,9 +138,8 @@ export function OutreachDraftDetailPage() {
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       {confirmDialog && <ConfirmDialog {...confirmDialog} />}
 
-      <Link to={`/companies/${draft.company_id}`} className="breadcrumb-back">
-        ← Back to company
-      </Link>
+      <Breadcrumbs companyId={draft.company_id} current={draft.type} />
+      <RelatedArtifacts companyId={draft.company_id} current="outreach" />
 
       <div className="page-header">
         <h1>{draft.type}</h1>

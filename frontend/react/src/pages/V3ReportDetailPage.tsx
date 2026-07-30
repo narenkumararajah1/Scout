@@ -7,7 +7,9 @@
 // PDF export (Phase 6) as a download - no other export/share/print
 // capability is fabricated.
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { Breadcrumbs } from "../components/ui/Breadcrumbs";
+import { RelatedArtifacts } from "../components/ui/RelatedArtifacts";
 import { AIFeedback } from "../components/ui/AIFeedback";
 import { Badge } from "../components/ui/Badge";
 import { CapabilityCard } from "../components/ui/CapabilityCard";
@@ -88,9 +90,8 @@ export function V3ReportDetailPage() {
     <div className="v3-report-detail-page">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <Link to={`/companies/${report.company_id}`} className="breadcrumb-back">
-        ← Back to company
-      </Link>
+      <Breadcrumbs companyId={report.company_id} current="Intelligence Report" />
+      <RelatedArtifacts companyId={report.company_id} current="report" />
 
       <div className="page-header">
         <h1>{report.title ?? "Report"}</h1>

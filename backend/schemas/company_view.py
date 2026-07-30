@@ -21,3 +21,16 @@ class CompanyVisitChangesResponse(BaseModel):
     new_notifications: list[NewNotificationOut]
     new_opportunity_count: int
     new_report_count: int
+
+
+class RecentlyViewedCompany(BaseModel):
+    """One entry in the quick company switcher (V3 Enhancements Phase 6).
+
+    Carries the company's name and industry, not just an id, so the
+    switcher renders without a second round trip per entry.
+    """
+
+    company_id: str
+    company_name: str
+    industry: Optional[str] = None
+    last_viewed_at: datetime

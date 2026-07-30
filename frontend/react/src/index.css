@@ -610,16 +610,84 @@ a {
   cursor: pointer;
 }
 
-.breadcrumb-back {
-  display: inline-block;
+/* Breadcrumb trail (V3 Enhancements Phase 6). Replaced the single-level
+   .breadcrumb-back link that every detail page used to render. */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
   margin-bottom: 0.75rem;
-  color: #565f5c;
   font-size: 0.9rem;
 }
 
-.breadcrumb-back:hover {
+.breadcrumbs a {
+  color: #565f5c;
+}
+
+.breadcrumbs a:hover {
   color: #1a1a1a;
   text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  color: #9ca3af;
+}
+
+.breadcrumb-current {
+  color: #1a1a1a;
+  font-weight: 600;
+  /* An artifact title can be long (an outreach subject line); it may
+     wrap, but must never widen the page. */
+  overflow-wrap: anywhere;
+}
+
+/* Recent companies switcher in the sidebar (V3 Enhancements Phase 6).
+   An <li> inside .sidebar-nav, so it inherits the mobile drawer with no
+   rules of its own - list-style is cleared because it is a section, not
+   a nav entry. */
+.sidebar-recent {
+  margin-top: 1.25rem;
+  list-style: none;
+}
+
+.sidebar-section-heading {
+  margin: 0 0 0.4rem;
+  padding: 0 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+}
+
+.sidebar-recent ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar-recent a {
+  display: block;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  color: #b6bcc8;
+  font-size: 0.85rem;
+  /* Company names are unbounded; the sidebar is a fixed 220px, so a long
+     one truncates rather than pushing the layout. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-recent a:hover {
+  background: #1f232c;
+  color: #fff;
+}
+
+.sidebar-recent a.active {
+  background: #2b3140;
+  color: #fff;
 }
 
 /* Administration */
@@ -2519,4 +2587,29 @@ a {
   .key-person-badges {
     margin-left: 0;
   }
+}
+
+/* Sibling-artifact jump strip (V3 Enhancements Phase 6). Sits directly
+   under the breadcrumb: both answer "where else can I go from here", so
+   separating them would split one question across the page. */
+.related-artifacts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: -0.25rem 0 1rem;
+  font-size: 0.85rem;
+}
+
+.related-artifacts-label {
+  color: #6b7280;
+}
+
+.related-artifacts a {
+  color: #4338ca;
+  font-weight: 600;
+}
+
+.related-artifacts a:hover {
+  text-decoration: underline;
 }

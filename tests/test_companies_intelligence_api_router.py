@@ -13,6 +13,7 @@ from backend.models.company import Company as SqliteCompany
 from backend.repositories.company_repository import create_company as create_sqlite_company
 from backend.repositories.postgres.company_repository import create_company as create_postgres_company
 from backend.repositories.postgres.company_snapshot_repository import create_snapshot
+from backend.repositories.postgres.company_view_repository import check_in_and_get_previous_visit
 from backend.repositories.postgres.executive_repository import create_executive
 from backend.repositories.postgres.technology_repository import upsert_technology
 from backend.services.auth_service import create_access_token, hash_password
@@ -503,3 +504,75 @@ async def test_visual_trends_returns_404_for_an_unknown_company(client, postgres
 
     assert response.status_code == 404
     assert response.json()["success"] is False
+
+
+# --- GET /recent/viewed (V3 Enhancements Phase 6) -----------------------
+
+
+async def test_recently_viewed_returns_companies_newest_first(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("recent-test-1@example.com")
+
+    first = create_sqlite_company(SqliteCompany(name="Older Corp"))
+    second = create_sqlite_company(SqliteCompany(name="Newer Corp"))
+    await create_postgres_company(PostgresCompany(id=first.id, name="Older Corp"))
+    await create_postgres_company(PostgresCompany(id=second.id, name="Newer Corp"))
+    await check_in_and_get_previous_visit(first.id)
+    await check_in_and_get_previous_visit(second.id)
+    await reset_postgres_engine()
+
+    response = client.get("/api/v1/companies/recent/viewed", headers=headers)
+
+    assert response.status_code == 200
+    names = [entry["company_name"] for entry in response.json()["data"]]
+    assert names[:2] == ["Newer Corp", "Older Corp"]
+
+
+async def test_recently_viewed_skips_companies_the_live_store_cannot_resolve(client, postgres_available):
+    """The dual-store divergence case, which is the one that can actually
+    happen here.
+
+    `company_views.company_id` has a real FK to the *Postgres* companies
+    table, so a view row for an entirely unknown id cannot exist. But
+    `company_service.get_company()` reads the *SQLite* store (the default
+    `migration_mode`), so a company can satisfy the FK while being absent
+    from the store the switcher's links point at. Offering a dead link is
+    worse than a shorter list.
+    """
+    clear_v2_tables()
+    headers = await _auth_headers("recent-test-2@example.com")
+
+    live = create_sqlite_company(SqliteCompany(name="Live Corp"))
+    await create_postgres_company(PostgresCompany(id=live.id, name="Live Corp"))
+    # Postgres-only: satisfies the FK, unknown to the live SQLite store.
+    await create_postgres_company(PostgresCompany(id="postgres-only-company", name="Ghost Corp"))
+    await check_in_and_get_previous_visit(live.id)
+    await check_in_and_get_previous_visit("postgres-only-company")
+    await reset_postgres_engine()
+
+    response = client.get("/api/v1/companies/recent/viewed", headers=headers)
+
+    assert [entry["company_name"] for entry in response.json()["data"]] == ["Live Corp"]
+
+
+async def test_recently_viewed_is_empty_before_any_company_is_opened(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("recent-test-3@example.com")
+
+    response = client.get("/api/v1/companies/recent/viewed", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["data"] == []
+
+
+async def test_the_recent_route_is_not_shadowed_by_the_company_id_routes(client, postgres_available):
+    # /recent/viewed sits alongside /{company_id}/<literal> routes, and
+    # FastAPI matches in declaration order - this pins that "recent" is
+    # never read as a company id.
+    clear_v2_tables()
+    headers = await _auth_headers("recent-test-4@example.com")
+
+    response = client.get("/api/v1/companies/recent/viewed", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["message"].startswith("Recently viewed")

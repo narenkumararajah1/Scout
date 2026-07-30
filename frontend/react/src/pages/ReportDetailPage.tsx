@@ -3,7 +3,9 @@
 // is immutable by design). Distribution sends this report to every
 // eligible recipient across their preferred channels - a real,
 // irreversible send, gated behind an explicit confirmation dialog.
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { Breadcrumbs } from "../components/ui/Breadcrumbs";
+import { RelatedArtifacts } from "../components/ui/RelatedArtifacts";
 import { Badge } from "../components/ui/Badge";
 import { BulletList } from "../components/ui/BulletList";
 import { CapabilityCard } from "../components/ui/CapabilityCard";
@@ -87,9 +89,8 @@ export function ReportDetailPage() {
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       {confirmDialog && <ConfirmDialog {...confirmDialog} />}
 
-      <Link to={`/companies/${report.company_id}`} className="breadcrumb-back">
-        ← Back to company
-      </Link>
+      <Breadcrumbs companyId={report.company_id} current="Report" />
+      <RelatedArtifacts companyId={report.company_id} current="report" />
 
       <div className="page-header">
         <h1>Report</h1>

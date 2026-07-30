@@ -12,6 +12,7 @@
 // new content can appear.
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Breadcrumbs } from "../components/ui/Breadcrumbs";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
@@ -167,9 +168,7 @@ export function KnowledgeDocumentDetailPage() {
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       {confirmDialog && <ConfirmDialog {...confirmDialog} />}
 
-      <Link to="/knowledge" className="breadcrumb-back">
-        ← Knowledge Library
-      </Link>
+      <Breadcrumbs trail={[{ label: "Knowledge Library", to: "/knowledge" }]} current={document.title} />
 
       <div className="page-header">
         <h1>{document.title}</h1>

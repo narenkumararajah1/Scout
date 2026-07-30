@@ -28,13 +28,13 @@ from backend.repositories.research_repository import list_research_sessions
 from backend.schemas.company_intelligence import CompanyIntelligenceResponse
 from backend.schemas.company_relationship import CompanyRelationshipOut, CreateCompanyRelationshipRequest
 from backend.schemas.company_snapshot import CompanySnapshotOut, RefreshSummaryResponse
-from backend.schemas.company_view import CompanyVisitChangesResponse
+from backend.schemas.company_view import CompanyVisitChangesResponse, RecentlyViewedCompany
 from backend.schemas.sales_coach import SalesCoachRecommendation
 from backend.services import company_relationship_service, company_service, executive_relationship_service
 from backend.services.ai_sales_coach_service import what_would_you_do
 from backend.services.company_intelligence_service import build_company_intelligence_profile
 from backend.services.company_refresh_service import get_latest_refresh_summary, list_snapshot_history
-from backend.services.company_view_service import get_changes_since_last_visit
+from backend.services.company_view_service import get_changes_since_last_visit, list_recently_viewed
 from backend.services.visual_intelligence_service import company_visual_trends
 
 router = APIRouter(prefix="/api/v1/companies", tags=["companies"])
@@ -235,3 +235,25 @@ async def get_company_visual_trends(
 
     data = await company_visual_trends(company_id, limit=limit)
     return {"success": True, "message": "Visual trends retrieved successfully.", "data": data}
+
+
+@router.get("/recent/viewed")
+async def get_recently_viewed_companies(
+    limit: int = Query(default=8, ge=1, le=25),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Companies opened most recently, newest first (V3 Enhancements
+    Phase 6 - 10_NAVIGATION_IMPROVEMENTS.md's "Recently viewed
+    companies": "Users should not repeatedly navigate through long
+    company lists").
+
+    Routed under /recent/ rather than as a bare /recent so it cannot be
+    mistaken for a company id by the /{company_id} routes above - FastAPI
+    matches in declaration order, and a single-segment path here would be
+    a live ambiguity the moment someone reorders this file.
+    """
+    data = [
+        RecentlyViewedCompany.model_validate(entry).model_dump()
+        for entry in await list_recently_viewed(limit=limit)
+    ]
+    return {"success": True, "message": "Recently viewed companies retrieved successfully.", "data": data}

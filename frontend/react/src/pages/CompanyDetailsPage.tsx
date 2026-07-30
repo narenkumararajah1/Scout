@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Breadcrumbs } from "../components/ui/Breadcrumbs";
 import { Badge } from "../components/ui/Badge";
 import { BulletList } from "../components/ui/BulletList";
 import { Card } from "../components/ui/Card";
@@ -353,9 +354,7 @@ export function CompanyDetailsPage() {
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       {confirmDialog && <ConfirmDialog {...confirmDialog} />}
 
-      <Link to="/companies" className="breadcrumb-back">
-        ← Companies
-      </Link>
+      <Breadcrumbs trail={[{ label: "Companies", to: "/companies" }]} current={company.name} />
 
       <div className="page-header">
         <h1>{company.name}</h1>

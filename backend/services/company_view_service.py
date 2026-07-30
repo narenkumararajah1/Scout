@@ -67,3 +67,47 @@ async def get_changes_since_last_visit(company_id: str) -> dict:
         "new_opportunity_count": new_opportunity_count,
         "new_report_count": new_report_count,
     }
+
+
+async def list_recently_viewed(limit: int = 8) -> list:
+    """Recently opened companies, newest first (V3 Enhancements Phase 6 -
+    10_NAVIGATION_IMPROVEMENTS.md's "Recently viewed companies").
+
+    **Resolves each view against the live company store rather than
+    trusting the view row.** `company_views` holds only an id and a
+    timestamp, and a company can be archived or deleted after being
+    viewed - `company_service.get_company()` raises for those, and a
+    switcher offering a dead link is worse than a shorter list. Archived
+    companies are dropped for the same reason: the point of this list is
+    somewhere to go next, and an archived account is not that.
+
+    Reads rows the visit endpoint has been writing since roadmap Phase 3.
+    No new persistence, and nothing needs to start recording anything.
+    """
+    from backend.repositories.postgres.company_view_repository import list_recent_views
+    from backend.services import company_service
+
+    # Over-fetch, because resolution can drop rows and a list that
+    # silently shrinks to two entries is a worse switcher than one that
+    # holds its size.
+    views = await list_recent_views(limit=limit * 2)
+
+    recent = []
+    for view in views:
+        try:
+            company = company_service.get_company(view.company_id)
+        except ValueError:
+            continue
+        if getattr(company, "archived_at", None) is not None:
+            continue
+        recent.append(
+            {
+                "company_id": company.id,
+                "company_name": company.name,
+                "industry": company.industry,
+                "last_viewed_at": view.last_viewed_at,
+            }
+        )
+        if len(recent) >= limit:
+            break
+    return recent

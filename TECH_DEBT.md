@@ -619,6 +619,69 @@ the Sales Playbook page, but Meeting Brief and Outreach Draft pages do not
 show what grounded them, and there is no "sources" affordance equivalent to
 Ask Scout's citations. That is the phase's user-facing payoff.
 
+## docs/v3-enhancements/ - Phase 6 (Platform Experience)
+
+**Most of this phase was already built**, and `Sidebar.tsx` even cites
+10_NAVIGATION_IMPROVEMENTS.md in a comment. Primary navigation, the
+Knowledge Library as a first-class item, active-section highlighting, the
+mobile drawer, Global Search with ⌘K, and a sidebar that stays put while
+`.app-content` scrolls all shipped earlier. So this phase is three
+specific gaps, not a navigation rebuild.
+
+**1. Recently viewed companies.** `company_views.last_viewed_at` has been
+written on every company page open since the earlier roadmap's "What
+Changed Since Last Visit"; nothing had ever read it for navigation. That
+made the doc's "Users should not repeatedly navigate through long company
+lists" answerable with a query and no new persistence - the same shape as
+Phase 5, where the data was already accumulating.
+
+The service resolves each view against the **live** store rather than
+trusting the row, and the reason is a genuine dual-store hazard:
+`company_views.company_id` has an FK to the *Postgres* companies table
+while `company_service.get_company()` reads *SQLite* (the default
+`migration_mode`). A company can satisfy the FK and still be unknown to
+the store the switcher's links point at. A test pins this; my first
+version of that test asserted a scenario the FK makes impossible, which
+is how the real one surfaced.
+
+**2. Breadcrumbs replace the back links, they do not join them.** Seven
+pages rendered a single-level `breadcrumb-back`, and four of them said
+only "← Back to company" without naming it - so a user arriving from a
+search result could not tell whose brief they were reading. Leaving both
+would have been two ways back to one place, which is a problem that
+document names explicitly ("Why are there multiple ways to do the same
+thing?"). The old class and its CSS are gone. The component resolves the
+company name itself, so adopting it on a page is one line and no page
+adds a query it did not already need.
+
+**3. The workflow gap was lateral, not forward.** The Meeting Brief page
+already had forward *generation* buttons; what no page had was reaching a
+sibling that already exists - from a Sales Playbook, the company's
+Meeting Brief was two navigations away. `RelatedArtifacts` closes that.
+Adding generation buttons here instead would have put two different
+"Generate Report" controls on one page.
+
+**One structural fix worth recording.** The switcher was first written as
+a `<div>` sibling of `.sidebar-nav`. Below 768px that `<ul>` *is* the
+slide-out drawer, so the switcher would have been stranded in the
+collapsed top bar. It is now an `<li>` inside that list - valid markup,
+and it inherits the drawer with no mobile CSS of its own. Verified in the
+browser at the mobile breakpoint: the drawer carries nav and Recent
+together.
+
+**Suite: 834 passed, 0 failed, 0 skipped** against real Postgres (from
+830), 4 new tests. `tsc`, `eslint` and `npm run build` clean, no console
+errors, no server tracebacks. Browser-verified on real data: the switcher
+lists four real companies with the current one marked active, the trail
+reads "Companies / NVIDIA / Sales Playbook", the jump strip omits a
+self-link and moves Outreach → Playbook in one click, and zero
+`breadcrumb-back` elements remain anywhere.
+
+**Not taken on:** keyboard shortcuts beyond the existing ⌘K, and an
+Executive detail page (which 10_NAVIGATION_IMPROVEMENTS.md gives
+contextual navigation for, but which does not exist - that is Phase 4
+scope, deliberately not reopened inside a UX phase).
+
 ## docs/v3-enhancements/ - Phase 5 (Visual Intelligence)
 
 **Half of this phase was already built - by the previous roadmap.**

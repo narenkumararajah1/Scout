@@ -2,7 +2,9 @@
 // structured artifact stays structured (each section its own card),
 // never flattened into a single text blob. Read-only: no regeneration
 // trigger exists on this page.
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { Breadcrumbs } from "../components/ui/Breadcrumbs";
+import { RelatedArtifacts } from "../components/ui/RelatedArtifacts";
 import { AIFeedback } from "../components/ui/AIFeedback";
 import { Badge } from "../components/ui/Badge";
 import { BulletList } from "../components/ui/BulletList";
@@ -37,9 +39,8 @@ export function SalesPlaybookDetailPage() {
 
   return (
     <div className="sales-playbook-detail-page">
-      <Link to={`/companies/${playbook.company_id}`} className="breadcrumb-back">
-        ← Back to company
-      </Link>
+      <Breadcrumbs companyId={playbook.company_id} current="Sales Playbook" />
+      <RelatedArtifacts companyId={playbook.company_id} current="playbook" />
 
       <div className="page-header">
         <h1>Sales Playbook</h1>

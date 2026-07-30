@@ -9,6 +9,8 @@
 // Recommended Actions.
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Breadcrumbs } from "../components/ui/Breadcrumbs";
+import { RelatedArtifacts } from "../components/ui/RelatedArtifacts";
 import { AIFeedback } from "../components/ui/AIFeedback";
 import { Badge } from "../components/ui/Badge";
 import { BulletList } from "../components/ui/BulletList";
@@ -67,9 +69,8 @@ export function MeetingBriefDetailPage() {
   return (
     <div className="meeting-brief-detail-page">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-      <Link to={`/companies/${brief.company_id}`} className="breadcrumb-back">
-        ← Back to company
-      </Link>
+      <Breadcrumbs companyId={brief.company_id} current="Meeting Brief" />
+      <RelatedArtifacts companyId={brief.company_id} current="brief" />
 
       <div className="page-header">
         <h1>{brief.meeting_title ?? "Executive Briefing"}</h1>

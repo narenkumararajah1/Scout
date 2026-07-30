@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { RecentCompanies } from "../components/ui/RecentCompanies";
 
 const NAV_ITEMS: Array<{ to: string; label: string; end: boolean }> = [
   { to: "/", label: "Dashboard", end: true },
@@ -53,6 +54,11 @@ export function Sidebar() {
               </NavLink>
             </li>
           ))}
+          {/* Inside the same <ul>, which below 768px is the slide-out
+              drawer itself - so the switcher travels with it rather than
+              being stranded in the collapsed top bar (V3 Enhancements
+              Phase 6). */}
+          <RecentCompanies />
         </ul>
       </nav>
       {isOpen && <div className="sidebar-backdrop" onClick={() => setIsOpen(false)} />}

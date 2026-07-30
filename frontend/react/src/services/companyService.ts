@@ -11,6 +11,7 @@ import type { CompanyIntelligence } from "../types/companyIntelligence";
 import type { CompanyRelationship, CreateCompanyRelationshipInput } from "../types/companyRelationship";
 import type { CompanyVisitChanges } from "../types/companyView";
 import type { ExecutiveOverview } from "../types/executive";
+import type { RecentCompany } from "../types/recentCompany";
 import type { CompanyVisualTrends } from "../types/visualTrends";
 import type { CompanySnapshot, RefreshSummary } from "../types/refreshSummary";
 import type { Report } from "../types/report";
@@ -76,6 +77,12 @@ export const companyService = {
   // disagree about the same analysis run (V3 Enhancements Phase 5).
   async getVisualTrends(companyId: string): Promise<CompanyVisualTrends> {
     return apiRequestData<CompanyVisualTrends>(`/api/v1/companies/${companyId}/visual-trends`);
+  },
+
+  // V3 Enhancements Phase 6 - the quick company switcher. Reads the
+  // visit rows visitCompany() above has been writing all along.
+  async listRecentCompanies(limit = 6): Promise<RecentCompany[]> {
+    return apiRequestData<RecentCompany[]>(`/api/v1/companies/recent/viewed?limit=${limit}`);
   },
 
   async listSnapshots(companyId: string, limit = 20): Promise<CompanySnapshot[]> {
