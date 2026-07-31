@@ -1,0 +1,75 @@
+# Scout as a deployable stack: the SPA behind nginx, the API, and
+# PostgreSQL.
+#
+# The docker-compose.yml at the repository root is a different thing and
+# is left alone - it starts a bare PostgreSQL for local development.
+# This file is the whole application.
+#
+#   cd deploy
+#   cp ../.env.example ../.env        # fill in the values marked required
+#   docker compose up --build
+#   docker compose exec backend python -m scripts.bootstrap_user --email you@innominds.com
+#
+# Then open http://localhost:8080.
+#
+# Only the frontend publishes a port. The API is reachable from the
+# frontend container over the compose network but not from the host, and
+# that is deliberate: every request should arrive through nginx on a
+# single origin, so there is nothing for CORS to mediate. Publishing the
+# API port too would quietly create a second way in that skips it.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-scout}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-scout}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-scout} -d ${POSTGRES_DB:-scout}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    env_file: ../.env
+    environment:
+      # Overrides whatever ../.env says: inside compose the database is a
+      # service name, not localhost or a unix socket.
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-scout}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-scout}
+      # The backend refuses to start if JWT_SECRET_KEY is empty while
+      # this is on - see validate_authentication_settings().
+      REQUIRE_AUTHENTICATION: "true"
+    volumes:
+      # SQLite, Chroma's vectors and ingested knowledge sources. Losing
+      # this volume loses the knowledge base, not just a cache.
+      - scout-data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: frontend/react/Dockerfile
+      args:
+        # Must agree with the backend's REQUIRE_AUTHENTICATION above.
+        # Vite inlines this at build time, so changing it needs
+        # `docker compose build frontend`, not a restart.
+        VITE_REQUIRE_AUTH: "true"
+    ports:
+      - "${SCOUT_PORT:-8080}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  scout-data:

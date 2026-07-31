@@ -124,6 +124,27 @@ class Settings(BaseSettings):
     # sandbox.
     allowed_email_domain: str = "innominds.com"
 
+    # Browser origins allowed to call this API cross-origin, comma
+    # separated (e.g. "https://scout.innominds.com").
+    #
+    # Empty by default, and empty is the right answer for the deployment
+    # shape Scout is built for: the SPA calls relative paths
+    # ("/api/v1/...", "/companies"), so serving it from the same origin
+    # as the API means the browser never makes a cross-origin request and
+    # CORS never enters the picture. deploy/nginx.conf does exactly that.
+    #
+    # Set this only when the frontend really is served from a different
+    # origin - a separate static host, or a CDN. Listing origins
+    # explicitly is required rather than stylistic: "*" cannot be
+    # combined with credentialed requests, and would in any case let any
+    # site on the internet drive this API with a token it phished.
+    cors_allowed_origins: str = ""
+
+    @property
+    def cors_origin_list(self) -> list:
+        """cors_allowed_origins split into a list, blanks discarded."""
+        return [origin.strip() for origin in self.cors_allowed_origins.split(",") if origin.strip()]
+
     # Whether a valid token is required. Off by default so local
     # development opens straight into the dashboard; **must be True for
     # any deployment reachable by anyone else**, because with it off every

@@ -46,6 +46,16 @@ for _test_env_var in (
 ):
     os.environ.setdefault(_test_env_var, "")
 
+# Same root cause again, and the one that actually bit: authentication.
+# The suite exercises endpoints without a token, which is correct - the
+# `require_auth` fixture below opts the handful of tests that prove
+# enforcement back in. But once a deployment .env sets
+# REQUIRE_AUTHENTICATION=true, pydantic-settings resolves it from that
+# file and **64 tests start failing with 401** on a machine where nothing
+# is wrong with the code. Pinning it here decouples the suite from
+# whatever the developer has configured for running the app.
+os.environ.setdefault("REQUIRE_AUTHENTICATION", "false")
+
 # Priority 6 (production safety): this dev instance's real .env sets
 # DELIVERY_DRY_RUN=true (see .env's comment) precisely so the live SMTP
 # credentials above can't send for real during manual testing - but that

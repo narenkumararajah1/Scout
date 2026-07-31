@@ -1,0 +1,39 @@
+# Keeps the build context small and, more importantly, keeps secrets and
+# local state out of the image.
+
+# Secrets. .env is mounted at run time via env_file, never baked in.
+.env
+.env.*
+!.env.example
+
+# Local state: the host's SQLite file, Chroma vectors and knowledge
+# sources. These belong in the container's volume, not in its layers -
+# copying them in would ship one machine's data to every deployment.
+data/
+
+# Virtualenvs and caches, which are platform-specific and would be wrong
+# inside a Linux image anyway.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node modules are reinstalled from the lockfile inside the image.
+node_modules/
+frontend/react/node_modules/
+frontend/react/dist/
+
+# Repository and tooling metadata.
+.git/
+.github/
+.gitignore
+.claude/
+
+# Tests and docs do not run in the image.
+tests/
+docs/
+*.md
+!README.md

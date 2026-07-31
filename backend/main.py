@@ -4,6 +4,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.api.error_handlers import register_error_handlers
@@ -126,6 +127,24 @@ def _warn_if_live_delivery_in_non_production() -> None:
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
+
+# Only installed when origins are configured. With the SPA served from
+# the same origin as the API - the default deployment, see
+# deploy/nginx.conf - there is no cross-origin request to permit, and
+# adding the middleware anyway would widen the surface for nothing.
+if settings.cors_origin_list:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origin_list,
+        # Scout authenticates with a Bearer token from localStorage
+        # rather than a cookie, so credentialed requests are not needed;
+        # leaving this off also keeps "*" from ever becoming tempting.
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+        # Authorization is the one that matters - without it the browser
+        # rejects every authenticated call in preflight.
+        allow_headers=["Authorization", "Content-Type"],
+    )
 
 # Authentication is applied here, at the mount points, rather than route
 # by route. Two reasons, both learned from the audit that prompted this:
