@@ -21,6 +21,8 @@ import re
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from io import BytesIO
+import ipaddress
+import socket
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -45,8 +47,53 @@ WEBSITE_FETCH_TIMEOUT_SECONDS = 20
 # response is streamed and abandoned once it exceeds this.
 MAX_WEBSITE_BYTES = 10 * 1024 * 1024
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+# Redirect hops, each of which is re-checked against _assert_public_host.
+MAX_REDIRECTS = 5
 
 _USER_AGENT = "Scout-KnowledgeEngine/1.0"
+
+
+def _assert_public_host(hostname: str) -> None:
+    """Rejects a URL that resolves to an address inside the deployment.
+
+    Website ingestion takes a URL from a user and fetches it *from the
+    server*, which makes it a request forgery primitive unless the target
+    is constrained. The address that matters most is 169.254.169.254: on
+    every major cloud that is the instance metadata service, and on a
+    default-configured host it hands out the machine's own IAM
+    credentials to anything that asks. Loopback and private ranges are
+    equally wrong - they expose internal services that are only
+    unauthenticated because they were never meant to be reachable.
+
+    Resolution happens here rather than pattern-matching the hostname,
+    because a name that merely *looks* external can resolve to a private
+    address. Every resolved address must be public: a host with one
+    public and one private A record is still a way in.
+
+    This is not a full SSRF defence - the address can change between this
+    check and the fetch - but it closes the trivially exploitable form
+    while keeping the feature usable for the public documentation pages
+    it exists to ingest.
+    """
+    try:
+        resolved = socket.getaddrinfo(hostname, None)
+    except socket.gaierror as exc:
+        raise ExtractionError(f"Could not resolve {hostname}: {exc}") from exc
+
+    for info in resolved:
+        address = ipaddress.ip_address(info[4][0])
+        if (
+            address.is_private
+            or address.is_loopback
+            or address.is_link_local
+            or address.is_reserved
+            or address.is_multicast
+            or address.is_unspecified
+        ):
+            raise ExtractionError(
+                f"{hostname} resolves to a non-public address ({address}). "
+                "Only publicly reachable pages can be ingested."
+            )
 
 
 class ExtractionError(Exception):
@@ -280,16 +327,35 @@ def extract_from_url(url: str) -> ExtractedDocument:
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https"):
         raise ExtractionError("Only http:// and https:// URLs can be ingested.")
-    if not parsed.netloc:
+    if not parsed.hostname:
         raise ExtractionError("URL is missing a hostname.")
+    _assert_public_host(parsed.hostname)
 
+    # Redirects are followed by hand so that every hop is checked. With
+    # requests' automatic redirect handling, a public URL that returns a
+    # 302 to http://169.254.169.254/ defeats the check above entirely -
+    # only the first host is ever seen.
     try:
-        response = requests.get(
-            url,
-            timeout=WEBSITE_FETCH_TIMEOUT_SECONDS,
-            headers={"User-Agent": _USER_AGENT, "Accept": "text/html,application/pdf,text/plain"},
-            stream=True,
-        )
+        response = None
+        for _ in range(MAX_REDIRECTS + 1):
+            response = requests.get(
+                url,
+                timeout=WEBSITE_FETCH_TIMEOUT_SECONDS,
+                headers={"User-Agent": _USER_AGENT, "Accept": "text/html,application/pdf,text/plain"},
+                stream=True,
+                allow_redirects=False,
+            )
+            if not response.is_redirect:
+                break
+            location = response.headers.get("Location", "")
+            response.close()
+            url = requests.compat.urljoin(url, location)
+            hop = urlparse(url)
+            if hop.scheme not in ("http", "https") or not hop.hostname:
+                raise ExtractionError(f"Redirect to an unsupported URL: {location}")
+            _assert_public_host(hop.hostname)
+        else:
+            raise ExtractionError(f"Too many redirects (more than {MAX_REDIRECTS}).")
     except requests.RequestException as exc:
         raise ExtractionError(f"Could not fetch {url}: {exc}") from exc
 

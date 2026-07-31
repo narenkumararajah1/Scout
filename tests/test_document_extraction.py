@@ -219,6 +219,11 @@ def _mock_response(body: bytes, content_type: str = "text/html", status: int = 2
     response = Mock()
     response.headers = {"Content-Type": content_type}
     response.status_code = status
+    # Mirrors requests.Response.is_redirect, which these mocks previously
+    # left as a bare Mock - and therefore truthy. extract_from_url now
+    # follows redirects by hand so it can re-check each hop's host, so an
+    # unset is_redirect made every mocked fetch look like a redirect loop.
+    response.is_redirect = status in (301, 302, 303, 307, 308)
     response.iter_content = Mock(return_value=[body])
     response.raise_for_status = Mock()
     response.close = Mock()
@@ -264,7 +269,13 @@ def test_non_http_schemes_are_rejected_without_a_request():
 def test_network_failure_is_reported_as_an_extraction_error():
     import requests as requests_module
 
+    # getaddrinfo is stubbed to a public address so the host guard lets
+    # this through: the behaviour under test is the *fetch* failing, not
+    # the name failing to resolve, and those now have distinct messages.
     with patch(
+        "backend.integrations.document_extraction.socket.getaddrinfo",
+        return_value=[(2, 1, 6, "", ("93.184.216.34", 443))],
+    ), patch(
         "backend.integrations.document_extraction.requests.get",
         side_effect=requests_module.ConnectionError("name resolution failed"),
     ):
@@ -277,6 +288,8 @@ def test_oversized_response_is_abandoned_mid_stream():
 
     oversized = Mock()
     oversized.headers = {"Content-Type": "text/html"}
+    oversized.status_code = 200
+    oversized.is_redirect = False
     oversized.raise_for_status = Mock()
     oversized.close = Mock()
     # Two blocks that together exceed the cap - streaming must bail rather

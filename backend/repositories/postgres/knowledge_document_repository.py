@@ -14,6 +14,7 @@ from sqlalchemy import func, select
 from backend.database.models import KnowledgeDocument
 from backend.database.models.knowledge_document import STATUS_ARCHIVED
 from backend.database.postgres import get_session
+from backend.utils.text import clean_search_text
 
 
 async def create_document(document: KnowledgeDocument) -> KnowledgeDocument:
@@ -44,6 +45,18 @@ async def list_documents(
     status="archived" returns archived rows regardless of the flag,
     otherwise that combination could only ever return nothing.
     """
+    # Sanitised here rather than in the router because this is where the
+    # values become Postgres query parameters, and the router is not the
+    # only caller. A NUL byte in any of these reaches asyncpg as an
+    # invalid UTF-8 sequence and raises CharacterNotInRepertoireError -
+    # surfacing as a 500 on a filter the user merely typed badly. The
+    # equivalent bug was fixed once in the global search router; it was
+    # still live here, which is why the guard now sits at the boundary
+    # that all callers share.
+    category = clean_search_text(category) or None
+    status = clean_search_text(status) or None
+    search = clean_search_text(search) or None
+
     async with get_session() as session:
         query = select(KnowledgeDocument)
         if category:

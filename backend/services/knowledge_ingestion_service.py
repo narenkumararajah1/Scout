@@ -28,6 +28,7 @@ keeps working untouched and existing callers see no behavior change
 beyond a richer corpus.
 """
 
+import asyncio
 import hashlib
 import logging
 import uuid
@@ -186,7 +187,13 @@ async def _finalize(document: KnowledgeDocument, text: str, mark_refreshed: bool
     "processing" forever.
     """
     try:
-        chunk_count = _index_chunks(document, text)
+        # Off the event loop. `_index_chunks` chunks, embeds and writes to
+        # ChromaDB, all synchronously - measured at ~18s for a 1.7MB
+        # document, during which *every other request Scout is serving*
+        # waits, because an `async def` endpoint that blocks blocks the
+        # single event loop thread. A stress test caught this by polling
+        # /health during an upload: 0.001s baseline, 18.59s under load.
+        chunk_count = await asyncio.to_thread(_index_chunks, document, text)
     except Exception as exc:
         # Deliberately broad: an embedding-model or vector-store failure is
         # exactly the case this must record rather than propagate, so the
@@ -291,7 +298,7 @@ async def ingest_uploaded_file(
     file_type = file_type_from_name(filename)
 
     try:
-        extracted = extract_from_bytes(data, file_type)
+        extracted = await asyncio.to_thread(extract_from_bytes, data, file_type)
     except ExtractionError as exc:
         # Nothing is persisted for a file that could not be read at all -
         # there is no document to show in the Library, so this is a
@@ -351,7 +358,12 @@ async def ingest_website(
     category = _validate_category(category)
 
     try:
-        extracted = extract_from_url(url)
+        # `extract_from_url` uses a synchronous `requests.get` with a 20s
+        # timeout. Left on the event loop, one unreachable host stalled
+        # every other request for the full 20s - and a URL pointing at
+        # Scout's own port deadlocked outright, because the server could
+        # not answer the request it was itself making.
+        extracted = await asyncio.to_thread(extract_from_url, url)
     except ExtractionError as exc:
         raise IngestionError(str(exc)) from exc
 

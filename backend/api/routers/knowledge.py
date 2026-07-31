@@ -17,6 +17,8 @@ duplicate state that KnowledgeDocument.status already owns. Long PDFs are
 the exception and are noted in TECH_DEBT.md.
 """
 
+import asyncio
+
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 
 from backend.api.dependencies import get_current_user
@@ -264,6 +266,17 @@ async def search_knowledge_library(
         payload = KnowledgeSearchResponse(query="", results=[])
         return {"success": True, "message": "Knowledge search results retrieved.", "data": payload.model_dump()}
 
-    references = retrieve_knowledge(query, n_results=limit, category=category)
+    # Off the event loop: retrieve_knowledge embeds the query and hits
+    # ChromaDB synchronously, which took 8.3s on a cold embedding model
+    # during a stress test. This endpoint is `async def`, so that time is
+    # time no other request is being served. (Ask Scout runs the same
+    # retrieval but is a sync `def` endpoint, which FastAPI already
+    # dispatches to a threadpool - hence only this one needed changing.)
+    # Keywords, not positionals: retrieve_knowledge's third parameter is
+    # entity_type, so passing category positionally silently filters on
+    # the wrong field rather than failing.
+    references = await asyncio.to_thread(
+        retrieve_knowledge, query, n_results=limit, category=category
+    )
     payload = KnowledgeSearchResponse(query=query, results=references_to_dicts(references))
     return {"success": True, "message": "Knowledge search results retrieved.", "data": payload.model_dump()}
