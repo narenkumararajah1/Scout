@@ -687,10 +687,30 @@ real NVIDIA analyses: 79 technologies tracked, 5 established, 11
 emerging, 63 newly detected, **0 stale**, and zero fabricated events from
 the same extraction variance that previously produced 34.
 
-**Not yet surfaced in the UI.** The endpoint exists and returns lifecycle
-plus evidence; no page renders it. The natural home is the Company
-Details technology section, replacing the current flat category bar chart
-with something that distinguishes core stack from single mentions.
+**Surfaced on Company Details as a Technology Stack card, replacing two
+flat surfaces rather than becoming a third.** The page previously showed
+technologies twice - a bare "Name - Category" list inside Company
+Intelligence, and a category bar chart under Trends - and both counted a
+single sighting exactly like a technology seen in every analysis. On the
+live NVIDIA data that made the bar chart a picture of sampling noise: 63
+of 79 entries have been seen once. Both are gone, with a comment where
+the list was so it does not get restored as an apparent omission.
+
+**Established leads and the long tail collapses**, the same treatment
+RefreshSummaryCard gives minor changes. Rendering all 79 flat would bury
+the five technologies Scout has seen every time under sixty-three it has
+seen once, so Established and Emerging are always visible and the rest
+sit behind "Show 63 technologies Scout is less sure of".
+
+**Lifecycle labels and descriptions come from the backend payload, not a
+frontend map.** The wording carries a claim Scout must not overstate, and
+a UI that re-phrased it is exactly how that care would be lost. Each row
+also shows its evidence sentence rather than the verdict alone.
+
+A company whose technologies are all single sightings gets an explicit
+note - "Nothing confirmed yet ... confidence builds as Scout analyses
+this company again" - because an unfamiliar card with no confident group
+is otherwise uninterpretable.
 
 ## docs/v3-enhancements/ - Phase 7B (the provider-independent part)
 

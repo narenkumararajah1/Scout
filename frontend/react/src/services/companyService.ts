@@ -12,6 +12,7 @@ import type { CompanyRelationship, CreateCompanyRelationshipInput } from "../typ
 import type { CompanyVisitChanges } from "../types/companyView";
 import type { ExecutiveOverview } from "../types/executive";
 import type { RecentCompany } from "../types/recentCompany";
+import type { TechnologyIntelligence } from "../types/technologyIntelligence";
 import type { CompanyVisualTrends } from "../types/visualTrends";
 import type { CompanySnapshot, RefreshSummary } from "../types/refreshSummary";
 import type { Report } from "../types/report";
@@ -83,6 +84,12 @@ export const companyService = {
   // visit rows visitCompany() above has been writing all along.
   async listRecentCompanies(limit = 6): Promise<RecentCompany[]> {
     return apiRequestData<RecentCompany[]>(`/api/v1/companies/recent/viewed?limit=${limit}`);
+  },
+
+  // Ordered by the backend (observation count, then confidence) so the
+  // core stack leads. The UI does not re-sort.
+  async listTechnologies(companyId: string): Promise<TechnologyIntelligence[]> {
+    return apiRequestData<TechnologyIntelligence[]>(`/api/v1/companies/${companyId}/technologies`);
   },
 
   async listSnapshots(companyId: string, limit = 20): Promise<CompanySnapshot[]> {

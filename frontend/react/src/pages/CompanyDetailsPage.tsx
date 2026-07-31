@@ -5,7 +5,6 @@ import { Breadcrumbs } from "../components/ui/Breadcrumbs";
 import { Badge } from "../components/ui/Badge";
 import { BulletList } from "../components/ui/BulletList";
 import { Card } from "../components/ui/Card";
-import { CategoryBarChart } from "../components/charts/CategoryBarChart";
 import { IntelligenceVolumeChart } from "../components/charts/IntelligenceVolumeChart";
 import { OpportunityTrendChart } from "../components/charts/OpportunityTrendChart";
 import { SignalCategoryTrendChart } from "../components/charts/SignalCategoryTrendChart";
@@ -15,6 +14,7 @@ import { ErrorState } from "../components/ui/ErrorState";
 import { GenerationStatus } from "../components/ui/GenerationStatus";
 import { IntelligenceTimeline } from "../components/ui/IntelligenceTimeline";
 import { KeyPeople } from "../components/ui/KeyPeople";
+import { TechnologyStack } from "../components/ui/TechnologyStack";
 import { LoadingState } from "../components/ui/LoadingState";
 import { RefreshSummaryCard } from "../components/ui/RefreshSummaryCard";
 import { ToastContainer } from "../components/ui/Toast";
@@ -26,6 +26,7 @@ import { useCompany } from "../hooks/useCompany";
 import { useConfirm } from "../hooks/useConfirm";
 import { useCompanyIntelligence } from "../hooks/useCompanyIntelligence";
 import { useCompanyExecutives } from "../hooks/useCompanyExecutives";
+import { useCompanyTechnologies } from "../hooks/useCompanyTechnologies";
 import { useCompanyVisualTrends } from "../hooks/useCompanyVisualTrends";
 import { useCompanyRelationships } from "../hooks/useCompanyRelationships";
 import { useCompanySnapshots } from "../hooks/useCompanySnapshots";
@@ -94,6 +95,7 @@ export function CompanyDetailsPage() {
   const relationshipsQuery = useCompanyRelationships(companyId);
   const executivesQuery = useCompanyExecutives(companyId);
   const visualTrendsQuery = useCompanyVisualTrends(companyId);
+  const technologiesQuery = useCompanyTechnologies(companyId);
   const allCompaniesQuery = useCompanies();
   const addRelationship = useAddCompanyRelationship(companyId);
   const removeRelationship = useRemoveCompanyRelationship(companyId);
@@ -490,6 +492,16 @@ export function CompanyDetailsPage() {
         isRunning={analyzeCompany.isPending}
       />
 
+      {/* Above Company Intelligence because "what do they run" is the
+          question a technical sale opens with, and this is the only
+          surface that answers it with evidence rather than a flat count. */}
+      <TechnologyStack
+        technologies={technologiesQuery.data}
+        isLoading={technologiesQuery.isLoading}
+        error={technologiesQuery.isError ? technologiesQuery.error : undefined}
+        errorMessage={technologiesQuery.error ? getErrorMessage(technologiesQuery.error) : undefined}
+      />
+
       <Card title="Company Intelligence">
         {intelligenceQuery.isLoading ? (
           <LoadingState message="Loading intelligence..." />
@@ -499,21 +511,11 @@ export function CompanyDetailsPage() {
           <EmptyState message="No intelligence available yet." />
         ) : (
           <div className="intelligence-sections">
-            <section>
-              <h3>Technologies</h3>
-              {intelligence.technologies.length === 0 ? (
-                <EmptyState message="No technologies detected yet." />
-              ) : (
-                <ul>
-                  {intelligence.technologies.map((tech) => (
-                    <li key={tech.id}>
-                      {tech.name}
-                      {tech.category ? ` - ${tech.category}` : ""}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
+            {/* Technologies are NOT listed here. This was a flat
+                "Name - Category" list that counted a single sighting
+                exactly like a technology seen in every analysis; the
+                Technology Stack card above replaces it with the
+                observation evidence that distinguishes them. */}
 
             <section>
               <h3>Business Initiatives</h3>
@@ -608,12 +610,6 @@ export function CompanyDetailsPage() {
             <SignalCategoryTrendChart
               captures={visualTrends?.captures ?? []}
               hasHistory={Boolean(visualTrends?.has_history)}
-            />
-
-            <h4 className="chart-section-title">Technology Adoption</h4>
-            <CategoryBarChart
-              data={visualTrends?.technology_categories ?? []}
-              emptyMessage="No technologies detected yet."
             />
 
             <h4 className="chart-section-title">Refresh history</h4>
