@@ -46,6 +46,7 @@ from backend.services import company_service
 from backend.services.generation_job_service import create_job, execute_job, reject_if_duplicate
 from backend.services.outreach_delivery_service import send_outreach_draft
 from backend.services.outreach_service import SUPPORTED_OUTREACH_TYPES, generate_outreach_draft
+from backend.utils.text import NameText, ShortCodeText, TitleText
 
 router = APIRouter(prefix="/api/v1/outreach-drafts", tags=["outreach-drafts"])
 
@@ -54,8 +55,8 @@ JOB_TYPE = "outreach_draft"
 
 class GenerateOutreachDraftRequest(BaseModel):
     company_id: str = Field(min_length=1)
-    outreach_type: str = Field(min_length=1)
-    executive_name: Optional[str] = None
+    outreach_type: ShortCodeText = Field(min_length=1)
+    executive_name: Optional[NameText] = None
     talking_points: list = Field(default_factory=list)
     opportunity_id: Optional[str] = None
     meeting_brief_id: Optional[str] = None
@@ -63,7 +64,7 @@ class GenerateOutreachDraftRequest(BaseModel):
 
 
 class UpdateOutreachDraftRequest(BaseModel):
-    subject: Optional[str] = None
+    subject: Optional[TitleText] = None
     content: str = Field(min_length=1)
 
 

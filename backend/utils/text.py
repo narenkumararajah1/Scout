@@ -30,7 +30,9 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from typing import Optional
+from typing import Annotated, Optional
+
+from pydantic import AfterValidator
 
 # C0/C1 control characters except tab, newline and carriage return, which
 # are legitimate inside descriptions and pasted content. NUL is the one
@@ -90,3 +92,30 @@ def clean_stored_text(
         raise ValueError(f"{field} cannot exceed {max_length} characters (received {len(cleaned)}).")
 
     return cleaned
+
+
+def _bounded(max_length: int):
+    """Builds a Pydantic validator that applies clean_stored_text."""
+
+    def validate(value: Optional[str], info) -> Optional[str]:
+        return clean_stored_text(value, field=info.field_name, max_length=max_length)
+
+    return AfterValidator(validate)
+
+
+# Declarative field types for text bound for a length-limited column.
+#
+# These exist because the same defect kept recurring in a new place: a
+# request model accepts an unbounded str, the value reaches a
+# String(n) column, and Postgres raises StringDataRightTruncation.
+# Where that happens inside a background generation job it is worse than
+# a 500 - the endpoint returns "generation started", the job fails
+# asynchronously *after* burning an LLM call on each retry, and the only
+# evidence is a log line nobody is watching.
+#
+# Annotating the field is one token at the point of declaration, so a new
+# request model is far more likely to get it right than if the author has
+# to remember to write a validator. Match the number to the column.
+ShortCodeText = Annotated[str, _bounded(50)]
+NameText = Annotated[str, _bounded(MAX_NAME_LENGTH)]
+TitleText = Annotated[str, _bounded(MAX_URL_LENGTH)]

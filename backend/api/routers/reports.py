@@ -31,6 +31,7 @@ from backend.services import company_service
 from backend.services.generation_job_service import create_job, execute_job, reject_if_duplicate
 from backend.services.report_export_service import export_report_to_pdf
 from backend.services.v3_report_service import build_and_persist_report
+from backend.utils.text import NameText
 
 router = APIRouter(prefix="/api/v1/reports", tags=["reports"])
 
@@ -41,7 +42,7 @@ _SUPPORTED_FORMATS = ("pdf",)
 
 class GenerateV3ReportRequest(BaseModel):
     company_id: str = Field(min_length=1)
-    title: Optional[str] = None
+    title: Optional[NameText] = None
 
 
 @router.get("")

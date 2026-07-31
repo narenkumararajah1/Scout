@@ -30,6 +30,7 @@ from backend.schemas.meeting_brief import MeetingBriefOut
 from backend.services import company_service
 from backend.services.generation_job_service import create_job, execute_job, reject_if_duplicate
 from backend.services.meeting_preparation_service import generate_meeting_brief
+from backend.utils.text import NameText
 
 router = APIRouter(prefix="/api/v1/meeting-briefs", tags=["meeting-briefs"])
 
@@ -38,7 +39,7 @@ JOB_TYPE = "meeting_brief"
 
 class GenerateMeetingBriefRequest(BaseModel):
     company_id: str = Field(min_length=1)
-    meeting_title: Optional[str] = None
+    meeting_title: Optional[NameText] = None
 
 
 @router.get("")

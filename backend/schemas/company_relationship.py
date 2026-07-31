@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field, model_validator
+from backend.utils.text import NameText
 
 
 class CompanyRelationshipOut(BaseModel):
@@ -23,7 +24,7 @@ class CompanyRelationshipOut(BaseModel):
 class CreateCompanyRelationshipRequest(BaseModel):
     relationship_type: str = Field(min_length=1)
     related_company_id: Optional[str] = None
-    related_company_name: Optional[str] = None
+    related_company_name: Optional[NameText] = None
     notes: Optional[str] = None
 
     @model_validator(mode="after")

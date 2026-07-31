@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
+from backend.utils.text import NameText, ShortCodeText, TitleText
 
 # Character budget for the inline preview 04_KNOWLEDGE_LIBRARY.md asks
 # for ("preview the document without downloading it"). The list endpoint
@@ -69,8 +70,8 @@ class KnowledgeLibraryResponse(BaseModel):
 
 class IngestWebsiteRequest(BaseModel):
     url: str = Field(min_length=1, max_length=1000)
-    category: str = Field(min_length=1)
-    title: Optional[str] = None
+    category: ShortCodeText = Field(min_length=1)
+    title: Optional[TitleText] = None
     description: Optional[str] = None
     tags: Optional[list] = None
     industries: Optional[list] = None
@@ -84,14 +85,14 @@ class UpdateKnowledgeMetadataRequest(BaseModel):
     version or chunk_count).
     """
 
-    title: Optional[str] = None
+    title: Optional[TitleText] = None
     description: Optional[str] = None
-    category: Optional[str] = None
+    category: Optional[ShortCodeText] = None
     tags: Optional[list] = None
     industries: Optional[list] = None
     technologies: Optional[list] = None
     related_services: Optional[list] = None
-    author: Optional[str] = None
+    author: Optional[NameText] = None
     published_at: Optional[datetime] = None
 
 
