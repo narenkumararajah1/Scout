@@ -24,13 +24,20 @@ from backend.api.dependencies import get_current_user
 from backend.api.error_handlers import APIError
 from backend.database.models import User
 from backend.repositories.postgres.executive_repository import list_executives_for_company
+from backend.repositories.postgres.technology_repository import list_technologies_for_company
 from backend.repositories.research_repository import list_research_sessions
 from backend.schemas.company_intelligence import CompanyIntelligenceResponse
 from backend.schemas.company_relationship import CompanyRelationshipOut, CreateCompanyRelationshipRequest
 from backend.schemas.company_snapshot import CompanySnapshotOut, RefreshSummaryResponse
 from backend.schemas.company_view import CompanyVisitChangesResponse, RecentlyViewedCompany
 from backend.schemas.sales_coach import SalesCoachRecommendation
-from backend.services import company_relationship_service, company_service, executive_relationship_service
+from backend.schemas.technology_intelligence import TechnologyIntelligenceOut
+from backend.services import (
+    company_relationship_service,
+    company_service,
+    executive_relationship_service,
+    technology_intelligence_service,
+)
 from backend.services.ai_sales_coach_service import what_would_you_do
 from backend.services.company_intelligence_service import build_company_intelligence_profile
 from backend.services.company_refresh_service import get_latest_refresh_summary, list_snapshot_history
@@ -257,3 +264,33 @@ async def get_recently_viewed_companies(
         for entry in await list_recently_viewed(limit=limit)
     ]
     return {"success": True, "message": "Recently viewed companies retrieved successfully.", "data": data}
+
+
+@router.get("/{company_id}/technologies")
+async def get_company_technologies(
+    company_id: str,
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """A company's technology stack with observation evidence.
+
+    Ordered by observation count first, then confidence. Confidence alone
+    is the wrong primary key and the live data shows why: a technology
+    seen once has a rate of 1.0, identical to one seen in all three
+    analyses, so a confidence sort puts single mentions level with the
+    core stack - the opposite of the intent. Repetition is what separates
+    them, so repetition leads. Deliberately not filtered by
+    lifecycle - a caller wanting only established technologies can filter
+    on the field, whereas hiding the long tail here would conceal how much
+    of what Scout knows rests on one sighting.
+    """
+    try:
+        company_service.get_company(company_id)
+    except ValueError as exc:
+        raise APIError(404, str(exc)) from exc
+
+    technologies = await list_technologies_for_company(company_id)
+    described = [technology_intelligence_service.describe(row) for row in technologies]
+    described.sort(key=lambda item: (-item["observation_count"], -item["confidence"], item["name"]))
+
+    data = [TechnologyIntelligenceOut.model_validate(item).model_dump() for item in described]
+    return {"success": True, "message": "Technologies retrieved successfully.", "data": data}

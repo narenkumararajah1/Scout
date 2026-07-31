@@ -352,7 +352,11 @@ class EntityPersistenceStage(PipelineStage):
 
             start = time.perf_counter()
             technologies, _, executives = await persist_extracted_entities(
-                context.company.id, extracted
+                context.company.id,
+                extracted,
+                research_session_id=(
+                    context.research_session.id if context.research_session is not None else None
+                ),
             )
             context.metrics[self.name].execution_time_seconds = time.perf_counter() - start
             context.persisted_technologies = technologies

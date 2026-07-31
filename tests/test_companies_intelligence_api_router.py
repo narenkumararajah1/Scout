@@ -13,7 +13,9 @@ from backend.models.company import Company as SqliteCompany
 from backend.repositories.company_repository import create_company as create_sqlite_company
 from backend.repositories.postgres.company_repository import create_company as create_postgres_company
 from backend.repositories.postgres.company_snapshot_repository import create_snapshot
+from backend.ai.knowledge_extraction import ExtractedTechnology
 from backend.repositories.postgres.company_view_repository import check_in_and_get_previous_visit
+from backend.services.technology_intelligence_service import record_observations
 from backend.repositories.postgres.executive_repository import create_executive
 from backend.repositories.postgres.technology_repository import upsert_technology
 from backend.services.auth_service import create_access_token, hash_password
@@ -576,3 +578,121 @@ async def test_the_recent_route_is_not_shadowed_by_the_company_id_routes(client,
 
     assert response.status_code == 200
     assert response.json()["message"].startswith("Recently viewed")
+
+
+# --- GET /{company_id}/technologies (Technology Intelligence) -----------
+
+
+async def test_technologies_returns_lifecycle_and_the_evidence_behind_it(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("tech-intel-1@example.com")
+
+    company = create_sqlite_company(SqliteCompany(name="Stack Corp"))
+    await create_postgres_company(PostgresCompany(id=company.id, name="Stack Corp"))
+    for _ in range(3):
+        await record_observations(company.id, [ExtractedTechnology(name="Kubernetes", category="Platform")])
+    await reset_postgres_engine()
+
+    response = client.get(f"/api/v1/companies/{company.id}/technologies", headers=headers)
+
+    assert response.status_code == 200
+    entry = response.json()["data"][0]
+    assert entry["name"] == "Kubernetes"
+    assert entry["lifecycle"] == "established"
+    assert entry["observation_count"] == 3
+    assert entry["confidence"] == 1.0
+    # The verdict must arrive with its evidence, not on its own.
+    assert entry["evidence_summary"] == "Seen in 3 of the 3 analyses since Scout first found it."
+
+
+async def test_technologies_are_ordered_by_confidence(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("tech-intel-2@example.com")
+
+    company = create_sqlite_company(SqliteCompany(name="Stack Corp"))
+    await create_postgres_company(PostgresCompany(id=company.id, name="Stack Corp"))
+    # "Core" seen twice, "Passing" once - so Core outranks it.
+    await record_observations(company.id, [ExtractedTechnology(name="Core", category="Platform")])
+    await record_observations(
+        company.id,
+        [ExtractedTechnology(name="Core", category="Platform"), ExtractedTechnology(name="Passing", category=None)],
+    )
+    await reset_postgres_engine()
+
+    response = client.get(f"/api/v1/companies/{company.id}/technologies", headers=headers)
+
+    assert [entry["name"] for entry in response.json()["data"]] == ["Core", "Passing"]
+
+
+async def test_technologies_never_describe_a_company_as_having_dropped_anything(client, postgres_available):
+    # The wording guarantee, asserted at the API boundary rather than only
+    # in the service - this is the text a user actually reads.
+    clear_v2_tables()
+    headers = await _auth_headers("tech-intel-3@example.com")
+
+    company = create_sqlite_company(SqliteCompany(name="Stack Corp"))
+    await create_postgres_company(PostgresCompany(id=company.id, name="Stack Corp"))
+    await record_observations(company.id, [ExtractedTechnology(name="Kubernetes", category="Platform")])
+    for _ in range(6):
+        await record_observations(company.id, [])
+    await reset_postgres_engine()
+
+    response = client.get(f"/api/v1/companies/{company.id}/technologies", headers=headers)
+
+    entry = response.json()["data"][0]
+    assert entry["lifecycle"] == "stale"
+    assert entry["lifecycle_label"] == "Not observed recently"
+    assert "not evidence the company stopped using it" in entry["lifecycle_description"]
+
+
+async def test_technologies_is_empty_for_a_company_with_no_analysis(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("tech-intel-4@example.com")
+
+    company = create_sqlite_company(SqliteCompany(name="Empty Corp"))
+    await create_postgres_company(PostgresCompany(id=company.id, name="Empty Corp"))
+    await reset_postgres_engine()
+
+    response = client.get(f"/api/v1/companies/{company.id}/technologies", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["data"] == []
+
+
+async def test_technologies_returns_404_for_an_unknown_company(client, postgres_available):
+    clear_v2_tables()
+    headers = await _auth_headers("tech-intel-5@example.com")
+
+    response = client.get("/api/v1/companies/does-not-exist/technologies", headers=headers)
+
+    assert response.status_code == 404
+
+
+async def test_a_single_sighting_never_outranks_the_established_stack(client, postgres_available):
+    """Regression for an ordering defect the live data exposed.
+
+    A technology seen once has an observation rate of 1.0, identical to
+    one seen in every analysis, so sorting by confidence alone put single
+    mentions at the top - the opposite of what the endpoint is for.
+    """
+    clear_v2_tables()
+    headers = await _auth_headers("tech-intel-6@example.com")
+
+    company = create_sqlite_company(SqliteCompany(name="Stack Corp"))
+    await create_postgres_company(PostgresCompany(id=company.id, name="Stack Corp"))
+    for _ in range(3):
+        await record_observations(company.id, [ExtractedTechnology(name="Core", category="Platform")])
+    await record_observations(
+        company.id,
+        [ExtractedTechnology(name="Core", category="Platform"), ExtractedTechnology(name="AAA Mention", category=None)],
+    )
+    await reset_postgres_engine()
+
+    response = client.get(f"/api/v1/companies/{company.id}/technologies", headers=headers)
+
+    # Both sit at confidence 1.0; the alphabetically-first single mention
+    # would lead under the old ordering.
+    entries = response.json()["data"]
+    assert entries[0]["name"] == "Core"
+    assert entries[0]["observation_count"] == 4
+    assert entries[1]["name"] == "AAA Mention"

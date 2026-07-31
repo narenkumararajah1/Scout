@@ -619,6 +619,79 @@ the Sales Playbook page, but Meeting Brief and Outreach Draft pages do not
 show what grounded them, and there is no "sources" affordance equivalent to
 Ask Scout's citations. That is the phase's user-facing payoff.
 
+## Technology Intelligence (replaces the removed snapshot diff)
+
+**Built after the diff-based approach was measured and removed.** That
+attempt reported 34 technology changes, 15 major, on a company that had
+not changed - because it compared two consecutive extractions, and
+extraction *samples* a stack rather than enumerating it. This design
+never compares two runs.
+
+**What each row now records**, accumulated across every analysis Scout
+has ever run for the company:
+
+| field | meaning |
+|---|---|
+| `observation_count` | analyses that mentioned it |
+| `missed_count` | analyses that did not (cumulative) |
+| `consecutive_misses` | in a row since it was last seen |
+| `first_seen_at` / `last_seen_at` | when Scout first and last saw it |
+| `confidence_score` | the observation rate |
+| `observation_sources` | recent sightings, bounded at 10 |
+
+**Two miss counters, and a test caught why that is necessary.** An
+earlier draft used one, resetting it on every sighting. A technology seen
+and missed alternately would then have reported ~1.0 confidence when its
+real observation rate was 50%. Confidence needs the cumulative figure;
+staleness needs the consecutive one. They are different questions.
+
+**Confidence is the load-bearing signal, not staleness.** Because
+extraction samples, repetition is what separates a company's real stack
+from a passing mention, and it needs no tuning to work. The live data
+demonstrates it: after three NVIDIA analyses, InfiniBand, Kubernetes,
+NVIDIA AI Enterprise, TensorRT-LLM and Triton Inference Server all sit at
+3/3 - which is recognisably NVIDIA's core platform stack - while 63
+single sightings sit below them.
+
+**Scout never infers removal, and the numbers say it must not.** At the
+measured ~24% reappearance rate, five consecutive misses still happen by
+chance about a quarter of the time. `STALE_AFTER_MISSES` is therefore a
+prompt to look, not a conclusion, the label reads "Not observed
+recently", and its description says outright that this is not evidence
+the company stopped using it. A test asserts no lifecycle description
+contains "removed" or "no longer uses", and another asserts the same at
+the API boundary - the wording is the feature, so it is tested like one.
+
+**"Newly detected" means new to Scout, not new to the company**, and the
+description says so. Early analyses surface parts of a stack that were
+always there; with 63 of 79 NVIDIA technologies currently in that state,
+labelling them "newly adopted" would have been the old bug wearing a
+better hat.
+
+**`upsert_technology` is no longer on the write path** for extraction. It
+overwrites `confidence_score` and `source` on every call, which would
+have erased the accumulated history on the first re-analysis. It remains
+for callers that genuinely want last-write-wins.
+
+**Two defects found by looking at live output rather than tests:**
+
+- New rows have `None` counters until flush, because SQLAlchemy column
+  defaults apply at flush time - `_confidence` raised on `int + None`.
+- Sorting by confidence put single sightings level with the core stack,
+  since 1/1 and 3/3 are both 1.0. Ordering is now observation count
+  first. The endpoint docstring had claimed the opposite of what the code
+  did, which is how it was spotted.
+
+**Suite: 885 passed** against real Postgres. Verified live across three
+real NVIDIA analyses: 79 technologies tracked, 5 established, 11
+emerging, 63 newly detected, **0 stale**, and zero fabricated events from
+the same extraction variance that previously produced 34.
+
+**Not yet surfaced in the UI.** The endpoint exists and returns lifecycle
+plus evidence; no page renders it. The natural home is the Company
+Details technology section, replacing the current flat category bar chart
+with something that distinguishes core stack from single mentions.
+
 ## docs/v3-enhancements/ - Phase 7B (the provider-independent part)
 
 **The headline finding: the work the roadmap listed as outstanding had
