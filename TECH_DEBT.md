@@ -619,6 +619,94 @@ the Sales Playbook page, but Meeting Brief and Outreach Draft pages do not
 show what grounded them, and there is no "sources" affordance equivalent to
 Ask Scout's citations. That is the phase's user-facing payoff.
 
+## docs/v3-enhancements/ - Phase 7A (External Intelligence foundation)
+
+**Partially delivered, and the boundary is a procurement decision rather
+than an engineering one.** Phase 7A has four deliverables; three need no
+credentials and are done, one needs a commercial contract and is not.
+
+| Deliverable | State |
+|---|---|
+| Provider interface + attribution contract | Done |
+| SEC EDGAR | Done - free, no licence, no API key |
+| Hardened deduplication | Done |
+| Grounded research provider (Tier 1 rank 1) | **Blocked on procurement** |
+
+**The attribution contract is the phase's real product.**
+`backend/integrations/external/base.py::ExternalItem` makes `source`,
+`source_url`, `published_at`, `retrieved_at` and `confidence` structural
+rather than optional. Everything Scout said about a company before this
+was model-generated prose with no URL and no date;
+`validate()` now *drops* anything lacking a link or a date, because an
+unattributable item passed downstream is indistinguishable from a
+grounded one.
+
+**`external_id` fixes a bug rather than anticipating one.** Phase 2A's
+change detection matches on token overlap of LLM-written titles, and was
+verified mis-reporting a reworded signal as one item appearing and
+another disappearing. `_same_event()` matches by identity first and only
+falls back to similarity when a provider supplies nothing better - and it
+reuses `change_detection.TITLE_SIMILARITY_THRESHOLD` rather than
+introducing a second tunable that could drift away from it. SEC's
+accession number is exactly such an identifier: permanent and globally
+unique.
+
+**Why the abstraction came before the second provider.** Scout already
+had two independent copies of the real/null/factory shape - Glean and
+Phase 4A's LinkedIn client - with no shared contract. A third would have
+made that divergence permanent. `ExternalProvider`/`NullProvider`
+generalise it, and every future provider is a class plus a factory line.
+
+**Concurrency here is the opposite call from Phase 3A, deliberately.**
+`collect()` fans out with `asyncio.gather`, because these are independent
+HTTP calls to different hosts. Phase 3A's ChromaDB retrievals had to be
+serialised because they shared one `lru_cache`d SQLite-backed client -
+the distinction is shared mutable state, not async style.
+
+**SEC access policy is a hard requirement.** A descriptive `User-Agent`
+is mandatory and there is deliberately **no default**: an unset value
+leaves the provider null rather than having every install present the
+same unhelpful identity to a regulator. Requests are throttled to 0.2s
+(half SEC's published ceiling), since being blocked is far worse than
+being slow.
+
+**Verified live against the real SEC API**, not only in tests. NVIDIA and
+Hertz each returned three real 8-K filings with genuine accession
+numbers, filing dates and working URLs; one generated citation was
+fetched and returned HTTP 200 with a 22KB filing. Innominds returned
+zero, which is the documented U.S.-listed-only limitation behaving
+correctly rather than a failure. Company-name matching is deliberately
+conservative (exact normalised match, then prefix, nothing looser) -
+"HERTZ GLOBAL HOLDINGS, INC" matched "Hertz" by prefix, while a fuzzy
+match would risk attaching one company's filings to another's profile.
+
+**Suite: 860 passed, 0 failed, 0 skipped** against real Postgres (from
+834), 26 new tests.
+
+**Not yet wired into anything.** This is foundation: nothing in the
+analysis pipeline, refresh engine or UI consumes
+`gather_external_intelligence()` yet. That is intentional - the roadmap's
+prerequisite 4 says to prove the pipeline on *two* providers before
+adding a third, and with one live provider the merge logic is
+under-exercised. Wiring one provider into the pipeline would also make
+Scout's signals half-attributed, which is a worse state to ship than
+clearly-separated old and new paths.
+
+**What 7A still needs, and what it is waiting on:**
+
+- A grounded research provider (12_API_EVALUATIONS.md Tier 1 rank 1).
+  Needs a commercial contract. This is the item that closes G1 and makes
+  *every* signal dated and linkable rather than only filings from
+  U.S.-listed companies.
+- Then: wire the pipeline into `CompanyRefreshStage`/signal creation, and
+  surface `source_url` in the UI so the success criterion ("a user can
+  open that source") is actually met on screen.
+
+**7B and 7C are untouched**, and 7B contains one item that needs no
+provider at all: wiring `persist_extracted_entities()` more widely so
+`Technology` and `BusinessInitiative` populate the way `Executive` now
+does after Phase 4A. That could be done independently of any purchase.
+
 ## docs/v3-enhancements/ - Phase 6 (Platform Experience)
 
 **Most of this phase was already built**, and `Sidebar.tsx` even cites

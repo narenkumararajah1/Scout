@@ -148,6 +148,16 @@ class Settings(BaseSettings):
     glean_api_url: str = ""
     glean_api_token: SecretStr = SecretStr("")
 
+    # SEC EDGAR (V3 Enhancements Phase 7A). No API key exists to configure
+    # - SEC's access policy instead requires callers to identify
+    # themselves by User-Agent, which must carry a real contact address
+    # ("Scout Sales Intelligence you@company.com"). There is deliberately
+    # no default: shipping one would have every install present the same
+    # unhelpful identity to a regulator, so an unset value leaves the
+    # provider null.
+    sec_edgar_enabled: bool = False
+    sec_edgar_user_agent: str = ""
+
     log_level: str = "INFO"
     log_file: str = "logs/scout.log"
 
