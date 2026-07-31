@@ -650,25 +650,52 @@ own tests". Both were true when written and false since Phase 4A. A stale
 docstring that confidently describes a system that no longer exists is
 worse than no docstring, because it is what a reader trusts.
 
-**3. The real remaining gap: technologies were stored but never
-historied.** Scout knew a company's current stack and had no way to see
-it *change*. A company standing up Kubernetes between two runs has just
-created work Innominds does, and that moment - the part with sales value
-- was invisible. Migration 0015 adds `technologies` to the snapshot and
-`_detect_technology_changes` reports adoption as **major** and
-disappearance as **minor**, the same asymmetry already applied to
-signals: research coverage varies run to run, so absence is far weaker
-evidence than presence.
+**3. Technology history: capture shipped, detection was built, verified,
+and removed within the hour.** Scout knew a company's current stack and
+had no way to see it change, so migration 0015 captures technologies in
+the snapshot and `_detect_technology_changes` reported adoption as major.
 
-Matched on name, not similarity, for the same reason as executives:
-technology names are proper nouns rather than LLM prose, and "Kubernetes"
-and "Kubeflow" share tokens while being different products.
+**That detection was wrong and the live check proved it.** Two real
+NVIDIA analyses 45 seconds apart, with nothing about the company changed:
 
-**Business initiatives are still not captured, and that is a judgement
-rather than an omission.** They are LLM-phrased and unstable between
-runs, so snapshotting them would reintroduce exactly the reworded-title
-churn that Phase 2A's similarity matching exists to suppress.
-Technologies and executives diff cleanly because they are names.
+| | |
+|---|---|
+| Total changes reported | 47 |
+| From technology | **34 (72%)** |
+| Of those, major | **15** |
+| Technologies extracted, run N-1 → N | 25 → 21, **6 overlapping** |
+| Set stability (Jaccard) | **0.15** |
+
+The reasoning that justified it was wrong in an instructive way, and it
+is worth recording because it will look tempting again: technology
+*names* are proper nouns and match reliably, which is what the design
+note claimed - but that is a fact about matching individual names and
+irrelevant to the actual problem. Extraction is **not exhaustive; it
+samples**, and diffing two samples of one unchanged population is pure
+noise. This is Phase 2A's reworded-title bug in a new costume, and the
+same author walked into it twice.
+
+The detector was removed entirely rather than downgraded to minor: 72% of
+all reported changes being fabricated is not a severity problem. A
+regression test in `tests/test_change_detection.py` now asserts that
+technology differences produce **no** changes, and carries the numbers
+above so the next person to try this starts from the evidence.
+
+**The capture stayed.** The history is honest and useful (it is what a
+technology count over time would draw on); only the inference from it was
+unsound. Executives remain the one entity diffed from the snapshot, and
+they are legitimate because a person either is or is not named - a much
+smaller set, extracted far more consistently.
+
+**The correct design, if adoption detection is wanted later:** compare
+against the *accumulated* `technologies` table rather than the previous
+snapshot. `upsert_technology` already makes that table the union of
+everything ever seen for a company, so "newly adopted" would mean "a name
+never seen before", which is a database fact and immune to sampling. The
+"no longer used" half cannot be salvaged at all - a missing extraction is
+never evidence a company dropped a technology. Not built, because
+building an unverifiable replacement in the same breath as removing a
+broken one would repeat the mistake.
 
 **The None/[] discipline now covers three columns**, and each one was
 worth it: NULL means "this run did not look", [] means "looked, found
@@ -677,15 +704,16 @@ captured 25 technologies against a NULL predecessor and produced **zero**
 false adoption changes, while 17 other changes were detected normally, so
 detection was demonstrably live rather than silently off.
 
-**Suite: 866 passed, 0 failed, 0 skipped** against real Postgres (from
-860), 6 new tests. Migration 0015 applied to dev and test. A real NVIDIA
-analysis ran end to end in 38s with no tracebacks.
+**Suite: 861 passed, 0 failed, 0 skipped** against real Postgres (from
+860). Migration 0015 applied to dev and test. Three real NVIDIA analyses
+ran end to end with no tracebacks - the third being the one that exposed
+the defect above.
 
-**Limit of the live verification, stated rather than glossed:** the
-first post-upgrade run can only prove the *guard*. Detecting an actual
-adoption needs two consecutive snapshots that both carry technologies,
-which will exist after the next run. That path is covered by unit tests,
-not yet by live data.
+**Worth noting about process:** the first live run appeared to confirm
+the feature, because a NULL predecessor meant the guard suppressed
+everything. Only the second run, with two populated snapshots, exercised
+the actual comparison. A verification that cannot fail is not a
+verification, and this one nearly shipped as if it were.
 
 ## docs/v3-enhancements/ - Phase 7A (External Intelligence foundation)
 

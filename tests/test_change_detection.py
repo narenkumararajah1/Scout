@@ -14,7 +14,6 @@ from backend.ai.change_detection import (
     CATEGORY_LEADERSHIP,
     CATEGORY_OPPORTUNITY,
     CATEGORY_PROFILE,
-    CATEGORY_TECHNOLOGY,
     CHANGE_APPEARED,
     CHANGE_RESOLVED,
     CHANGE_STRENGTHENED,
@@ -584,75 +583,26 @@ def test_an_unnamed_executive_entry_is_skipped_rather_than_crashing():
 
     assert changes == []
 
-
-# --- Technology adoption (V3 Enhancements Phase 7B) --------------------
-
-
-def _technology(name, category=None):
-    return {"name": name, "category": category}
+# --- Technologies are captured but deliberately NOT diffed -------------
 
 
-def test_a_newly_adopted_technology_is_a_major_change():
-    # The buying signal this phase exists to surface: a company standing
-    # up Kubernetes between two runs has just created work.
-    changes = detect_changes(
-        _snapshot(technologies=[_technology("AWS", "Cloud")]),
-        _snapshot(technologies=[_technology("AWS", "Cloud"), _technology("Kubernetes", "Platform")]),
-    ).changes
+def test_technology_differences_are_not_reported_as_changes():
+    """Regression guard for a defect this suite shipped and then removed.
 
-    adoption = [c for c in changes if c.title == "Kubernetes"]
-    assert len(adoption) == 1
-    assert adoption[0].category == CATEGORY_TECHNOLOGY
-    assert adoption[0].change_type == CHANGE_APPEARED
-    assert adoption[0].significance == SIGNIFICANCE_MAJOR
-    assert "Platform" in adoption[0].detail
+    Phase 7B briefly diffed the snapshot's technology list and reported
+    additions as major "newly adopted" changes. Two real analyses of
+    NVIDIA 45 seconds apart - with nothing about the company changed -
+    produced 34 technology changes, 15 of them major, from an extraction
+    overlap of only 6 names out of ~34 (Jaccard 0.15).
 
+    The reasoning that justified it was wrong in an instructive way:
+    technology *names* are proper nouns and match reliably, but the
+    extracted *set* is a non-exhaustive sample, and diffing two samples of
+    one unchanged population is pure noise. Snapshots still capture
+    technologies - that history is useful and honest - but nothing derives
+    changes from them.
+    """
+    previous = _snapshot(technologies=[{"name": "AWS", "category": "Cloud"}])
+    current = _snapshot(technologies=[{"name": "Kubernetes", "category": "Platform"}])
 
-def test_a_disappearing_technology_is_minor_and_worded_as_absence():
-    # Research coverage varies run to run, so a technology dropping out is
-    # far weaker evidence than one appearing.
-    changes = detect_changes(
-        _snapshot(technologies=[_technology("Kubernetes", "Platform")]),
-        _snapshot(technologies=[]),
-    ).changes
-
-    assert changes[0].change_type == CHANGE_RESOLVED
-    assert changes[0].significance == SIGNIFICANCE_MINOR
-    assert "No longer appearing in research" in changes[0].detail
-
-
-def test_an_unchanged_stack_reports_nothing():
-    stack = [_technology("AWS", "Cloud"), _technology("Kubernetes", "Platform")]
-
-    assert detect_changes(_snapshot(technologies=stack), _snapshot(technologies=list(stack))).changes == []
-
-
-def test_similar_technology_names_are_different_products():
-    # Kubernetes and Kubeflow share tokens; the similarity matching that
-    # signals need would merge them, which is why names are matched
-    # exactly.
-    changes = detect_changes(
-        _snapshot(technologies=[_technology("Kubernetes")]),
-        _snapshot(technologies=[_technology("Kubeflow")]),
-    ).changes
-
-    assert {c.change_type for c in changes} == {CHANGE_APPEARED, CHANGE_RESOLVED}
-
-
-def test_a_snapshot_that_never_looked_at_technologies_reports_no_adoption():
-    # The upgrade case: pre-Phase-7B snapshots have a NULL technologies
-    # column, and must not make a company's whole stack look newly
-    # adopted on the first run after upgrading.
-    assert detect_changes(
-        _snapshot(technologies=None), _snapshot(technologies=[_technology("AWS")])
-    ).changes == []
-    assert detect_changes(
-        _snapshot(technologies=[_technology("AWS")]), _snapshot(technologies=None)
-    ).changes == []
-
-
-def test_technology_names_are_matched_case_insensitively():
-    assert detect_changes(
-        _snapshot(technologies=[_technology("kubernetes")]),
-        _snapshot(technologies=[_technology("  Kubernetes  ")]),
-    ).changes == []
+    assert detect_changes(previous, current).changes == []

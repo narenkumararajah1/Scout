@@ -21,11 +21,22 @@ true. `EntityPersistenceStage` calls
 in every mode, which is what made widening the snapshot worth doing -
 first for people, then for technology adoption.
 
-Business initiatives are still not captured, and that is a live judgement
-rather than an oversight: they are LLM-phrased and unstable between runs,
-so they would reintroduce exactly the reworded-title churn that
-similarity matching exists to suppress. Technologies and executives are
-proper nouns and diff cleanly.
+Business initiatives are still not captured: they are LLM-phrased and
+unstable between runs, so they would reintroduce exactly the
+reworded-title churn that similarity matching exists to suppress.
+
+**Captured is not the same as diffed, and technologies are the cautionary
+case.** Phase 7B briefly reported technology additions as "newly adopted"
+changes. Two real NVIDIA analyses 45 seconds apart - with nothing about
+the company changed - produced 34 technology changes, 15 of them major,
+from an extraction overlap of 6 names out of ~34 (Jaccard 0.15). The
+justification had been that technology names are proper nouns and match
+reliably; that is true of matching individual names and irrelevant to the
+problem, because the extracted *set* is a non-exhaustive sample and
+diffing two samples of one unchanged population is noise. Detection was
+removed; the capture stayed, because the history is honest and useful
+even though differences between consecutive captures are not meaningful.
+Only executives are diffed today.
 
 Immutable once written, like ResearchSession (ADR-009): a snapshot is a
 historical record, and rewriting one would silently rewrite the history
@@ -80,10 +91,10 @@ class CompanySnapshot(Base):
     # website, monitoring status) so profile edits show up in history.
     profile: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     # Each entry: {"name", "category"}. Added in V3 Enhancements Phase 7B
-    # so technology adoption becomes a trend rather than a current-state
-    # list: a company standing up Kubernetes between two runs is a buying
-    # signal, and without history there was no way to see it happen.
-    # Nullable for the same reason as executives below.
+    # to give technology a history rather than only a current state.
+    # **Not diffed** - see the module docstring on why consecutive
+    # captures differ for reasons that have nothing to do with the
+    # company. Nullable for the same reason as executives below.
     technologies: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
     # Each entry: {"name", "title"}. Added in V3 Enhancements Phase 4 for
     # executive movement tracking - people joining, leaving and changing
