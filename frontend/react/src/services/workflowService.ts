@@ -7,6 +7,6 @@ import type { WorkflowRun } from "../types/workflow";
 
 export const workflowService = {
   async getHistory(): Promise<WorkflowRun[]> {
-    return apiRequest<WorkflowRun[]>("/workflow/history", { auth: false });
+    return apiRequest<WorkflowRun[]>("/workflow/history");
   },
 };

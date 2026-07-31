@@ -46,10 +46,24 @@ interface Envelope<T> {
 interface RequestOptions {
   method?: string;
   body?: unknown;
-  // Whether to attach the Authorization header. Defaults to true; only
-  // the login call (which has no token yet) passes false.
+  // Whether to attach the Authorization header. Defaults to true, and
+  // the default is almost always right - see PUBLIC_ENDPOINTS below
+  // before passing false.
   auth?: boolean;
 }
+
+// The only endpoints that are reachable without credentials. Mirrors the
+// backend's public list (tests/test_route_authentication.py); everything
+// else answers 401 without a token.
+//
+// This is enforced rather than documented because getting it wrong is
+// silent and looks like something else entirely: systemService and
+// workflowService both passed `auth: false`, correctly, back when those
+// V2 routes were unauthenticated. Once every route required a token they
+// started returning 401, the 401 handler below cleared the session, and
+// the visible symptom was "clicking Settings logs me out" - a bug that
+// points nowhere near its cause.
+const PUBLIC_ENDPOINTS = ["/api/v1/auth/login", "/health"];
 
 function extractErrorMessage(payload: unknown, fallback: string): string {
   if (payload && typeof payload === "object") {
@@ -75,6 +89,15 @@ function extractErrors(payload: unknown): unknown[] {
 // V2 route's plain body or a V3 envelope (see apiRequestData below).
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, auth = true } = options;
+
+  if (!auth && !PUBLIC_ENDPOINTS.some((endpoint) => path.startsWith(endpoint))) {
+    throw new Error(
+      `${path} is not a public endpoint, so it must be called with a token. ` +
+        "Remove `auth: false`, or add the path to PUBLIC_ENDPOINTS if the " +
+        "backend really does serve it anonymously.",
+    );
+  }
+
   const headers: Record<string, string> = {};
 
   if (body !== undefined) {

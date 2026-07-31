@@ -7,6 +7,6 @@ import type { SystemStatus } from "../types/systemStatus";
 
 export const systemService = {
   async getStatus(): Promise<SystemStatus> {
-    return apiRequest<SystemStatus>("/system/status", { auth: false });
+    return apiRequest<SystemStatus>("/system/status");
   },
 };
