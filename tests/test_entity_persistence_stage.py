@@ -1,4 +1,5 @@
-"""Tests for ExecutivePersistenceStage (V3 Enhancements Phase 4).
+"""Tests for EntityPersistenceStage (V3 Enhancements Phase 4, renamed
+in Phase 7B).
 
 This stage is why Scout knows any people at all. Before it existed,
 Knowledge Extraction returned executives and `persist_extracted_entities`
@@ -19,7 +20,7 @@ from backend.ai.knowledge_extraction import ExtractedEntities, ExtractedExecutiv
 from backend.database.models import Company as CompanyModel
 from backend.models.company import Company
 from backend.orchestration.pipeline import OrchestrationMode, PipelineContext, StageMetrics
-from backend.orchestration.stages import ExecutivePersistenceStage
+from backend.orchestration.stages import EntityPersistenceStage
 from backend.repositories.postgres.executive_repository import list_executives_for_company
 
 pytestmark = pytest.mark.usefixtures("postgres_available")
@@ -58,7 +59,7 @@ async def test_executives_from_the_extraction_stage_are_persisted():
     company_id = await _company_row()
     context = _context(company_id, extracted=_extracted(("Ann Lee", "CTO"), ("Bo Chen", "CFO")))
 
-    await ExecutivePersistenceStage().run(context)
+    await EntityPersistenceStage().run(context)
 
     stored = await list_executives_for_company(company_id)
     assert {e.name for e in stored} == {"Ann Lee", "Bo Chen"}
@@ -75,7 +76,7 @@ async def test_legacy_mode_extracts_for_itself_when_the_extraction_stage_did_not
     with patch(
         "backend.ai.knowledge_extraction.extract_entities", return_value=_extracted(("Ann Lee", "CTO"))
     ) as extract:
-        await ExecutivePersistenceStage().run(context)
+        await EntityPersistenceStage().run(context)
 
     assert extract.called
     assert [e.name for e in await list_executives_for_company(company_id)] == ["Ann Lee"]
@@ -86,7 +87,7 @@ async def test_an_existing_extraction_result_is_reused_rather_than_re_extracted(
     context = _context(company_id, extracted=_extracted(("Ann Lee", "CTO")))
 
     with patch("backend.ai.knowledge_extraction.extract_entities") as extract:
-        await ExecutivePersistenceStage().run(context)
+        await EntityPersistenceStage().run(context)
 
     assert not extract.called
 
@@ -94,8 +95,8 @@ async def test_an_existing_extraction_result_is_reused_rather_than_re_extracted(
 async def test_re_running_updates_rather_than_duplicating_a_person():
     company_id = await _company_row()
 
-    await ExecutivePersistenceStage().run(_context(company_id, extracted=_extracted(("Ann Lee", "VP Finance"))))
-    await ExecutivePersistenceStage().run(_context(company_id, extracted=_extracted(("Ann Lee", "CFO"))))
+    await EntityPersistenceStage().run(_context(company_id, extracted=_extracted(("Ann Lee", "VP Finance"))))
+    await EntityPersistenceStage().run(_context(company_id, extracted=_extracted(("Ann Lee", "CFO"))))
 
     stored = await list_executives_for_company(company_id)
     assert len(stored) == 1
@@ -107,7 +108,7 @@ async def test_no_research_summary_means_no_extraction_and_no_crash():
     context = _context(company_id, research_summary="", extracted=None)
 
     with patch("backend.ai.knowledge_extraction.extract_entities") as extract:
-        await ExecutivePersistenceStage().run(context)
+        await EntityPersistenceStage().run(context)
 
     assert not extract.called
     assert context.persisted_executives is None
@@ -125,7 +126,7 @@ async def test_a_persistence_failure_is_swallowed_and_leaves_executives_unset():
         "backend.services.company_intelligence_service.persist_extracted_entities",
         side_effect=RuntimeError("database is down"),
     ):
-        await ExecutivePersistenceStage().run(context)
+        await EntityPersistenceStage().run(context)
 
     assert context.persisted_executives is None
 
@@ -133,6 +134,6 @@ async def test_a_persistence_failure_is_swallowed_and_leaves_executives_unset():
 async def test_the_stage_runs_in_every_orchestration_mode():
     # Unlike the Phase 4B AI stages, this one is additive - nothing else
     # identifies people - so opting out of any mode would lose data.
-    stage = ExecutivePersistenceStage()
+    stage = EntityPersistenceStage()
 
     assert all(stage.is_enabled(mode) for mode in OrchestrationMode)

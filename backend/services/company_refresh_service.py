@@ -61,7 +61,12 @@ MAX_RECOMMENDED_ACTIONS = 3
 
 
 def _content_hash(
-    signals: list, opportunities: list, capabilities: list, profile: dict, executives: Optional[list] = None
+    signals: list,
+    opportunities: list,
+    capabilities: list,
+    profile: dict,
+    executives: Optional[list] = None,
+    technologies: Optional[list] = None,
 ) -> str:
     """Stable hash of a snapshot's comparable content.
 
@@ -89,6 +94,13 @@ def _content_hash(
         payload["executives"] = sorted(
             [f"{item.get('name')}|{item.get('title')}" for item in executives]
         )
+    # Same omit-when-absent rule as executives above: including an empty
+    # list would change every pre-Phase-7B hash and make the first refresh
+    # after upgrading report as changed.
+    if technologies is not None:
+        payload["technologies"] = sorted(
+            [f"{item.get('name')}|{item.get('category')}" for item in technologies]
+        )
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
 
 
@@ -98,6 +110,7 @@ def build_snapshot_content(
     opportunities: list,
     capability_matches: list,
     executives: Optional[list] = None,
+    technologies: Optional[list] = None,
 ) -> dict:
     """Shapes the live objects into the snapshot's stored form.
 
@@ -139,6 +152,14 @@ def build_snapshot_content(
         "website": getattr(company, "website", None),
         "monitoring_status": getattr(company, "monitoring_status", None),
     }
+    technology_payload = (
+        None
+        if technologies is None
+        else [
+            {"name": getattr(technology, "name", None), "category": getattr(technology, "category", None)}
+            for technology in technologies
+        ]
+    )
     executive_payload = (
         None
         if executives is None
@@ -153,6 +174,7 @@ def build_snapshot_content(
         "capabilities": capability_payload,
         "profile": profile_payload,
         "executives": executive_payload,
+        "technologies": technology_payload,
     }
 
 
@@ -211,6 +233,7 @@ async def refresh_company(
     opportunities: list,
     capability_matches: list,
     executives: Optional[list] = None,
+    technologies: Optional[list] = None,
     research_session_id: Optional[str] = None,
 ) -> dict:
     """Captures a snapshot, diffs it against the previous one, and returns
@@ -221,7 +244,9 @@ async def refresh_company(
     otherwise return the row we just inserted and every company would
     appear to have changed nothing.
     """
-    content = build_snapshot_content(company, signals, opportunities, capability_matches, executives)
+    content = build_snapshot_content(
+        company, signals, opportunities, capability_matches, executives, technologies
+    )
     previous = await repository.get_latest_snapshot(company.id)
 
     snapshot = CompanySnapshot(
@@ -234,12 +259,14 @@ async def refresh_company(
             content["capabilities"],
             content["profile"],
             content["executives"],
+            content["technologies"],
         ),
         signals=content["signals"],
         opportunities=content["opportunities"],
         capabilities=content["capabilities"],
         profile=content["profile"],
         executives=content["executives"],
+        technologies=content["technologies"],
         signal_count=len(content["signals"]),
         opportunity_count=len(content["opportunities"]),
     )

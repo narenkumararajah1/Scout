@@ -195,6 +195,9 @@ class PipelineContext:
     # merely failed would report every previously-known executive as having
     # departed.
     persisted_executives: Optional[list] = None
+    # Same None/[] distinction as persisted_executives above (V3
+    # Enhancements Phase 7B).
+    persisted_technologies: Optional[list] = None
 
 
 @dataclass

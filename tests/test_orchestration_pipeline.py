@@ -74,7 +74,7 @@ async def test_legacy_mode_runs_no_alternative_ai_stage():
     """Legacy mode still computes nothing the legacy stages already compute.
 
     This originally asserted `not extraction_mock.called`. V3 Enhancements
-    Phase 4 changed that deliberately: ExecutivePersistenceStage runs in
+    Phase 4 changed that deliberately: EntityPersistenceStage runs in
     every mode, and in legacy it has to extract for itself because
     KnowledgeExtractionStage is disabled there. Nothing else in the
     pipeline identifies people, so a stage that opted out of legacy - the

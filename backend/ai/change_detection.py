@@ -584,6 +584,77 @@ def _detect_executive_changes(previous: Optional[list], current: Optional[list])
     return changes
 
 
+def _detect_technology_changes(previous: Optional[list], current: Optional[list]) -> list:
+    """Technologies newly adopted, or no longer detected (V3 Enhancements
+    Phase 7B).
+
+    **A newly adopted technology is a buying signal, which is why an
+    arrival is major.** A company standing up Kubernetes between two runs
+    has just created work Innominds does; before this phase Scout stored
+    technologies but only ever as a current-state list, so the moment of
+    adoption - the part with sales value - was invisible.
+
+    Matched on name like executives, and for the same reason: technology
+    names are proper nouns, not LLM prose, so the similarity machinery
+    that signals and opportunities need would only introduce errors here.
+    "Kubernetes" and "Kubeflow" share tokens and are different products.
+
+    Disappearance is minor, not major. Research coverage varies between
+    runs, so a technology dropping out is much weaker evidence than one
+    appearing - the same asymmetry already applied to signals.
+
+    NULL means "this run did not look", exactly as for executives: the
+    first refresh after upgrading must not report a company's entire
+    stack as newly adopted.
+    """
+    if previous is None or current is None:
+        return []
+
+    def by_name(entries):
+        return {
+            _normalize(entry.get("name")): entry
+            for entry in entries or []
+            if _normalize(entry.get("name"))
+        }
+
+    previous_by_name = by_name(previous)
+    current_by_name = by_name(current)
+
+    changes = []
+    for key, entry in current_by_name.items():
+        if key not in previous_by_name:
+            category = entry.get("category")
+            changes.append(
+                DetectedChange(
+                    category=CATEGORY_TECHNOLOGY,
+                    change_type=CHANGE_APPEARED,
+                    title=entry.get("name"),
+                    detail=f"Newly detected in this company's stack{f' ({category})' if category else ''}.",
+                    significance=SIGNIFICANCE_MAJOR,
+                    source="technology",
+                    current_value=category,
+                )
+            )
+
+    for key, entry in previous_by_name.items():
+        if key not in current_by_name:
+            changes.append(
+                DetectedChange(
+                    category=CATEGORY_TECHNOLOGY,
+                    change_type=CHANGE_RESOLVED,
+                    title=entry.get("name"),
+                    # Not "no longer used": research not mentioning a
+                    # technology this run is weak evidence it was dropped.
+                    detail="No longer appearing in research for this company.",
+                    significance=SIGNIFICANCE_MINOR,
+                    source="technology",
+                    previous_value=entry.get("category"),
+                )
+            )
+
+    return changes
+
+
 # Profile fields worth reporting, with the labels used in the summary.
 # monitoring_status is included because pausing monitoring changes what
 # Scout will tell you next, which is exactly the kind of thing a user
@@ -650,9 +721,17 @@ def detect_changes(previous: Optional[object], current: object) -> ChangeSet:
     executive_changes = _detect_executive_changes(
         getattr(previous, "executives", None), getattr(current, "executives", None)
     )
+    technology_changes = _detect_technology_changes(
+        getattr(previous, "technologies", None), getattr(current, "technologies", None)
+    )
 
     changes = (
-        signal_changes + opportunity_changes + capability_changes + profile_changes + executive_changes
+        signal_changes
+        + opportunity_changes
+        + capability_changes
+        + profile_changes
+        + executive_changes
+        + technology_changes
     )
     changes.sort(key=lambda change: (0 if change.significance == SIGNIFICANCE_MAJOR else 1, change.category))
 

@@ -8,18 +8,24 @@ possible: the refresh engine diffs the newest snapshot against the one
 before it, so "what changed since last refresh" is answered from stored
 state rather than recomputed by asking an LLM to remember.
 
-**What is captured, and why it is these four things.** A snapshot holds
-signals, opportunities, capability names and a small company profile.
-That is deliberately not the same list as the richer intelligence
-entities Scout has models for (Executive, Technology, BusinessInitiative):
-those tables have no production writer today. `KnowledgeExtractionStage`
-only runs outside `legacy` mode, `legacy` is the default, and
-`company_intelligence_service.persist_extracted_entities()` has no
-caller outside its own tests - so diffing them would reliably detect
-nothing. Signals, opportunities and capability matches are written on
-every run in every mode, which is what makes detection actually work.
-Widening the snapshot is straightforward once those entities have a
-populating path; see TECH_DEBT.md.
+**What is captured, and how that grew.** A snapshot holds signals,
+opportunities, capability names, a small company profile, executives
+(Phase 4) and technologies (Phase 7B).
+
+The original four were chosen because they were the only things written
+on every run in every mode: the richer intelligence entities (Executive,
+Technology, BusinessInitiative) had no production writer at all, so
+diffing them would reliably have detected nothing. That is no longer
+true. `EntityPersistenceStage` calls
+`company_intelligence_service.persist_extracted_entities()` on every run
+in every mode, which is what made widening the snapshot worth doing -
+first for people, then for technology adoption.
+
+Business initiatives are still not captured, and that is a live judgement
+rather than an oversight: they are LLM-phrased and unstable between runs,
+so they would reintroduce exactly the reworded-title churn that
+similarity matching exists to suppress. Technologies and executives are
+proper nouns and diff cleanly.
 
 Immutable once written, like ResearchSession (ADR-009): a snapshot is a
 historical record, and rewriting one would silently rewrite the history
@@ -73,6 +79,12 @@ class CompanySnapshot(Base):
     # Small dict of company profile fields (industry, headquarters,
     # website, monitoring status) so profile edits show up in history.
     profile: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    # Each entry: {"name", "category"}. Added in V3 Enhancements Phase 7B
+    # so technology adoption becomes a trend rather than a current-state
+    # list: a company standing up Kubernetes between two runs is a buying
+    # signal, and without history there was no way to see it happen.
+    # Nullable for the same reason as executives below.
+    technologies: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
     # Each entry: {"name", "title"}. Added in V3 Enhancements Phase 4 for
     # executive movement tracking - people joining, leaving and changing
     # title are among the strongest buying signals a company emits, and

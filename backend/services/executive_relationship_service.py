@@ -5,7 +5,7 @@ That roadmap phase's success criterion is that Scout "recommends not only
 who to contact, but why they matter and the strongest path into the
 organization". This module is the "why they matter" and the ranking; the
 people themselves now arrive via
-backend/orchestration/stages.py::ExecutivePersistenceStage.
+backend/orchestration/stages.py::EntityPersistenceStage.
 
 **Deliberately contains no LLM call**, for the same reason
 backend/ai/change_detection.py doesn't: 01_VISION.md puts "evidence over

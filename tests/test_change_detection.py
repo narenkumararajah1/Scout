@@ -14,6 +14,7 @@ from backend.ai.change_detection import (
     CATEGORY_LEADERSHIP,
     CATEGORY_OPPORTUNITY,
     CATEGORY_PROFILE,
+    CATEGORY_TECHNOLOGY,
     CHANGE_APPEARED,
     CHANGE_RESOLVED,
     CHANGE_STRENGTHENED,
@@ -26,7 +27,9 @@ from backend.ai.change_detection import (
 )
 
 
-def _snapshot(signals=None, opportunities=None, capabilities=None, profile=None, executives=None):
+def _snapshot(
+    signals=None, opportunities=None, capabilities=None, profile=None, executives=None, technologies=None
+):
     # `executives` deliberately keeps its None rather than defaulting to
     # [] like the others: None means "this run did not look at people",
     # which the detector must treat differently from "looked, found none"
@@ -37,6 +40,7 @@ def _snapshot(signals=None, opportunities=None, capabilities=None, profile=None,
         capabilities=capabilities or [],
         profile=profile or {},
         executives=executives,
+        technologies=technologies,
     )
 
 
@@ -579,3 +583,76 @@ def test_an_unnamed_executive_entry_is_skipped_rather_than_crashing():
     ).changes
 
     assert changes == []
+
+
+# --- Technology adoption (V3 Enhancements Phase 7B) --------------------
+
+
+def _technology(name, category=None):
+    return {"name": name, "category": category}
+
+
+def test_a_newly_adopted_technology_is_a_major_change():
+    # The buying signal this phase exists to surface: a company standing
+    # up Kubernetes between two runs has just created work.
+    changes = detect_changes(
+        _snapshot(technologies=[_technology("AWS", "Cloud")]),
+        _snapshot(technologies=[_technology("AWS", "Cloud"), _technology("Kubernetes", "Platform")]),
+    ).changes
+
+    adoption = [c for c in changes if c.title == "Kubernetes"]
+    assert len(adoption) == 1
+    assert adoption[0].category == CATEGORY_TECHNOLOGY
+    assert adoption[0].change_type == CHANGE_APPEARED
+    assert adoption[0].significance == SIGNIFICANCE_MAJOR
+    assert "Platform" in adoption[0].detail
+
+
+def test_a_disappearing_technology_is_minor_and_worded_as_absence():
+    # Research coverage varies run to run, so a technology dropping out is
+    # far weaker evidence than one appearing.
+    changes = detect_changes(
+        _snapshot(technologies=[_technology("Kubernetes", "Platform")]),
+        _snapshot(technologies=[]),
+    ).changes
+
+    assert changes[0].change_type == CHANGE_RESOLVED
+    assert changes[0].significance == SIGNIFICANCE_MINOR
+    assert "No longer appearing in research" in changes[0].detail
+
+
+def test_an_unchanged_stack_reports_nothing():
+    stack = [_technology("AWS", "Cloud"), _technology("Kubernetes", "Platform")]
+
+    assert detect_changes(_snapshot(technologies=stack), _snapshot(technologies=list(stack))).changes == []
+
+
+def test_similar_technology_names_are_different_products():
+    # Kubernetes and Kubeflow share tokens; the similarity matching that
+    # signals need would merge them, which is why names are matched
+    # exactly.
+    changes = detect_changes(
+        _snapshot(technologies=[_technology("Kubernetes")]),
+        _snapshot(technologies=[_technology("Kubeflow")]),
+    ).changes
+
+    assert {c.change_type for c in changes} == {CHANGE_APPEARED, CHANGE_RESOLVED}
+
+
+def test_a_snapshot_that_never_looked_at_technologies_reports_no_adoption():
+    # The upgrade case: pre-Phase-7B snapshots have a NULL technologies
+    # column, and must not make a company's whole stack look newly
+    # adopted on the first run after upgrading.
+    assert detect_changes(
+        _snapshot(technologies=None), _snapshot(technologies=[_technology("AWS")])
+    ).changes == []
+    assert detect_changes(
+        _snapshot(technologies=[_technology("AWS")]), _snapshot(technologies=None)
+    ).changes == []
+
+
+def test_technology_names_are_matched_case_insensitively():
+    assert detect_changes(
+        _snapshot(technologies=[_technology("kubernetes")]),
+        _snapshot(technologies=[_technology("  Kubernetes  ")]),
+    ).changes == []

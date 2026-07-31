@@ -619,6 +619,74 @@ the Sales Playbook page, but Meeting Brief and Outreach Draft pages do not
 show what grounded them, and there is no "sources" affordance equivalent to
 Ask Scout's citations. That is the phase's user-facing payoff.
 
+## docs/v3-enhancements/ - Phase 7B (the provider-independent part)
+
+**The headline finding: the work the roadmap listed as outstanding had
+already been done, under a misleading name.** 7B's deliverable "wire
+`persist_extracted_entities()` into the pipeline so the Executive,
+Technology and BusinessInitiative tables are finally populated" was
+closed by Phase 4A - that single call writes all three entity types, and
+`ExecutivePersistenceStage` had been calling it on every run since. The
+live database confirmed it before any code was written: 63 technologies,
+15 business initiatives and 8 executives, every row created after Phase
+4A shipped, against companies dating from nine days earlier.
+
+So the actual work here was correcting what made it *look* outstanding,
+and closing the gap that genuinely remained.
+
+**1. The stage was misnamed, which is why nobody could see it.**
+`ExecutivePersistenceStage` persists technologies and business
+initiatives too; anyone grepping for where those are written would not
+have found it, and the roadmap author (me) did not. Renamed to
+`EntityPersistenceStage`. Its `name` attribute deliberately keeps the
+value `"executive_persistence"`: stage names appear in persisted
+`StageMetrics`, and changing it would orphan the metrics of every run
+recorded before this change for no benefit.
+
+**2. `company_snapshot.py`'s docstring asserted the opposite of reality.**
+It stated the intelligence entity tables "have no production writer
+today" and that `persist_extracted_entities()` "has no caller outside its
+own tests". Both were true when written and false since Phase 4A. A stale
+docstring that confidently describes a system that no longer exists is
+worse than no docstring, because it is what a reader trusts.
+
+**3. The real remaining gap: technologies were stored but never
+historied.** Scout knew a company's current stack and had no way to see
+it *change*. A company standing up Kubernetes between two runs has just
+created work Innominds does, and that moment - the part with sales value
+- was invisible. Migration 0015 adds `technologies` to the snapshot and
+`_detect_technology_changes` reports adoption as **major** and
+disappearance as **minor**, the same asymmetry already applied to
+signals: research coverage varies run to run, so absence is far weaker
+evidence than presence.
+
+Matched on name, not similarity, for the same reason as executives:
+technology names are proper nouns rather than LLM prose, and "Kubernetes"
+and "Kubeflow" share tokens while being different products.
+
+**Business initiatives are still not captured, and that is a judgement
+rather than an omission.** They are LLM-phrased and unstable between
+runs, so snapshotting them would reintroduce exactly the reworded-title
+churn that Phase 2A's similarity matching exists to suppress.
+Technologies and executives diff cleanly because they are names.
+
+**The None/[] discipline now covers three columns**, and each one was
+worth it: NULL means "this run did not look", [] means "looked, found
+nothing". Verified live again here - the first post-upgrade snapshot
+captured 25 technologies against a NULL predecessor and produced **zero**
+false adoption changes, while 17 other changes were detected normally, so
+detection was demonstrably live rather than silently off.
+
+**Suite: 866 passed, 0 failed, 0 skipped** against real Postgres (from
+860), 6 new tests. Migration 0015 applied to dev and test. A real NVIDIA
+analysis ran end to end in 38s with no tracebacks.
+
+**Limit of the live verification, stated rather than glossed:** the
+first post-upgrade run can only prove the *guard*. Detecting an actual
+adoption needs two consecutive snapshots that both carry technologies,
+which will exist after the next run. That path is covered by unit tests,
+not yet by live data.
+
 ## docs/v3-enhancements/ - Phase 7A (External Intelligence foundation)
 
 **Partially delivered, and the boundary is a procurement decision rather

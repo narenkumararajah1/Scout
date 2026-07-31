@@ -269,12 +269,13 @@ class CompanyRefreshStage(PipelineStage):
                 signals=signals,
                 opportunities=context.opportunities,
                 capability_matches=context.capability_matches,
-                # Set by ExecutivePersistenceStage, which runs just before
+                # Set by EntityPersistenceStage, which runs just before
                 # this one. Stays None if that stage failed or found no
                 # research to work from, which the snapshot records as
                 # "did not look" rather than "found nobody" - see
                 # PipelineContext.persisted_executives.
                 executives=context.persisted_executives,
+                technologies=context.persisted_technologies,
                 research_session_id=(
                     context.research_session.id if context.research_session is not None else None
                 ),
@@ -288,19 +289,30 @@ class CompanyRefreshStage(PipelineStage):
             )
 
 
-class ExecutivePersistenceStage(PipelineStage):
-    """Persists the people found during research (V3 Enhancements Phase 4 -
-    06_LINKEDIN_INTELLIGENCE.md, roadmap Phase 4).
+class EntityPersistenceStage(PipelineStage):
+    """Persists the entities found during research - executives,
+    technologies and business initiatives (V3 Enhancements Phase 4, with
+    the naming corrected in Phase 7B).
 
     **This stage exists because Scout knew nobody.** Knowledge Extraction
-    has always returned executives, and `persist_extracted_entities()` has
-    always been able to store them, but nothing connected the two: the
-    extracted executives were counted in ComparisonReport.as_text() and
-    then dropped. Five analysed companies in the dev database had zero
+    has always returned these entities, and `persist_extracted_entities()`
+    has always been able to store them, but nothing connected the two: the
+    extracted entities were counted in ComparisonReport.as_text() and then
+    dropped. Five analysed companies in the dev database had zero
     executive rows. Phase 4's success criterion is recommending "the
     strongest path into the organization", which is unreachable while
     Scout has no people to rank - so this is the phase's foundation, not
     an incidental fix.
+
+    **It was originally called ExecutivePersistenceStage, and that was a
+    misleading name rather than a narrow scope.** The single
+    `persist_extracted_entities()` call it makes writes all three entity
+    types, so technologies and business initiatives have been populating
+    since Phase 4 shipped - but anyone grepping for where they are
+    persisted would not have found this. Renamed in Phase 7B, where the
+    roadmap listed "wire persist_extracted_entities() into the pipeline"
+    as outstanding work that had in fact already been done under another
+    name.
 
     **Runs in every mode, for the same reason CompanyRefreshStage does.**
     Legacy is the default, so a stage that opted out of it would deliver
@@ -319,10 +331,13 @@ class ExecutivePersistenceStage(PipelineStage):
     alter what the legacy stages produced.
 
     Best-effort, like CompanyRefreshStage. By this point the report exists
-    and the analysis has succeeded; losing the people is a much smaller
-    harm than failing a run that otherwise worked.
+    and the analysis has succeeded; losing these entities is a much
+    smaller harm than failing a run that otherwise worked.
     """
 
+    # Stage names appear in persisted StageMetrics, so this keeps its
+    # original value: renaming it would orphan the metrics of every run
+    # recorded before this change for no benefit.
     name = "executive_persistence"
 
     async def run(self, context: PipelineContext) -> None:
@@ -336,8 +351,11 @@ class ExecutivePersistenceStage(PipelineStage):
                 return
 
             start = time.perf_counter()
-            _, _, executives = await persist_extracted_entities(context.company.id, extracted)
+            technologies, _, executives = await persist_extracted_entities(
+                context.company.id, extracted
+            )
             context.metrics[self.name].execution_time_seconds = time.perf_counter() - start
+            context.persisted_technologies = technologies
             context.persisted_executives = executives
         except Exception:
             logger.exception(

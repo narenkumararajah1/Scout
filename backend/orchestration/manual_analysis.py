@@ -39,7 +39,7 @@ from backend.orchestration.stages import (
     ComparisonReportStage,
     ConfidenceScoringStage,
     EvidenceStage,
-    ExecutivePersistenceStage,
+    EntityPersistenceStage,
     KnowledgeExtractionStage,
     KnowledgeFusionStage,
     OpportunityAnalysisStage,
@@ -82,7 +82,7 @@ def _build_pipeline() -> Pipeline:
             # purpose: the snapshot captures the executives this run found,
             # so movement tracking only works if they are already written
             # (V3 Enhancements Phase 4).
-            ExecutivePersistenceStage(),
+            EntityPersistenceStage(),
             CompanyRefreshStage(),
             ComparisonReportStage(),
         ]
