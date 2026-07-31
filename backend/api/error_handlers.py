@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 
@@ -38,11 +39,24 @@ def register_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+        # `exc.errors()` is NOT directly JSON-serialisable. When a
+        # validator raises ValueError - which is how Pydantic v2 expects a
+        # custom field check to report failure - Pydantic puts the live
+        # exception object in `ctx["error"]`. JSONResponse then fails to
+        # encode it, the failure escapes this handler, and the client gets
+        # a **500 for what is a client error**.
+        #
+        # Found by a stress test: every custom field validator in the
+        # codebase would have hit this, not just the one that exposed it.
+        # `jsonable_encoder` renders the exception as its message string
+        # and leaves every other key untouched, so the response shape is
+        # unchanged for the plain type/missing errors that already worked.
+        errors = jsonable_encoder(exc.errors())
         if request.url.path.startswith("/api/v1"):
             return JSONResponse(
                 status_code=422,
-                content={"success": False, "message": "Validation error.", "errors": exc.errors()},
+                content={"success": False, "message": "Validation error.", "errors": errors},
             )
         # Reproduces FastAPI's own default RequestValidationError body
         # exactly, so every existing V2 route/test is unaffected.
-        return JSONResponse(status_code=422, content={"detail": exc.errors()})
+        return JSONResponse(status_code=422, content={"detail": errors})

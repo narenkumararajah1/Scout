@@ -9,12 +9,13 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from backend.models.company import Company
 from backend.models.report import Report
 from backend.orchestration.manual_analysis import run_manual_analysis
 from backend.services import company_service
+from backend.utils.text import MAX_URL_LENGTH, clean_stored_text
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +23,33 @@ router = APIRouter(prefix="/companies", tags=["companies"])
 
 
 class CompanyCreateRequest(BaseModel):
+    """Validated against what PostgreSQL will accept, not what SQLite will.
+
+    `migration_mode` defaults to `sqlite`, which ignores VARCHAR lengths
+    and stores NUL bytes happily - so without this, a name Postgres cannot
+    hold is accepted today and silently blocks the cutover later. See
+    backend/utils/text.py.
+    """
+
     name: str = Field(min_length=1)
     industry: Optional[str] = None
     headquarters: Optional[str] = None
     website: Optional[str] = None
+
+    @field_validator("name")
+    @classmethod
+    def _clean_name(cls, value: str) -> str:
+        return clean_stored_text(value, field="name", required=True)
+
+    @field_validator("industry", "headquarters")
+    @classmethod
+    def _clean_optional(cls, value: Optional[str], info) -> Optional[str]:
+        return clean_stored_text(value, field=info.field_name)
+
+    @field_validator("website")
+    @classmethod
+    def _clean_website(cls, value: Optional[str]) -> Optional[str]:
+        return clean_stored_text(value, field="website", max_length=MAX_URL_LENGTH)
 
 
 @router.post("", response_model=Company, status_code=201)

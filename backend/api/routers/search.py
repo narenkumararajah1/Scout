@@ -26,6 +26,7 @@ from backend.repositories.opportunity_repository import list_all_opportunities
 from backend.repositories.postgres.executive_repository import search_executives
 from backend.schemas.search import ExecutiveSearchResultOut, OpportunitySearchResultOut, SearchResultsOut
 from backend.schemas.company_intelligence import CompanyOut
+from backend.utils.text import clean_search_text
 
 router = APIRouter(prefix="/api/v1/search", tags=["search"])
 
@@ -34,7 +35,11 @@ _MAX_RESULTS_PER_TYPE = 5
 
 @router.get("")
 async def search(q: str = Query(default="", max_length=200), current_user: User = Depends(get_current_user)) -> dict:
-    query = q.strip().lower()
+    # Sanitised rather than rejected: a NUL byte here reached Postgres
+    # through the executives ILIKE and returned a 500, and someone pasting
+    # a fragment of a document into a search box wants results, not a
+    # validation error (see backend/utils/text.py).
+    query = clean_search_text(q).lower()
     if not query:
         empty = SearchResultsOut()
         return {"success": True, "message": "Search results retrieved.", "data": empty.model_dump()}
