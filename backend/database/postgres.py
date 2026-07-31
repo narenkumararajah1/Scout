@@ -17,6 +17,12 @@ from sqlalchemy.orm import declarative_base
 
 from backend.config import get_settings
 
+# Imported for its side effect: registering the before_flush hook that
+# clamps machine-generated text to its column width. Importing it here
+# means any code path that opens a session has the guard active, rather
+# than depending on each caller to remember.
+from backend.database import text_fitting  # noqa: F401
+
 # Declarative base for Postgres ORM entities. Lives here (not in
 # backend/models/, which holds V2's plain domain dataclasses) per the
 # V3 Phase 2 decision to keep persistence entities separate from
