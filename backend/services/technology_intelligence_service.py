@@ -305,3 +305,73 @@ async def record_observations(
         for row in updated:
             await session.refresh(row)
         return updated
+
+
+async def recanonicalise_company(company_id: str, company_name: Optional[str] = None) -> int:
+    """Recomputes canonical keys for a company and merges any duplicates.
+
+    **Re-runnable on purpose.** Duplicates re-appear whenever the
+    normalisation rules change, and they appeared once already because a
+    wiring bug meant `company_name` never reached the write path - the
+    prefix rule silently did nothing and every variant forked a row. A
+    repair that only exists inside a migration cannot fix either case.
+
+    Counts are reconstructed from distinct observation timestamps rather
+    than summed, for the same reason migration 0017 does it: a product
+    seen in runs 1-2 under one spelling and 2-3 under another has been
+    observed three times, not four. Where sources are missing or were
+    trimmed by the retention cap it falls back to the group maximum,
+    understating rather than inflating.
+
+    Returns the number of rows removed by merging.
+    """
+    from backend.database.postgres import get_session
+    from backend.repositories.postgres.technology_repository import list_technologies_for_company
+
+    rows = await list_technologies_for_company(company_id)
+    groups: dict = {}
+    for row in rows:
+        groups.setdefault(canonical_name(row.name, company_name), []).append(row)
+
+    removed = 0
+    async with get_session() as session:
+        for key, members in groups.items():
+            if not key:
+                continue
+            survivor = await session.merge(members[0])
+            survivor.canonical_name = key
+
+            if len(members) > 1:
+                stamps = set()
+                for member in members:
+                    survivor.name = preferred_display_name(survivor.name, member.name)
+                    survivor.category = survivor.category or member.category
+                    for entry in member.observation_sources or []:
+                        if entry.get("observed_at"):
+                            stamps.add(entry["observed_at"])
+                merged_sources = []
+                for member in members:
+                    merged_sources.extend(member.observation_sources or [])
+
+                survivor.observation_count = len(stamps) or max(
+                    m.observation_count or 0 for m in members
+                )
+                survivor.missed_count = min(m.missed_count or 0 for m in members)
+                survivor.consecutive_misses = min(m.consecutive_misses or 0 for m in members)
+                survivor.first_seen_at = min(
+                    (m.first_seen_at for m in members if m.first_seen_at), default=survivor.first_seen_at
+                )
+                survivor.last_seen_at = max(
+                    (m.last_seen_at for m in members if m.last_seen_at), default=survivor.last_seen_at
+                )
+                survivor.observation_sources = merged_sources[-MAX_RETAINED_SOURCES:]
+
+                for member in members[1:]:
+                    await session.delete(await session.merge(member))
+                    removed += 1
+
+            survivor.confidence_score = _confidence(
+                survivor.observation_count or 0, survivor.missed_count or 0
+            )
+        await session.commit()
+    return removed

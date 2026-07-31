@@ -388,3 +388,59 @@ async def test_rows_written_before_canonical_names_existed_still_match(postgres_
     rows = await list_technologies_for_company(company_id)
     assert len(rows) == 1
     assert rows[0].observation_count == 2
+
+
+# --- Repair path -------------------------------------------------------
+
+
+async def test_recanonicalise_merges_rows_that_forked(postgres_available):
+    """Regression for a wiring bug that reached the live database.
+
+    `company_name` was never passed to the write path, so the vendor-prefix
+    rule silently did nothing and "NVIDIA Omniverse" forked a second row
+    beside "Omniverse". The repair has to be re-runnable, not
+    migration-only, because the same drift recurs whenever the rules
+    change.
+    """
+    company_id = await _company("NVIDIA")
+    # Simulate the bug: recorded without the company name.
+    await service.record_observations(company_id, [ExtractedTechnology(name="Omniverse", category="Software")])
+    await service.record_observations(
+        company_id, [ExtractedTechnology(name="NVIDIA Omniverse", category="Software")]
+    )
+    assert len(await list_technologies_for_company(company_id)) == 2
+
+    removed = await service.recanonicalise_company(company_id, "NVIDIA")
+
+    rows = await list_technologies_for_company(company_id)
+    assert removed == 1
+    assert len(rows) == 1
+    assert rows[0].name == "NVIDIA Omniverse"
+    assert rows[0].canonical_name == "omniverse"
+
+
+async def test_recanonicalise_does_not_inflate_counts(postgres_available):
+    # Two spellings seen in the same run are one observation, not two -
+    # counts come from distinct timestamps rather than a sum.
+    company_id = await _company("NVIDIA")
+    await service.record_observations(
+        company_id,
+        [ExtractedTechnology(name="Riva", category=None), ExtractedTechnology(name="NVIDIA Riva", category=None)],
+    )
+
+    await service.recanonicalise_company(company_id, "NVIDIA")
+
+    rows = await list_technologies_for_company(company_id)
+    assert len(rows) == 1
+    assert rows[0].observation_count == 1
+
+
+async def test_recanonicalise_is_idempotent(postgres_available):
+    company_id = await _company("NVIDIA")
+    await service.record_observations(
+        company_id, [ExtractedTechnology(name="NVIDIA Omniverse", category=None)], company_name="NVIDIA"
+    )
+
+    assert await service.recanonicalise_company(company_id, "NVIDIA") == 0
+    assert await service.recanonicalise_company(company_id, "NVIDIA") == 0
+    assert len(await list_technologies_for_company(company_id)) == 1

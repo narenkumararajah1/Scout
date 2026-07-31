@@ -279,7 +279,6 @@ class CompanyRefreshStage(PipelineStage):
                 research_session_id=(
                     context.research_session.id if context.research_session is not None else None
                 ),
-                company_name=context.company.name,
             )
             context.metrics[self.name].llm_latency_seconds = time.perf_counter() - start
         except Exception:
@@ -358,6 +357,11 @@ class EntityPersistenceStage(PipelineStage):
                 research_session_id=(
                     context.research_session.id if context.research_session is not None else None
                 ),
+                # Required for technology name normalisation: the company's
+                # own name is stripped as a vendor prefix, so "NVIDIA
+                # Omniverse" and "Omniverse" are one row. Without it the
+                # prefix survives and every variant forks a duplicate.
+                company_name=context.company.name,
             )
             context.metrics[self.name].execution_time_seconds = time.perf_counter() - start
             context.persisted_technologies = technologies

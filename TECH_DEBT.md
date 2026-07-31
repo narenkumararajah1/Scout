@@ -671,6 +671,44 @@ measurements.
 **Suite: 913 passed.** 35 new tests, roughly half of which assert that
 things do *not* merge.
 
+**Two bugs from one bad patch, found by re-running the analysis rather
+than by any test.** The edit that was meant to pass `company_name` into
+the persistence stage matched the *first* similar block in `stages.py`,
+which belongs to `CompanyRefreshStage`:
+
+  - `refresh_company()` does not accept that keyword, so every run raised
+    TypeError **into a best-effort `except`** and silently produced no
+    refresh summary at all. The stage logged and swallowed it, exactly as
+    designed for genuine failures - which is what made a caller error
+    invisible.
+  - `EntityPersistenceStage` never received the company name, so the
+    vendor-prefix rule silently did nothing and every variant forked a new
+    row. The migration had merged correctly, then the next live run
+    re-split them.
+
+Both are fixed, and both now have regression tests: one asserts the stage
+passes `company_name`, the other exercises the repair. The wider lesson is
+about the best-effort pattern used in three stages - it correctly protects
+a run from a flaky LLM or database, and it equally hides a programming
+error in the call itself. Worth a follow-up that distinguishes `TypeError`
+from a downstream failure rather than treating both as "continue quietly".
+
+**`recanonicalise_company()` exists because this drift recurs.** A repair
+living only inside a migration cannot fix a wiring bug that reappears
+after it, nor a future change to the normalisation rules. It is
+re-runnable and idempotent, and it reconstructs counts from distinct
+observation timestamps rather than summing, so re-running it never
+inflates history.
+
+**Re-verified after the fix on a real run:** 83 rows to 91 (8 genuinely
+new technologies, no forks), zero rows whose stored key disagrees with
+normalisation, zero duplicate keys, zero keys still carrying the vendor
+prefix, every previously-known row advancing by exactly one look, and the
+merged products accumulating as single rows - Omniverse 4 to 5, NeMo 3 to
+4, Grace 2 to 3. Zero refresh failures in the log.
+
+**Suite: 917 passed.**
+
 **Known limit, unfixed by design.** `Quantum switches` and `Quantum
 InfiniBand` are the same product line and remain separate, because
 merging them needs product knowledge rather than string rules. That is

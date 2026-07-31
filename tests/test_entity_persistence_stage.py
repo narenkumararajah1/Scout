@@ -137,3 +137,31 @@ async def test_the_stage_runs_in_every_orchestration_mode():
     stage = EntityPersistenceStage()
 
     assert all(stage.is_enabled(mode) for mode in OrchestrationMode)
+
+
+async def test_the_stage_passes_the_company_name_for_name_normalisation():
+    """Regression for a wiring bug that reached the live database.
+
+    A patch added `company_name` to the wrong call site - the refresh
+    stage, which does not accept it - so two things broke at once: the
+    refresh raised TypeError into a best-effort handler and silently
+    stopped producing summaries, while technology normalisation never
+    received the company name and every vendor-prefixed variant forked a
+    duplicate row.
+
+    Asserting on the keyword directly is what a test can catch here; the
+    forking itself only shows up against a real extractor.
+    """
+    from unittest.mock import AsyncMock, patch
+
+    company_id = await _company_row(name="NVIDIA")
+    context = _context(company_id, extracted=_extracted(("Ann Lee", "CTO")))
+    context.company.name = "NVIDIA"
+
+    with patch(
+        "backend.services.company_intelligence_service.persist_extracted_entities",
+        new=AsyncMock(return_value=([], [], [])),
+    ) as persist:
+        await EntityPersistenceStage().run(context)
+
+    assert persist.await_args.kwargs["company_name"] == "NVIDIA"
