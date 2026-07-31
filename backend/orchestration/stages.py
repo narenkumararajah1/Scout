@@ -279,6 +279,7 @@ class CompanyRefreshStage(PipelineStage):
                 research_session_id=(
                     context.research_session.id if context.research_session is not None else None
                 ),
+                company_name=context.company.name,
             )
             context.metrics[self.name].llm_latency_seconds = time.perf_counter() - start
         except Exception:

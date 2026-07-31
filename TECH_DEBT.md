@@ -619,6 +619,64 @@ the Sales Playbook page, but Meeting Brief and Outreach Draft pages do not
 show what grounded them, and there is no "sources" affordance equivalent to
 Ask Scout's citations. That is the phase's user-facing payoff.
 
+## Technology name normalisation
+
+**The defect, seen in the UI rather than in a test.** After several NVIDIA
+analyses the extractor had produced `Omniverse` and `NVIDIA Omniverse`,
+`Riva` and `NVIDIA Riva`, `NIM` and `NVIDIA NIM`, `NeMo` and `NeMo
+framework`, `Grace` and `Grace CPUs` - each pair accumulating half a
+history, so neither side ever reached the repetition Technology
+Intelligence needs. The feature worked; its input was fragmenting.
+
+**The governing rule: under-merge rather than over-merge.** A missed merge
+costs a little confidence. A wrong merge corrupts history silently and
+irreversibly. Every transformation is therefore narrow and enumerated.
+
+**Containment matching is explicitly rejected**, and the same live data
+shows why: it contains `NeMo` beside `NeMo Retriever` and `Quantum`
+beside `Quantum InfiniBand`. A containment rule merges those exactly as
+eagerly as the pairs it should, and `Docker` into `Docker Swarm` after
+that. The distinction is semantic, not lexical, so no threshold separates
+them.
+
+**Only two transformations survive:**
+
+1. *The company's own name as a leading prefix* - contextual, so
+   `Google Cloud Storage` and `IBM Cloud Storage` can never collapse into
+   each other the way a general vendor list would allow. A test asserts
+   exactly that.
+2. *One trailing generic descriptor* from a closed allowlist
+   (`framework`, `platform`, `CPUs`, `switches`, ...). `Retriever` is not
+   on it and never will be.
+
+The canonical form is a matching key only; `Technology.name` keeps the
+extractor's wording, preferring the more specific spelling so a reader
+sees `NVIDIA Omniverse` rather than `Omniverse`.
+
+**Migration 0017 merges the rows that had already split, and does not sum
+their counts.** Summing overstates - a product seen in runs 1-2 under one
+spelling and 2-3 under another has been observed 3 times, not 4. Each run
+stamps its sightings with the same `observed_at`, so counting distinct
+timestamps across the merged group recovers the true figure; where sources
+were absent or trimmed by the retention cap it falls back to the group
+maximum, understating rather than inflating.
+
+**Verified on the real data:** 79 rows became 75, no duplicate canonical
+keys remain, no row is missing one, and an audit confirmed the maximum
+observation count (4) does not exceed the number of runs that recorded
+observations. Established rose from 5 to 10 - partly the Omniverse merge,
+mostly ordinary accumulation across analyses run between the two
+measurements.
+
+**Suite: 913 passed.** 35 new tests, roughly half of which assert that
+things do *not* merge.
+
+**Known limit, unfixed by design.** `Quantum switches` and `Quantum
+InfiniBand` are the same product line and remain separate, because
+merging them needs product knowledge rather than string rules. That is
+the under-merge side of the trade, and it is the side that costs only
+confidence.
+
 ## Technology Intelligence (replaces the removed snapshot diff)
 
 **Built after the diff-based approach was measured and removed.** That

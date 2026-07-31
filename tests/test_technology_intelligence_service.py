@@ -147,6 +147,7 @@ def test_describe_exposes_the_evidence_behind_the_verdict():
 
 
 async def _company(name="Stack Corp"):
+    """Creates a company row; `name` matters for vendor-prefix stripping."""
     from backend.database.postgres import get_session
 
     company_id = str(uuid.uuid4())
@@ -291,3 +292,99 @@ async def test_an_empty_extraction_marks_everything_missed_and_deletes_nothing(p
     rows = await list_technologies_for_company(company_id)
     assert len(rows) == 2
     assert all(row.missed_count == 1 for row in rows)
+
+
+# --- Name normalisation in accumulation --------------------------------
+
+
+async def test_spelling_variants_accumulate_into_one_technology(postgres_available):
+    """The defect this fixes, end to end.
+
+    "Omniverse" and "NVIDIA Omniverse" previously became two rows, each
+    with half the history, so neither ever reached established.
+    """
+    company_id = await _company("NVIDIA")
+
+    await service.record_observations(
+        company_id, [ExtractedTechnology(name="Omniverse", category="Software")], company_name="NVIDIA"
+    )
+    await service.record_observations(
+        company_id, [ExtractedTechnology(name="NVIDIA Omniverse", category="Software")], company_name="NVIDIA"
+    )
+    await service.record_observations(
+        company_id, [ExtractedTechnology(name="Omniverse", category="Software")], company_name="NVIDIA"
+    )
+
+    rows = await list_technologies_for_company(company_id)
+    assert len(rows) == 1
+    assert rows[0].observation_count == 3
+    assert service.classify(rows[0]) == service.LIFECYCLE_ESTABLISHED
+
+
+async def test_the_more_specific_spelling_is_kept_for_display(postgres_available):
+    company_id = await _company("NVIDIA")
+
+    await service.record_observations(
+        company_id, [ExtractedTechnology(name="Omniverse", category=None)], company_name="NVIDIA"
+    )
+    await service.record_observations(
+        company_id, [ExtractedTechnology(name="NVIDIA Omniverse", category=None)], company_name="NVIDIA"
+    )
+
+    assert (await list_technologies_for_company(company_id))[0].name == "NVIDIA Omniverse"
+
+
+async def test_distinct_products_are_not_merged_by_normalisation(postgres_available):
+    # The safety half, asserted against the database rather than only the
+    # pure function: these two are separate NVIDIA products.
+    company_id = await _company("NVIDIA")
+
+    await service.record_observations(
+        company_id,
+        [ExtractedTechnology(name="NeMo", category=None), ExtractedTechnology(name="NeMo Retriever", category=None)],
+        company_name="NVIDIA",
+    )
+
+    assert len(await list_technologies_for_company(company_id)) == 2
+
+
+async def test_a_variant_seen_in_one_run_counts_once_not_twice(postgres_available):
+    # Both spellings in a single extraction collapse to one key, so the
+    # run contributes one observation rather than inflating the count.
+    company_id = await _company("NVIDIA")
+
+    await service.record_observations(
+        company_id,
+        [ExtractedTechnology(name="Riva", category=None), ExtractedTechnology(name="NVIDIA Riva", category=None)],
+        company_name="NVIDIA",
+    )
+
+    rows = await list_technologies_for_company(company_id)
+    assert len(rows) == 1
+    assert rows[0].observation_count == 1
+
+
+async def test_rows_written_before_canonical_names_existed_still_match(postgres_available):
+    # Upgrade safety: a row whose canonical_name is NULL must attach to
+    # the next sighting rather than forking a duplicate.
+    from backend.database.postgres import get_session
+    from sqlalchemy import text
+
+    company_id = await _company("NVIDIA")
+    await service.record_observations(
+        company_id, [ExtractedTechnology(name="Riva", category=None)], company_name="NVIDIA"
+    )
+    async with get_session() as session:
+        await session.execute(
+            text("UPDATE technologies SET canonical_name = NULL WHERE company_id = :cid"),
+            {"cid": company_id},
+        )
+        await session.commit()
+
+    await service.record_observations(
+        company_id, [ExtractedTechnology(name="NVIDIA Riva", category=None)], company_name="NVIDIA"
+    )
+
+    rows = await list_technologies_for_company(company_id)
+    assert len(rows) == 1
+    assert rows[0].observation_count == 2

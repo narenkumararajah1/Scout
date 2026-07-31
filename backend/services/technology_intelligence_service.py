@@ -56,6 +56,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from backend.database.models import Technology
+from backend.services.technology_normalization import canonical_name, preferred_display_name
 
 logger = logging.getLogger(__name__)
 
@@ -219,6 +220,7 @@ async def record_observations(
     company_id: str,
     extracted_technologies: list,
     *,
+    company_name: Optional[str] = None,
     source: str = "knowledge_extraction",
     research_session_id: Optional[str] = None,
 ) -> list:
@@ -233,37 +235,57 @@ async def record_observations(
     Returns every known technology for the company, updated - so the
     caller has the company's whole stack with fresh counters rather than
     just the slice this run happened to sample.
+
+    **Matching is on the canonical key, not the raw name.** The extractor
+    spells one product several ways between runs, which previously split
+    a single technology's history across several rows so that neither half
+    ever reached the repetition this module needs. `company_name` is
+    passed so the company's own name can be stripped as a vendor prefix -
+    see backend/services/technology_normalization.py.
     """
     from backend.repositories.postgres.technology_repository import list_technologies_for_company
     from backend.database.postgres import get_session
 
     now = datetime.now(timezone.utc)
-    # Normalised for matching only; the stored name keeps its original
-    # casing, since it is a proper noun a user will read.
+    # Canonical key for matching only; the stored name keeps the
+    # extractor's wording, since that is what a user reads.
     seen_by_key = {}
     for extracted in extracted_technologies or []:
         name = (getattr(extracted, "name", None) or "").strip()
         if not name:
             continue
-        seen_by_key[name.lower()] = extracted
+        key = canonical_name(name, company_name)
+        if key:
+            seen_by_key[key] = extracted
 
     async with get_session() as session:
         existing = await list_technologies_for_company(company_id)
-        existing_by_key = {(row.name or "").strip().lower(): row for row in existing}
+        # Falls back to computing the key for rows written before
+        # canonical_name existed, so a row missing it still matches rather
+        # than silently forking a duplicate.
+        existing_by_key = {
+            (row.canonical_name or canonical_name(row.name, company_name)): row for row in existing
+        }
 
         updated = []
         for key, extracted in seen_by_key.items():
             row = existing_by_key.get(key)
+            extracted_name = (getattr(extracted, "name", "") or "").strip()
             if row is None:
                 row = Technology(
                     id=str(uuid.uuid4()),
                     company_id=company_id,
-                    name=(getattr(extracted, "name", "") or "").strip(),
+                    name=extracted_name,
+                    canonical_name=key,
                     category=getattr(extracted, "category", None),
                 )
                 session.add(row)
             else:
                 row = await session.merge(row)
+                row.canonical_name = key
+                # Keep the more specific spelling: between "Omniverse" and
+                # "NVIDIA Omniverse" the second tells a reader who makes it.
+                row.name = preferred_display_name(row.name, extracted_name)
                 # Categories improve as extraction improves; never
                 # overwrite a known one with a blank.
                 new_category = getattr(extracted, "category", None)

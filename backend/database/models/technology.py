@@ -46,6 +46,13 @@ class Technology(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     company_id: Mapped[str] = mapped_column(String(36), ForeignKey("companies.id"), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    # Matching key, never displayed. The extractor spells one product
+    # several ways across runs ("Omniverse" / "NVIDIA Omniverse", "NeMo" /
+    # "NeMo framework"), which fragmented one product's observation
+    # history across several rows and stopped either half ever reaching
+    # "established". See backend/services/technology_normalization.py for
+    # what is and is not merged, and why containment matching is rejected.
+    canonical_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
     category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     adoption_status: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     business_relevance: Mapped[Optional[str]] = mapped_column(String, nullable=True)

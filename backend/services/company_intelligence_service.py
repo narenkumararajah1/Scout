@@ -55,7 +55,10 @@ class CompanyIntelligenceProfile:
 
 
 async def persist_extracted_entities(
-    company_id: str, extracted: ExtractedEntities, research_session_id: Optional[str] = None
+    company_id: str,
+    extracted: ExtractedEntities,
+    research_session_id: Optional[str] = None,
+    company_name: Optional[str] = None,
 ) -> tuple:
     """Persists Knowledge Extraction's technologies/business initiatives/
     executives for one company. Idempotent: business initiatives upsert by
@@ -76,6 +79,7 @@ async def persist_extracted_entities(
     technologies = await record_observations(
         company_id,
         extracted.technologies,
+        company_name=company_name,
         research_session_id=research_session_id,
     )
 
