@@ -1,11 +1,19 @@
-// Temporarily disables the login requirement (V2->V3 parity pass) so
-// the app opens directly into the dashboard while a proper first-run/
-// account experience is designed. Mirrors
-// backend/config/settings.py's require_authentication flag - the
-// backend already accepts requests with no token by default, so this
-// only stops the frontend from redirecting to a login screen it
-// doesn't need. Nothing about the auth system itself (LoginPage,
-// AuthContext, authService, JWT issuance) is deleted - flip this back
-// to true (and backend's require_authentication back to True) to
-// restore it with no other code changes. See TECH_DEBT.md.
-export const AUTH_REQUIRED = false;
+// Whether the app should require a login before rendering any page.
+//
+// **This must agree with the backend's REQUIRE_AUTHENTICATION.** They are
+// separate switches doing different jobs - the backend decides what it
+// answers, this decides whether the user is sent to a login screen - and
+// disagreement is user-visible in both directions:
+//
+//   backend on, frontend off -> the dashboard renders, then every request
+//       comes back 401, so the user sees a page full of errors instead of
+//       the login form that would have fixed it.
+//   backend off, frontend on -> a login screen guarding nothing.
+//
+// Read from the environment rather than hardcoded, so one deployment
+// setting drives both. Defaults to off so local development still opens
+// straight into the dashboard with no configuration.
+//
+// Set in the frontend's .env (or the build environment) as:
+//   VITE_REQUIRE_AUTH=true
+export const AUTH_REQUIRED = import.meta.env.VITE_REQUIRE_AUTH === "true";

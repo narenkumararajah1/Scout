@@ -114,14 +114,16 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_token_expiry_minutes: int = 30
 
-    # Temporarily disables the /api/v1 login requirement (V2->V3 parity
-    # pass) so the app opens directly into the dashboard while a proper
-    # first-run/account experience is designed. The auth system itself
-    # (login endpoint, JWT issuance, User repository) is untouched and
-    # fully functional - this only changes whether backend.api.dependencies
-    # .get_current_user demands a valid token. Flip back to True (the
-    # eventual permanent default) to re-enable it with no other code
-    # changes - see TECH_DEBT.md.
+    # Whether a valid token is required. Off by default so local
+    # development opens straight into the dashboard; **must be True for
+    # any deployment reachable by anyone else**, because with it off every
+    # route answers to an unauthenticated request - including ones that
+    # spend money on model calls and one that sends real email.
+    #
+    # Turning it on is sufficient on its own: authentication is applied at
+    # the router mount points in backend/main.py, so there is no per-route
+    # step to remember. Starting with it on and no jwt_secret_key is
+    # refused outright - see validate_authentication_settings() below.
     require_authentication: bool = False
 
     # Company/Opportunity persistence cutover (V3 Phase 3B). One of
@@ -167,3 +169,23 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def validate_authentication_settings(settings: "Settings") -> None:
+    """Refuses to start with authentication on and no signing key.
+
+    An empty HMAC secret does not disable signature checking - it makes
+    every token verifiable by anyone who knows the algorithm, so the
+    login page would imply a protection that is not there. That is
+    strictly worse than running with require_authentication off, where at
+    least the exposure is obvious. Failing at startup is the only
+    behaviour that cannot be missed.
+    """
+    if not settings.require_authentication:
+        return
+    if not settings.jwt_secret_key.get_secret_value().strip():
+        raise RuntimeError(
+            "require_authentication is on but jwt_secret_key is empty. "
+            "Generate one with:  python -m scripts.bootstrap_user --print-secret\n"
+            "then set JWT_SECRET_KEY in your .env before starting Scout."
+        )

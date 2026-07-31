@@ -3,7 +3,7 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from backend.api.error_handlers import register_error_handlers
@@ -18,7 +18,9 @@ from backend.api.routers.outreach_drafts import router as outreach_drafts_v1_rou
 from backend.api.routers.reports import router as reports_v1_router
 from backend.api.routers.sales_playbooks import router as sales_playbooks_v1_router
 from backend.api.routers.search import router as search_v1_router
+from backend.api.dependencies import get_current_user
 from backend.config import get_settings
+from backend.config.settings import validate_authentication_settings
 from backend.services.knowledge_ingestion_service import sync_local_directory
 from backend.utils.logging import configure_logging
 from backend.report_storage import init_reports_table
@@ -42,6 +44,10 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Before anything else: a deployment that thinks it is authenticated
+    # but has no signing key is worse than one that knows it is open.
+    validate_authentication_settings(settings)
+
     init_reports_table()
     # V2 Phase 2 core data layer tables. companies is now live (Phase 3's
     # company management endpoints); the rest are still unused by any
@@ -120,26 +126,49 @@ def _warn_if_live_delivery_in_non_production() -> None:
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
+
+# Authentication is applied here, at the mount points, rather than route
+# by route. Two reasons, both learned from the audit that prompted this:
+#
+#  - It was route-by-route before, and 38 of 85 routes had simply never
+#    been given the dependency. The V3 routers declare `get_current_user`
+#    in each signature; the V2 routers predate it and were missed
+#    wholesale. A per-route convention fails silently every time someone
+#    adds a route and forgets.
+#  - Listing the public routers explicitly means "what is reachable
+#    without credentials" is a short list in one file that can be read and
+#    checked, instead of an emergent property of eighty signatures.
+#
+# Adding the dependency here is additive: the V3 routers keep their
+# per-endpoint `current_user` parameters, which they use, and FastAPI
+# resolves the shared dependency once per request.
+_AUTHENTICATED = [Depends(get_current_user)]
+
+# The only routers reachable without credentials.
+#   health   - liveness probing must work before anyone can log in, and
+#              exposes no company data.
+#   auth     - the login endpoint itself, or there is no way in.
 app.include_router(health.router)
-app.include_router(workflow.router)
-app.include_router(companies.router)
-app.include_router(reports.router)
-app.include_router(recipients.router)
-app.include_router(schedule.router)
-app.include_router(analytics.router)
-app.include_router(system.router)
-app.include_router(conversation.router)
 app.include_router(auth_v1_router)
-app.include_router(reports_v1_router)
-app.include_router(companies_v1_router)
-app.include_router(notifications_v1_router)
-app.include_router(sales_playbooks_v1_router)
-app.include_router(meeting_briefs_v1_router)
-app.include_router(outreach_drafts_v1_router)
-app.include_router(jobs_v1_router)
-app.include_router(search_v1_router)
-app.include_router(generation_feedback_v1_router)
-app.include_router(knowledge_v1_router)
+
+app.include_router(workflow.router, dependencies=_AUTHENTICATED)
+app.include_router(companies.router, dependencies=_AUTHENTICATED)
+app.include_router(reports.router, dependencies=_AUTHENTICATED)
+app.include_router(recipients.router, dependencies=_AUTHENTICATED)
+app.include_router(schedule.router, dependencies=_AUTHENTICATED)
+app.include_router(analytics.router, dependencies=_AUTHENTICATED)
+app.include_router(system.router, dependencies=_AUTHENTICATED)
+app.include_router(conversation.router, dependencies=_AUTHENTICATED)
+app.include_router(reports_v1_router, dependencies=_AUTHENTICATED)
+app.include_router(companies_v1_router, dependencies=_AUTHENTICATED)
+app.include_router(notifications_v1_router, dependencies=_AUTHENTICATED)
+app.include_router(sales_playbooks_v1_router, dependencies=_AUTHENTICATED)
+app.include_router(meeting_briefs_v1_router, dependencies=_AUTHENTICATED)
+app.include_router(outreach_drafts_v1_router, dependencies=_AUTHENTICATED)
+app.include_router(jobs_v1_router, dependencies=_AUTHENTICATED)
+app.include_router(search_v1_router, dependencies=_AUTHENTICATED)
+app.include_router(generation_feedback_v1_router, dependencies=_AUTHENTICATED)
+app.include_router(knowledge_v1_router, dependencies=_AUTHENTICATED)
 
 register_error_handlers(app)
 
@@ -167,6 +196,9 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
     return JSONResponse(status_code=500, content={"detail": "An unexpected error occurred."})
 
 
-@app.get("/")
+@app.get("/", dependencies=_AUTHENTICATED)
 def root() -> dict:
+    """Service banner. Authenticated deliberately: /health is what
+    liveness probes and load balancers should call, and it needs no
+    credentials, so there is nothing this has to serve anonymously."""
     return {"service": settings.app_name, "status": "running"}
