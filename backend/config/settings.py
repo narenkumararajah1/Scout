@@ -114,6 +114,16 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_token_expiry_minutes: int = 30
 
+    # Scout holds one organisation's competitive intelligence, so the one
+    # account it has must belong to that organisation. Enforced when the
+    # account is created (scripts/bootstrap_user.py) rather than at login,
+    # because an address that cannot be created can never sign in - there
+    # is no signup path that could introduce another.
+    #
+    # Set to "" to allow any domain, which is only sensible for a local
+    # sandbox.
+    allowed_email_domain: str = "innominds.com"
+
     # Whether a valid token is required. Off by default so local
     # development opens straight into the dashboard; **must be True for
     # any deployment reachable by anyone else**, because with it off every

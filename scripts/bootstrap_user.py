@@ -14,9 +14,11 @@ script does both:
         refuses to start with authentication on and no key, because an
         empty HMAC secret means any token verifies.
 
-    python -m scripts.bootstrap_user --email you@example.com
+    python -m scripts.bootstrap_user --email you@innominds.com
         Prompts for a password (never echoed, never taken as an argument
-        so it cannot land in shell history) and creates the account.
+        so it cannot land in shell history) and creates the account. The
+        address must be on the organisation's domain - see
+        ALLOWED_EMAIL_DOMAIN in backend/config/settings.py.
 
 Running it again for an existing address does nothing unless
 --reset-password is given, so it is safe to re-run during a deploy.
@@ -30,12 +32,41 @@ import getpass
 import secrets
 import sys
 
-MIN_PASSWORD_LENGTH = 12
+# Deliberately low. The chosen deployment password is a short word, and
+# a floor that rejected it would only be worked around. The real defence
+# for a credential this guessable is not to expose the port to the open
+# internet - see the deployment notes. Raise this the moment Scout is
+# reachable from outside a trusted network.
+MIN_PASSWORD_LENGTH = 8
 
 
 def _generate_secret() -> str:
     """A 256-bit URL-safe key, which is ample for HS256."""
     return secrets.token_urlsafe(32)
+
+
+def _validate_email(email: str) -> str:
+    """Rejects an address outside the organisation's domain.
+
+    Scout holds one organisation's competitive intelligence and has
+    exactly one account, so that account belongs to that organisation.
+    Checking here is sufficient rather than partial: there is no signup
+    path, so an address that cannot be created here can never sign in.
+    """
+    from backend.config import get_settings
+
+    email = email.strip().lower()
+    if "@" not in email or email.startswith("@") or email.endswith("@"):
+        raise SystemExit(f"{email!r} does not look like an email address.")
+
+    domain = get_settings().allowed_email_domain.strip().lower()
+    if domain and not email.endswith("@" + domain):
+        raise SystemExit(
+            f"{email} is not an @{domain} address. Scout's single account must "
+            f"belong to the organisation whose intelligence it holds. "
+            f"(Set ALLOWED_EMAIL_DOMAIN to change this.)"
+        )
+    return email
 
 
 def _prompt_password() -> str:
@@ -109,10 +140,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.email:
         parser.error("--email is required (or use --print-secret).")
 
-    email = args.email.strip().lower()
-    if "@" not in email:
-        parser.error(f"{args.email!r} does not look like an email address.")
-
+    email = _validate_email(args.email)
     print(asyncio.run(_create_or_update(email, _prompt_password(), args.reset_password)))
     return 0
 
