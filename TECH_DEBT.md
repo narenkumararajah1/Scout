@@ -15,6 +15,46 @@ by inspection. Every item below should be resolved (and this section
 removed) as it's addressed; new gaps discovered later should be added
 here rather than left implicit.
 
+## Blocker for multi-user: four tables have no owner
+
+Recorded 2026-07-31, when single-user authentication was completed and
+multi-user with personalised dashboards was named as the next step after
+the current deployment is validated. Nothing here is wrong today - with
+exactly one account every one of these behaves correctly. They are
+listed because they are cheap to change now and expensive to change
+after a pilot has produced real data.
+
+**Two of these are correctness bugs the moment a second account exists,
+not merely missing personalisation.** That distinction matters for
+sequencing: they cannot be deferred past the first extra user the way a
+missing feature can.
+
+| Table | Columns today | What breaks with two users |
+|---|---|---|
+| `company_views` | `company_id`, `last_viewed_at` | One shared "last visit" per company. When a colleague opens NVIDIA, the other person's "N new signals since your last visit" resets to zero. The Dashboard banner and the RECENT sidebar both read this, so both silently mislead. |
+| `notifications` | `is_read` (no owner) | Shared read state. Whoever reads a notification marks it read for everyone, so the unread count on the Dashboard is wrong for the other person immediately. |
+| `generation_feedback` | `target_type`, `target_id`, `company_id`, `rating` | Thumbs up/down with no attribution - the signal cannot be traced to whose judgement it was, which is most of its value when tuning prompts. |
+| `generation_jobs` | `company_id`, `job_type`, `status` | No record of who ran what. Also means the existing per-company concurrency guard cannot become a per-user one. |
+
+**Why now rather than then.** `company_views` and `notifications`
+currently hold a small amount of disposable data, so the migration is an
+`ADD COLUMN` plus a backfill nobody has an opinion about. After months of
+real use the same migration requires deciding whose historical
+notifications belong to whom, and that question has no correct answer -
+the realistic outcomes are discarding the history or guessing at it.
+
+**What this does not need.** Adding an owner column is not the same as
+building RBAC, organisations or SSO, all of which remain deliberately out
+of scope. `users` already exists and is populated; these tables need a
+nullable `user_id` foreign key to it, defaulting to the single existing
+account during backfill.
+
+**Related.** Single-user authentication also means no attribution
+anywhere in logs - every action is recorded against the same account.
+That is a known and accepted limit of the current design rather than a
+defect, but it is the same underlying gap, and closing it for these four
+tables is most of the work.
+
 ## Scout V3 Enhancement Roadmap - Phases 1-6 (complete)
 
 A new roadmap (`Scout V3 Enhancement Roadmap`, external to this repo)
