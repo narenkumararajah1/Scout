@@ -72,7 +72,15 @@ def _ingestion_error(exc: ingestion.IngestionError) -> APIError:
     The service raises one exception type for both "no such document" and
     "request rejected", so the message is what distinguishes them. Stated
     once here rather than repeated at each call site.
+
+    Duplicates are the exception: they get 409 Conflict, which is both
+    the accurate status and the one thing bulk ingestion needs to tell
+    apart from a real failure. Re-ingesting a folder that overlaps one
+    already imported is an ordinary, successful outcome - the client
+    counts those separately rather than reporting them as errors.
     """
+    if isinstance(exc, ingestion.DuplicateDocumentError):
+        return APIError(409, str(exc))
     return APIError(404 if "not found" in str(exc).lower() else 400, str(exc))
 
 
@@ -167,7 +175,10 @@ async def upload_knowledge_document(
             replace_document_id=replace_document_id,
         )
     except ingestion.IngestionError as exc:
-        raise APIError(400, str(exc)) from exc
+        # Was a hardcoded 400 while every other ingestion endpoint went
+        # through _ingestion_error, so this one path could not report a
+        # duplicate as a conflict or a missing document as a 404.
+        raise _ingestion_error(exc) from exc
 
     return _document_response(document, "Document ingested successfully.")
 

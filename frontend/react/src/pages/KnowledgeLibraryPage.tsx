@@ -12,6 +12,7 @@
 // a given result.
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { BulkIngestPanel } from "../components/knowledge/BulkIngestPanel";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -287,6 +288,8 @@ export function KnowledgeLibraryPage() {
             <p className="knowledge-hint">PDF, text, Markdown, or HTML. Scanned PDFs need OCR first.</p>
           </form>
         </Card>
+
+        <BulkIngestPanel categories={categories} onComplete={() => library.refetch()} />
 
         <Card title="Ingest a web page">
           <form className="knowledge-form" onSubmit={handleIngestWebsite}>

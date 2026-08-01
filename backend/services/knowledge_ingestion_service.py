@@ -76,6 +76,22 @@ class IngestionError(Exception):
     """
 
 
+class DuplicateDocumentError(IngestionError):
+    """The exact same content is already in the Library.
+
+    A subclass rather than a message the caller has to recognise, because
+    bulk ingestion has to *count* duplicates separately from failures -
+    re-uploading a folder that overlaps one already ingested is normal
+    and successful, not an error anyone should act on. Distinguishing on
+    the exception type keeps that decision out of string matching, and
+    lets the router answer 409 rather than a generic 400.
+    """
+
+    def __init__(self, message: str, existing_title: str):
+        super().__init__(message)
+        self.existing_title = existing_title
+
+
 def _chunk_id(document_id: str, index: int) -> str:
     return f"{DOCUMENT_ENTITY_TYPE}:{document_id}:{index}"
 
@@ -313,9 +329,10 @@ async def ingest_uploaded_file(
     else:
         duplicate = await repository.find_by_content_hash(_content_hash(extracted.text))
         if duplicate is not None:
-            raise IngestionError(
+            raise DuplicateDocumentError(
                 f"This content is already in the Knowledge Library as '{duplicate.title}'. "
-                "Upload it as a new version of that document if it has been revised."
+                "Upload it as a new version of that document if it has been revised.",
+                existing_title=duplicate.title,
             )
 
     return await _create_and_index(

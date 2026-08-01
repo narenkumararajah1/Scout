@@ -153,7 +153,9 @@ async def test_upload_rejects_duplicate_content(client, postgres_available):
 
     response = _upload(client, headers, filename="copy.txt")
 
-    assert response.status_code == 400
+    # 409 rather than 400: a duplicate is a conflict with existing state,
+    # and bulk ingestion counts duplicates separately from failures.
+    assert response.status_code == 409
     assert "already in the Knowledge Library" in response.json()["message"]
 
 
