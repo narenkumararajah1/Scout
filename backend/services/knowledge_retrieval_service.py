@@ -109,6 +109,7 @@ def retrieve_knowledge(
     n_results: int = DEFAULT_RESULT_COUNT,
     entity_type: Optional[str] = None,
     category: Optional[str] = None,
+    match_any: bool = False,
 ) -> list:
     """Retrieves the most relevant organizational knowledge for a query.
 
@@ -126,6 +127,7 @@ def retrieve_knowledge(
             n_results=n_results,
             entity_type=entity_type,
             category=category,
+            match_any=match_any,
         )
     except Exception as exc:
         logger.warning("Knowledge retrieval failed for query %r: %s", query[:80], exc)

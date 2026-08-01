@@ -103,6 +103,7 @@ def search_knowledge(
     n_results: int = 5,
     entity_type: Optional[str] = None,
     category: Optional[str] = None,
+    match_any: bool = False,
 ) -> list[dict]:
     """Semantic search over the knowledge base, optionally filtered to one
     entity type (e.g. "capability", "case_study"). Returns a list of
@@ -120,6 +121,15 @@ def search_knowledge(
     None, so the three pre-existing positional callers
     (capability_matching_service, orchestration/stages.py's
     KnowledgeFusionStage, technology_analysis_service) are unaffected.
+
+    `match_any` switches the filters from AND to OR. It exists for one
+    real case: a case study reaches Scout in two shapes - as a curated
+    CaseStudy entity (entity_type="case_study") and as an uploaded
+    Library PDF (entity_type="document", category="case_studies") - and
+    a caller asking for proof of past work wants both. ANDing those two
+    conditions matches nothing at all, which is precisely the bug this
+    fixes: 81 uploaded case studies were invisible to the retrieval pass
+    whose entire job is supplying proof points.
     """
     collection = get_knowledge_collection()
     available = collection.count()
@@ -131,14 +141,15 @@ def search_knowledge(
         clauses.append({"entity_type": entity_type})
     if category:
         clauses.append({"category": category})
-    # Chroma requires $and for more than one condition and rejects it for
-    # a single one, so the shape depends on how many filters were asked for.
+    # Chroma requires $and/$or for more than one condition and rejects
+    # either for a single one, so the shape depends on how many filters
+    # were asked for.
     if not clauses:
         where = None
     elif len(clauses) == 1:
         where = clauses[0]
     else:
-        where = {"$and": clauses}
+        where = {"$or": clauses} if match_any else {"$and": clauses}
 
     results = collection.query(query_texts=[query], n_results=min(n_results, available), where=where)
 

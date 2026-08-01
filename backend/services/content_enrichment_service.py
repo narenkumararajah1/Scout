@@ -75,6 +75,11 @@ MAX_GENERAL_CHARS = 4000
 MAX_CASE_STUDY_CHARS = 2500
 
 _CASE_STUDY_ENTITY_TYPE = "case_study"
+# Uploaded Library documents are entity_type="document"; what marks one
+# as a case study is its catalog category. Both shapes are the same
+# thing to a reader asking "where have we done this before", so the
+# proof-point pass has to match either.
+_CASE_STUDY_CATEGORY = "case_studies"
 
 _GENERAL_HEADING = "Relevant Innominds knowledge (ground your recommendations in this)"
 _CASE_STUDY_HEADING = "Relevant Innominds customer experience"
@@ -147,7 +152,18 @@ def _retrieve_both(query: str, general_results: int, case_study_results: int) ->
     must not be parallelised.
     """
     general = retrieve_knowledge(query, general_results, None, None)
-    case_studies = retrieve_knowledge(query, case_study_results, _CASE_STUDY_ENTITY_TYPE, None)
+    # match_any, not the default AND: a curated CaseStudy entity has no
+    # catalog category and an uploaded PDF is not entity_type
+    # "case_study", so ANDing the two conditions matches nothing. This
+    # pass previously saw only the handful of curated entities while
+    # every uploaded case study was invisible to it.
+    case_studies = retrieve_knowledge(
+        query,
+        case_study_results,
+        _CASE_STUDY_ENTITY_TYPE,
+        _CASE_STUDY_CATEGORY,
+        match_any=True,
+    )
     return general, case_studies
 
 
