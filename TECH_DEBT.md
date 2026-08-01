@@ -15,6 +15,49 @@ by inspection. Every item below should be resolved (and this section
 removed) as it's addressed; new gaps discovered later should be added
 here rather than left implicit.
 
+## A broken vector store is indistinguishable from an empty one
+
+Recorded 2026-07-31, after ingesting 81 real case studies and finding
+that every semantic search returned nothing.
+
+**What happened.** ChromaDB's `embeddings_queue` had 544 entries that had
+never been compacted into the HNSW index. `collection.count()` and
+`.get()` both read the metadata database and reported all 387 records
+correctly; `.query()` reads the index and returned zero results for
+every query, including for a document uploaded seconds earlier. The
+trigger was almost certainly killing uvicorn abruptly (`pkill`) straight
+after a large ingest, leaving the write log persisted but the index not.
+
+**Why it went unnoticed.** `retrieve_knowledge()` catches every exception
+and returns `[]`, which is right for its stated purpose - no AI workflow
+should break because grounding was unavailable, it should fall back to
+being ungrounded. But it means a *broken* store and an *empty* store look
+identical from every surface: search shows "no results", Ask Scout
+answers from company data without citations, and nothing is logged at a
+level anyone watches. The library reported 81 documents and 380 chunks
+throughout.
+
+**Recovered** by reading all records out through the metadata path and
+re-adding them to a freshly created collection, reusing the stored
+embeddings so nothing was recomputed. Note that the collection must be
+recreated **with Scout's embedding function** - creating it bare and
+passing embeddings explicitly persists an EF of "default", after which
+every call from `get_knowledge_collection()` fails with an embedding
+function conflict, which is again swallowed into an empty result.
+
+**Worth fixing properly:**
+ - A startup or health check that queries for a known-present document
+   and reports degraded when the store answers but finds nothing. Cheap,
+   and turns a silent failure into a visible one.
+ - Distinguish "retrieval unavailable" from "retrieval found nothing" in
+   the API response, so the Knowledge Library can say which.
+ - Shut the backend down gracefully (SIGTERM, not SIGKILL) so Chroma
+   compacts before exit.
+
+Related: `data/chroma/chroma.sqlite3` had grown to 145MB for 386 records,
+107MB of it free pages from repeated test ingests and deletes. Harmless
+but worth a VACUUM before shipping an image with a seeded store.
+
 ## Deployment image runs an end-of-life Python
 
 Recorded 2026-07-31. `Dockerfile` pins python:3.9-slim to match local
