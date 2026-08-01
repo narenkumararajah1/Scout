@@ -29,8 +29,16 @@ def _check(name: str, check_fn: Callable[[], bool]) -> bool:
 def health_check() -> dict:
     database_connected = _check("database", database.check_connection)
     chroma_connected = _check("chroma", chroma.check_connection)
+    # Connectivity is not the same as usefulness. The vector store can be
+    # up, hold every record, and still answer no query - which is exactly
+    # how Scout can lose its grounding without any surface saying so.
+    # Reported separately so "reachable" and "actually retrieving" cannot
+    # be confused for one another.
+    knowledge_retrieval = chroma_connected and _check("knowledge retrieval", chroma.check_retrieval)
+    healthy = database_connected and chroma_connected and knowledge_retrieval
     return {
-        "status": "ok" if database_connected and chroma_connected else "degraded",
+        "status": "ok" if healthy else "degraded",
         "database_connected": database_connected,
         "chroma_connected": chroma_connected,
+        "knowledge_retrieval": knowledge_retrieval,
     }
