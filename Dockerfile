@@ -4,15 +4,22 @@
 # does not ship in the final image. The runtime stage carries only the
 # installed packages and the application.
 #
-# NOTE: the base is Python 3.11 while local development runs 3.9. 3.9
-# stopped receiving security fixes in October 2025, so shipping it was
-# not an option; every dependency here supports 3.11. This image has not
-# been built in the environment where it was written - if the first build
-# fails, the interpreter version is the first thing to suspect, and
-# pinning back to python:3.9-slim is a one-line change.
+# The interpreter is pinned to 3.9 to match local development exactly.
+# That is the version the 992-test suite passes on and the version the
+# running app has been exercised against, which matters more here than
+# being current: these images have not been built in the environment
+# where they were written, so the fewer differences between what is
+# proven and what ships, the fewer unknowns in the first deploy.
+#
+# **The trade-off is real and should not sit here indefinitely.** Python
+# 3.9 stopped receiving security fixes in October 2025, so this image
+# will accumulate unpatched interpreter CVEs. Moving to 3.11 or newer is
+# a two-line change (both FROM lines) plus a full suite run on the new
+# interpreter - worth doing once the deployment itself is settled and a
+# failure is diagnosable rather than confounded with everything else.
 
 # ---------- build ----------
-FROM python:3.11-slim AS builder
+FROM python:3.9-slim AS builder
 
 # build-essential: some wheels (notably in the Chroma/embedding stack)
 # compile from source when no manylinux wheel matches.
@@ -30,7 +37,7 @@ RUN python -m venv /opt/venv \
     && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # ---------- runtime ----------
-FROM python:3.11-slim AS runtime
+FROM python:3.9-slim AS runtime
 
 # libpq5 is the runtime half of libpq-dev; curl is only for HEALTHCHECK.
 RUN apt-get update \

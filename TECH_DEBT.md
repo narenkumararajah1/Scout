@@ -15,6 +15,20 @@ by inspection. Every item below should be resolved (and this section
 removed) as it's addressed; new gaps discovered later should be added
 here rather than left implicit.
 
+## Deployment image runs an end-of-life Python
+
+Recorded 2026-07-31. `Dockerfile` pins python:3.9-slim to match local
+development exactly, because the images have never been built and
+reducing the differences between what is proven and what ships was worth
+more than being current for the first deploy.
+
+Python 3.9 stopped receiving security fixes in October 2025, so the image
+accumulates unpatched interpreter CVEs for as long as this stands. The
+change is two `FROM` lines plus a full suite run on the new interpreter;
+the reason to wait is only that a failure now would be confounded with
+every other first-deployment unknown. Revisit once the deployment is
+settled - this is a "soon", not a "someday".
+
 ## Blocker for multi-user: four tables have no owner
 
 Recorded 2026-07-31, when single-user authentication was completed and
