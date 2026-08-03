@@ -1,0 +1,244 @@
+{
+  "capabilities": [
+    {
+      "name": "Cloud Migration and Modernization",
+      "description": "Migrates legacy on-premise infrastructure or applications to public clouds like AWS and Azure using lift-and-shift or containerization approaches. Helps clients reduce infrastructure maintenance costs, eliminate redundant manual tasks, and achieve scalable cloud operations.",
+      "practice": "Cloud Engineering",
+      "keywords": [
+        "cloud migration",
+        "aws to azure",
+        "lift and shift",
+        "legacy infrastructure",
+        "on-prem to cloud",
+        "cloudify",
+        "cloud readiness"
+      ]
+    },
+    {
+      "name": "Test Automation and QA Transformation",
+      "description": "Establishes standardized quality engineering centers, builds robust test automation frameworks, and executes regression, functional, and performance testing. Helps enterprises increase test coverage, shorten release cycles, and significantly reduce testing costs and production defects.",
+      "practice": "Quality Engineering",
+      "keywords": [
+        "test automation",
+        "qa transformation",
+        "regression testing",
+        "defect leakage",
+        "test coverage",
+        "testing costs",
+        "qa cycle"
+      ]
+    },
+    {
+      "name": "UX/UI Design and Product Modernization",
+      "description": "Redesigns legacy application interfaces through user research, wireframing, and design workshops to create intuitive, responsive user experiences. Modernizes outdated web and mobile apps to improve user engagement, navigation, and onboarding workflows.",
+      "practice": "UI/UX Engineering",
+      "keywords": [
+        "user experience",
+        "ui design",
+        "app modernization",
+        "wireframing",
+        "redesign interface",
+        "user-friendly",
+        "navigation"
+      ]
+    },
+    {
+      "name": "IoT and Connected Device Engineering",
+      "description": "Develops end-to-end IoT solutions integrating hardware sensors, gateways, edge computing, and cloud platforms for real-time tracking and monitoring. Enables enterprises to capture operational metrics, track asset locations and conditions, and build connected physical products.",
+      "practice": "Connected Devices & IoT",
+      "keywords": [
+        "iot platform",
+        "asset tracking",
+        "edge sensors",
+        "remote monitoring",
+        "connected devices",
+        "sensor data",
+        "fleet tracking"
+      ]
+    },
+    {
+      "name": "Data Engineering and Analytics Solutions",
+      "description": "Builds scalable data lakes, automated ETL pipelines, and predictive analytics platforms using big data tools and machine learning models. Helps organizations consolidate disparate data sources, improve reporting accuracy, and generate actionable operational insights.",
+      "practice": "Data, Insights & AI",
+      "keywords": [
+        "predictive analytics",
+        "etl testing",
+        "data lake",
+        "demand forecasting",
+        "data pipeline",
+        "analytics platform",
+        "data ingestion"
+      ]
+    },
+    {
+      "name": "DevOps and CI/CD Implementation",
+      "description": "Sets up continuous integration and continuous deployment pipelines, containerization with Docker and Kubernetes, and automated infrastructure management. Enables organizations to achieve high system uptime, streamline deployments, and accelerate development productivity.",
+      "practice": "Cloud & DevOps",
+      "keywords": [
+        "ci/cd",
+        "kubernetes",
+        "devops",
+        "containerization",
+        "docker",
+        "pipeline automation",
+        "cloud resiliency"
+      ]
+    },
+    {
+      "name": "Mobile Application Development",
+      "description": "Designs and develops native and cross-platform mobile applications for iOS and Android with offline capabilities, multi-way data sync, and hardware integrations. Empowers users with mobile-accessible workflows, companion apps, and real-time alerts.",
+      "practice": "Software Apps & Product Engineering",
+      "keywords": [
+        "mobile app development",
+        "ios app",
+        "android app",
+        "companion app",
+        "native mobile",
+        "mobile interface"
+      ]
+    },
+    {
+      "name": "Low-Code/No-Code Platform Solutions",
+      "description": "Builds internal business applications, portals, and workflow automation solutions rapidly using low-code platforms like Microsoft Power Apps, Appian, and Mendix. Reduces development time and operational costs while streamlining administrative processes.",
+      "practice": "Software Apps & Product Engineering",
+      "keywords": [
+        "low-code",
+        "no-code",
+        "power apps",
+        "mendix",
+        "rapid application development",
+        "workflow automation"
+      ]
+    },
+    {
+      "name": "AI and Machine Learning Integration",
+      "description": "Integrates advanced machine learning models, computer vision, and generative AI into enterprise applications for anomaly detection, automated classification, and predictive insights. Helps businesses automate cognitive workflows and enhance decision-making.",
+      "practice": "Data, Insights & AI",
+      "keywords": [
+        "artificial intelligence",
+        "machine learning",
+        "computer vision",
+        "ocr",
+        "conversational ai",
+        "predictive models",
+        "ai-driven"
+      ]
+    },
+    {
+      "name": "Security and Compliance Engineering",
+      "description": "Implements risk-based authentication, single sign-on, DevSecOps security checks, and HIPAA-compliant cloud architectures. Helps organizations protect sensitive data, prevent unauthorized access, and optimize compliance costs.",
+      "practice": "Security Engineering",
+      "keywords": [
+        "security compliance",
+        "devsecops",
+        "risk-based authentication",
+        "hipaa compliance",
+        "data privacy",
+        "single sign-on",
+        "application security"
+      ]
+    }
+  ],
+  "industries": [
+    {
+      "name": "Healthcare and MedTech",
+      "description": "Developing preventive healthcare analytics platforms, AI-powered patient monitoring systems, secure EHR and medical device solutions, and clinical trial data management."
+    },
+    {
+      "name": "Supply Chain and Logistics",
+      "description": "Building asset tracking platforms, supply chain visibility and traceability solutions, IoT gateway integrations, and cloud infrastructure migrations for manufacturing and distribution."
+    },
+    {
+      "name": "Retail and E-Commerce",
+      "description": "Providing quality engineering and test automation for e-commerce platforms, modernization of inventory management apps, and mobile engagement applications."
+    },
+    {
+      "name": "Construction and Real Estate",
+      "description": "Developing tool and asset tracking SaaS solutions for construction sites, automated number plate recognition (ANPR) parking systems, and jobsite visualization platforms."
+    },
+    {
+      "name": "Telecommunications and High-Tech",
+      "description": "Building visual voicemail apps, 5G-enabled device platforms, IoT gateways, mobile companion apps for wearables, and cloud infrastructure management solutions."
+    },
+    {
+      "name": "Financial Services and Taxation",
+      "description": "Implementing risk-based authentication for online banking, cloud suitability and migration platforms for taxation firms, and data protection architectures."
+    }
+  ],
+  "technologies": [
+    {
+      "name": "AWS",
+      "description": "Amazon Web Services cloud platform utilized for scalable data pipelines, serverless architectures, and cloud migrations."
+    },
+    {
+      "name": "Azure",
+      "description": "Microsoft cloud platform used for infrastructure hosting, Kubernetes cluster deployment, and enterprise application migration."
+    },
+    {
+      "name": "Kubernetes",
+      "description": "Container orchestration platform used for automating deployment, scaling, and management of containerized applications."
+    },
+    {
+      "name": "Python",
+      "description": "Programming language utilized for backend development, data processing, and building test automation frameworks."
+    },
+    {
+      "name": "Jenkins",
+      "description": "Automation server leveraged for implementing continuous integration and continuous deployment (CI/CD) pipelines."
+    },
+    {
+      "name": "Docker",
+      "description": "Containerization software used for packaging applications and server instances into lightweight containers."
+    },
+    {
+      "name": "ReactJS",
+      "description": "JavaScript library utilized for building responsive and performant front-end user interfaces."
+    }
+  ],
+  "proof_points": [
+    {
+      "description": "Innominds helped a supply chain platform achieve a 20% improvement in development productivity by migrating from AWS to Azure and setting up CI/CD and Kubernetes clusters.",
+      "category": "customer_success"
+    },
+    {
+      "description": "An end-to-end quality engineering engagement helped a retail MNC save up to 40% in testing costs across its e-commerce parallel platforms.",
+      "category": "customer_success"
+    },
+    {
+      "description": "Innominds built an engineering team of over 25 people in its Hyderabad Global Delivery Center to serve as a strategic QE partner for a large cloud data platform.",
+      "category": "customer_success"
+    },
+    {
+      "description": "A VR gaming platform achieved an 80% reduction in testing efforts and developed 500+ test scripts for its test automation pipeline with Innominds.",
+      "category": "customer_success"
+    },
+    {
+      "description": "A global construction tools company increased tool usage by 60% with a tracking software and SaaS solution designed by Innominds.",
+      "category": "customer_success"
+    },
+    {
+      "description": "An embedded technology solutions provider reduced overall testing efforts by 75% using the iHarmony embed test automation platform.",
+      "category": "customer_success"
+    },
+    {
+      "description": "Innominds transformed the QA function for a whole foods distributor, increasing test coverage by 90% and cutting testing costs by 27%.",
+      "category": "customer_success"
+    },
+    {
+      "description": "A large mobile OEM reduced manual testing efforts by 70% and achieved a 2-week test cycle using the iHarmony platform.",
+      "category": "customer_success"
+    },
+    {
+      "description": "A global consulting company reduced manual data processing errors by 80% using Innominds' cognitive OCR and AI-led RPA solution.",
+      "category": "customer_success"
+    },
+    {
+      "description": "An employee onboarding app built on Mendix saved 70% in development time compared to traditional software development.",
+      "category": "customer_success"
+    },
+    {
+      "description": "A global auditing major improved its support team's productivity by 15% and reduced average time to resolution by 20% using a conversational AI solution.",
+      "category": "customer_success"
+    }
+  ]
+}

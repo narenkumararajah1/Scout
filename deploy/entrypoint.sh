@@ -18,6 +18,15 @@ set -e
 echo "Running database migrations..."
 alembic upgrade head
 
+# The same class of failure as the migrations above, one layer up: the
+# schema is fine, the app starts, and the first Run Analysis dies with
+# "Reporting Service requires opportunities" because capability matching
+# had an empty catalog to match against. Seeding is idempotent (ids are
+# derived from entity names), so this is a no-op on every boot after the
+# first rather than something that accumulates duplicates.
+echo "Seeding capability catalog..."
+python -m scripts.seed_capability_catalog
+
 echo "Starting Scout API..."
 # exec so uvicorn becomes PID 1 and receives SIGTERM directly - Chroma
 # needs a graceful shutdown to compact its write log into the vector

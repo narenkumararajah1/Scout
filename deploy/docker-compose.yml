@@ -59,6 +59,17 @@ services:
       # The backend refuses to start if JWT_SECRET_KEY is empty while
       # this is on - see validate_authentication_settings().
       REQUIRE_AUTHENTICATION: "true"
+      # Companies live in SQLite under the default "sqlite" mode, but the
+      # V3 tables added since - technologies, executives, company_visits -
+      # carry a foreign key to the *Postgres* companies table. On a
+      # developer machine that table was populated long ago and the split
+      # is invisible; on a fresh deployment it is empty, so adding a
+      # company succeeds, and then technology and executive persistence
+      # fail their foreign key on every analysis while POST /visit
+      # returns a 500. "dual_write" writes both stores with SQLite still
+      # authoritative, which is the documented next stage of the Phase 3B
+      # cutover and reverts with this one line.
+      MIGRATION_MODE: dual_write
     volumes:
       # SQLite, Chroma's vectors and ingested knowledge sources. Losing
       # this volume loses the knowledge base, not just a cache.
