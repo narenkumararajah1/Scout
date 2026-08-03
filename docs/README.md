@@ -28,6 +28,16 @@ The permanent UI/UX and Product Design documentation set, established ahead of S
 
 Defines how Scout should look, feel, and behave - design intent and standards, not frontend code. Currently placeholder documents being developed one at a time; see [docs/design/README.md](design/README.md).
 
+### docs/beta-deployment/
+
+How to run Scout, as opposed to what it does. Installation runbook, phased
+deployment roadmap, configuration reference, acceptance checklist, operations
+(backup, restore, logs), troubleshooting, security posture, and the handover
+pack for a beta tester.
+
+Read this before deploying anywhere or giving anyone access; see
+[docs/beta-deployment/README.md](beta-deployment/README.md).
+
 ---
 
 ## Where to Start
