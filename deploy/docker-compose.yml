@@ -89,7 +89,20 @@ services:
         # `docker compose build frontend`, not a restart.
         VITE_REQUIRE_AUTH: "true"
     ports:
-      - "${SCOUT_PORT:-8080}:80"
+      # Bound to loopback by default. On a laptop that is exactly the
+      # same experience - http://localhost:8080 - but on a VM it means
+      # the plaintext port is not reachable from the network, so adding
+      # TLS in front cannot be undone by forgetting to close this one.
+      #
+      # It is bound rather than removed because a compose overlay cannot
+      # remove it: compose merges port lists by appending, so `ports: []`
+      # in docker-compose.vm.yml contributes nothing and the base entry
+      # survives. Verified - the override looked correct and left 8080
+      # published on all interfaces.
+      #
+      # Set SCOUT_BIND=0.0.0.0 to expose it deliberately, which is only
+      # sensible on a trusted network with no TLS terminator in front.
+      - "${SCOUT_BIND:-127.0.0.1}:${SCOUT_PORT:-8080}:80"
     depends_on:
       - backend
     restart: unless-stopped

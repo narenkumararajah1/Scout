@@ -23,10 +23,20 @@ class APIError(Exception):
     Never raised by V2 code - see module docstring.
     """
 
-    def __init__(self, status_code: int, message: str, errors: list | None = None):
+    def __init__(
+        self,
+        status_code: int,
+        message: str,
+        errors: list | None = None,
+        headers: dict | None = None,
+    ):
         self.status_code = status_code
         self.message = message
         self.errors = errors or []
+        # Some statuses are only actionable with a header - a 429
+        # without Retry-After tells the caller to back off but not for
+        # how long, so every client invents its own guess.
+        self.headers = headers or {}
 
 
 def register_error_handlers(app: FastAPI) -> None:
@@ -35,6 +45,7 @@ def register_error_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=exc.status_code,
             content={"success": False, "message": exc.message, "errors": exc.errors},
+            headers=exc.headers or None,
         )
 
     @app.exception_handler(RequestValidationError)

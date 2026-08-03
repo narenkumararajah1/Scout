@@ -1,0 +1,50 @@
+# VM deployment overlay - adds TLS and closes the plaintext port.
+#
+# Applied on top of docker-compose.yml, never instead of it:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.vm.yml up -d
+#
+# Two changes only. Caddy is added in front to terminate TLS on 443, and
+# the frontend stops publishing a host port so 443 becomes the single way
+# in. Everything else - the API not being published, migrations and
+# catalog seeding at boot, the data volumes - is inherited unchanged, so
+# there is one stack definition rather than two that drift apart.
+#
+# Requires SCOUT_DOMAIN and SCOUT_TLS_EMAIL in .env, and the domain's DNS
+# A record already pointing at this machine. Caddy cannot obtain a
+# certificate for a name that does not resolve to it, and repeated failed
+# attempts count against Let's Encrypt's rate limit - so get DNS right
+# before the first start. See docs/beta-deployment/VM_DEPLOYMENT.md.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"    # ACME HTTP-01 challenge, and redirects to HTTPS
+      - "443:443"
+      - "443:443/udp"  # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates and ACME account keys. Losing this volume means
+      # re-issuing on every restart, which hits Let's Encrypt's rate
+      # limit and leaves the site without a certificate for a week.
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      SCOUT_DOMAIN: ${SCOUT_DOMAIN:?set SCOUT_DOMAIN in .env}
+      SCOUT_TLS_EMAIL: ${SCOUT_TLS_EMAIL:?set SCOUT_TLS_EMAIL in .env}
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+  # The frontend needs no override here. The base file binds its port to
+  # 127.0.0.1, so on a VM it is already unreachable from the network and
+  # Caddy talks to it over the compose network instead. An earlier
+  # version of this file tried `ports: []` to remove it; compose merges
+  # port lists by appending, so that silently changed nothing and left
+  # 8080 published on every interface - a plaintext way past the TLS
+  # this file exists to add. Keep SCOUT_BIND unset on a VM.
+
+volumes:
+  caddy-data:
+  caddy-config:

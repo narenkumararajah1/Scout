@@ -21,6 +21,7 @@ appropriate on trusted internal machines.
 | Planning the rollout | `ROADMAP.md` |
 | About to install | `PREREQUISITES.md` then `DEPLOYMENT_GUIDE.md` |
 | Checking an install worked | `VERIFICATION.md` |
+| Putting it on a VM with a real URL | `VM_DEPLOYMENT.md` |
 | Handing Scout to a tester | `HANDOVER.md` |
 | Running it day to day | `OPERATIONS.md` |
 | Staring at something broken | `TROUBLESHOOTING.md` |

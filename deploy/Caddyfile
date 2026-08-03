@@ -1,0 +1,51 @@
+# TLS termination for the VM deployment.
+#
+# Caddy is here for one reason: it obtains and renews a Let's Encrypt
+# certificate on its own, with no cron job, no certbot, and no renewal
+# that silently stops working eight weeks after whoever set it up moved
+# on. It listens on 443, terminates TLS, and hands plain HTTP to the
+# frontend container over the private compose network.
+#
+# The application is unchanged by any of this. nginx still serves the SPA
+# and proxies the API from a single origin, so there is still no
+# cross-origin request and nothing for CORS to mediate - Caddy simply
+# fronts the whole thing.
+#
+# Used only by docker-compose.vm.yml. Local development does not involve
+# Caddy at all.
+
+{
+	# Where Let's Encrypt sends expiry warnings. Set SCOUT_TLS_EMAIL in
+	# .env - a real monitored address, since this is how you find out
+	# about a renewal that failed.
+	email {$SCOUT_TLS_EMAIL}
+}
+
+{$SCOUT_DOMAIN} {
+	encode gzip
+
+	# The frontend container, by service name on the compose network.
+	# It no longer publishes a host port under this overlay: 443 is the
+	# only way in, so there is no plaintext side door on 8080.
+	reverse_proxy frontend:80
+
+	# Caddy sets X-Forwarded-For to the real client address. nginx is
+	# configured to trust the container network and recover it, so the
+	# login rate limiter counts real clients rather than lumping
+	# everyone behind this proxy into one bucket - see nginx.conf.
+
+	header {
+		# HSTS. Only meaningful once the certificate is real, which is
+		# why this file is not used for local development.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

@@ -33,6 +33,14 @@ tokens with nothing.
 **Account creation is restricted.** Bootstrap refuses any address outside
 `ALLOWED_EMAIL_DOMAIN` (`innominds.com`). There is no signup screen.
 
+**Failed logins are throttled.** Five failures locks that account and that
+client address for five minutes, counted separately so neither one machine
+guessing many accounts nor many machines guessing one account gets through. A
+correct password clears both counters immediately, so a user mistyping their
+own password is never delayed. Behind a TLS terminator, nginx recovers the
+real client address, so one attacker cannot lock out everybody by exhausting a
+shared bucket.
+
 **Passwords never enter argv.** The bootstrap script prompts twice without
 echoing and does not accept a password as a command-line argument, keeping it
 out of shell history and `ps` output.
@@ -63,16 +71,20 @@ customer-facing deployment.
 action is attributable to "the account", not to a person. If two people use
 the beta, the record cannot distinguish them.
 
-**No login rate limiting.** Password guessing is not throttled. The mitigation
-today is that the deployment is not reachable from outside the host.
+**Login throttling is in memory and per-instance.** A restart clears the
+counters, so an attacker who can crash the process can reset their own
+lockout. Accepted at this stage because crashing the process is the larger
+problem; moving the counters to Redis or the database is the same change
+multi-user support will need.
 
 **Secrets sit in a file.** `.env` holds the database password, the JWT signing
 key and three live LLM API keys in plain text, readable by anything running as
 that user. There is no secrets manager and no key rotation.
 
-**No transport encryption.** nginx terminates plain HTTP. On `localhost` that
-is unremarkable; over any network it is not. A TLS terminator in front needs
-no application change - that is part of D6 in `ROADMAP.md`.
+**Transport encryption is opt-in.** nginx terminates plain HTTP and its port
+is bound to `127.0.0.1`, which is right for a laptop. For anything reachable
+over a network, use the VM overlay - Caddy terminates TLS and obtains its own
+certificate. See `VM_DEPLOYMENT.md`.
 
 **Python 3.9 is end-of-life.** Pinned deliberately to match the development
 environment. It no longer receives security patches.
@@ -84,16 +96,23 @@ unless someone does them.
 
 ## Where the beta may run
 
-**Acceptable:** a trusted machine belonging to a named internal person, on a
-trusted network, reached over `localhost` or a private LAN address.
+**Acceptable:** a trusted machine belonging to a named internal person, reached
+over `localhost` or a private LAN address. The plaintext port binds to
+`127.0.0.1`, so this is the default rather than something to configure.
 
-**Not acceptable without completing D6 first:** anything reachable from the
-public internet, anything on a shared or multi-tenant host, anything exposed
-through a tunnel service, or anything holding data that would be damaging if
-disclosed.
+**Acceptable with the VM overlay:** a host on the corporate network or behind
+the VPN, reached over HTTPS. `VM_DEPLOYMENT.md` covers it. TLS and login
+throttling are in place, which is what makes this a reasonable step.
 
-The gap between those two is TLS, secrets management, rate limiting and
-backups.
+**A judgement call, not a technical one:** a host reachable from the public
+internet. It will work, and the transport is properly encrypted, but Scout
+still has **one shared account with no audit trail**. Anyone who signs in is
+indistinguishable from anyone else, and Scout holds real prospect research.
+That is an Innominds decision about who may see everything, not a deployment
+setting.
+
+**Not acceptable at any stage:** a shared or multi-tenant host where another
+tenant could read the `.env` file or the data volumes.
 
 ---
 

@@ -98,6 +98,12 @@ discover that.
 |---|---|---|
 | `ALLOWED_EMAIL_DOMAIN` | `innominds.com` | The bootstrap script refuses addresses outside this domain. |
 | `SCOUT_PORT` | `8080` | Host port for the whole application. |
+| `SCOUT_BIND` | `127.0.0.1` | Interface the host port binds to. Loopback by default so a VM has no plaintext route from the network. Set to `0.0.0.0` only on a trusted network with no TLS terminator in front. |
+| `SCOUT_DOMAIN` | | VM deployment only - the hostname Caddy obtains a certificate for. |
+| `SCOUT_TLS_EMAIL` | | VM deployment only - where Let's Encrypt sends expiry warnings. Use an address someone reads. |
+| `LOGIN_MAX_ATTEMPTS` | `5` | Failed sign-ins before an account or address is locked out. `0` disables throttling. |
+| `LOGIN_ATTEMPT_WINDOW_SECONDS` | `300` | How far back failures are counted. |
+| `LOGIN_LOCKOUT_SECONDS` | `300` | How long a lockout lasts once triggered. |
 | `CORS_ALLOWED_ORIGINS` | empty | Leave empty. The single-origin design means there is no cross-origin request to permit, and the middleware is only installed when this is set. |
 
 ## Operational

@@ -99,7 +99,7 @@ Known candidates already recorded:
 - `gemini-flash-lite-latest` intermittently returns malformed JSON during
   executive extraction. Caught and tolerated today; a larger model or a
   repair-and-retry pass would remove the noise.
-- Login has no rate limiting.
+- Login throttling is in memory, so a restart clears it.
 - Backups are manual.
 
 **Exit criteria:**
@@ -115,12 +115,11 @@ Known candidates already recorded:
 **Entry criteria:** D5 exit criteria met, and a decision that Scout should
 outlive one laptop.
 
-**Work:** this is the first phase requiring infrastructure Scout does not
-currently have.
-- Target host chosen and provisioned.
-- TLS termination and a DNS name. `deploy/nginx.conf` terminates plain HTTP
-  today; the single-origin design means a TLS terminator in front needs no
-  application change, but `SCOUT_PORT` and the healthcheck should be reviewed.
+**Work:** the stack side of this is now built - `deploy/docker-compose.vm.yml`
+and `deploy/Caddyfile` add TLS with automatic certificates, and the runbook is
+`VM_DEPLOYMENT.md`. What remains is the infrastructure around it.
+- Target host chosen and provisioned, DNS pointed at it.
+- Run through `VM_DEPLOYMENT.md` on that host.
 - Secrets moved out of a `.env` file into whatever the host offers.
 - Automated backups on a schedule, with restore tested against the real host.
 - Log shipping, so failures are visible without `docker compose logs`.

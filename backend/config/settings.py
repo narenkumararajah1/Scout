@@ -191,6 +191,18 @@ class Settings(BaseSettings):
     # refused outright - see validate_authentication_settings() below.
     require_authentication: bool = False
 
+    # Failed-login throttling (backend/api/login_rate_limit.py). Scout
+    # has a single account with a predictable address, so once it is
+    # reachable over a network the password is the only thing in the
+    # way. Counted per account and per client address; a correct
+    # password clears both immediately.
+    #
+    # Set login_max_attempts to 0 to disable, which is only sensible for
+    # a test that needs to hammer the endpoint.
+    login_max_attempts: int = 5
+    login_attempt_window_seconds: int = 300
+    login_lockout_seconds: int = 300
+
     # Company/Opportunity persistence cutover (V3 Phase 3B). One of
     # "sqlite" | "dual_write" | "shadow_read" | "postgres" - see
     # backend/migration_mode.py and TECH_DEBT.md. Rolling forward or
