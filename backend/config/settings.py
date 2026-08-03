@@ -47,6 +47,40 @@ class Settings(BaseSettings):
     llm_provider: str = "anthropic"
     llm_model: str = "claude-sonnet-5"
 
+    # Additional providers for the fallback chain. Kept alongside the two
+    # above for the same reason google_api_key was: adding a provider
+    # should never mean removing the credentials for another one.
+    groq_api_key: SecretStr = SecretStr("")
+    openrouter_api_key: SecretStr = SecretStr("")
+
+    # The fallback chain (see backend/ai/llm_gateway.py). Scout tries the
+    # primary provider first and moves down the fallback list when one is
+    # rate limited or unavailable - a single provider's free-tier quota
+    # was enough to fail a whole analysis before this existed.
+    #
+    # primary_llm_provider is empty by default so that a deployment that
+    # only ever set LLM_PROVIDER keeps working unchanged: the primary
+    # falls back to llm_provider, and an empty fallback list means the
+    # old single-provider behaviour exactly.
+    primary_llm_provider: str = ""
+    fallback_llm_providers: str = ""
+
+    # Per-provider model overrides. Each provider needs its own model
+    # name - "gemini-flash-lite-latest" means nothing to Groq - so
+    # llm_model alone cannot describe a chain. Empty means "use the
+    # built-in default for that provider", except for whichever provider
+    # is primary, where llm_model still wins so existing configuration
+    # keeps selecting the model it always did.
+    anthropic_model: str = ""
+    google_model: str = ""
+    groq_model: str = ""
+    openrouter_model: str = ""
+
+    @property
+    def fallback_provider_list(self) -> list:
+        """FALLBACK_LLM_PROVIDERS parsed into an ordered list of names."""
+        return [name.strip().lower() for name in self.fallback_llm_providers.split(",") if name.strip()]
+
     # Used starting Phase 2 Day 6 (Research Agent). Scout researches a
     # configured target company rather than a per-run user query, per
     # PROJECT_CONTEXT.md's framing of an autonomous, scheduled workflow.
