@@ -254,6 +254,64 @@ class TestFailuresThatMustNotFailOver:
         assert mock_completion.call_count == 1
 
 
+class TestStatusCodeBeatsExceptionClass:
+    """Regression: a 401 dressed up as a BadRequestError.
+
+    LiteLLM picks the exception class partly from the provider's error
+    body, so the class and the status can disagree. Groq answers an
+    invalid key with HTTP 401 and a body saying "invalid_request_error",
+    which arrives as BadRequestError - the class Scout treats as "the
+    prompt is wrong, do not fail over". A live three-provider run stopped
+    dead at Groq instead of continuing to OpenRouter, with both a working
+    OpenRouter key and a healthy provider left untried.
+    """
+
+    def _error(self, cls, status):
+        exc = cls("boom", "groq", "groq")
+        exc.status_code = status
+        return exc
+
+    def test_a_401_fails_over_even_as_a_bad_request(self):
+        from backend.ai.llm_gateway import _should_try_next_provider
+
+        assert _should_try_next_provider(
+            self._error(litellm_exceptions.BadRequestError, 401)
+        )
+
+    def test_a_genuine_400_still_does_not_fail_over(self):
+        """The status check must not swallow real prompt errors."""
+        from backend.ai.llm_gateway import _should_try_next_provider
+
+        assert not _should_try_next_provider(
+            self._error(litellm_exceptions.BadRequestError, 400)
+        )
+
+    def test_the_whole_chain_is_walked_when_two_providers_reject_keys(self):
+        outcomes = [
+            self._error(litellm_exceptions.BadRequestError, 401),  # google
+            self._error(litellm_exceptions.BadRequestError, 401),  # groq
+            _fake_litellm_response("hi from openrouter"),
+        ]
+
+        def fake_completion(**kwargs):
+            outcome = outcomes.pop(0)
+            if isinstance(outcome, Exception):
+                raise outcome
+            return outcome
+
+        with patch("backend.ai.llm_gateway.settings") as mock_settings, patch(
+            "backend.ai.llm_gateway.litellm.completion", side_effect=fake_completion
+        ) as mock_completion:
+            _settings(
+                mock_settings,
+                primary_llm_provider="google",
+                fallback_provider_list=["groq", "openrouter"],
+            )
+            assert generate_completion("hello") == "hi from openrouter"
+
+        assert mock_completion.call_count == 3
+
+
 class TestWhenEverythingFails:
     def test_the_error_names_every_provider_tried(self):
         with patch("backend.ai.llm_gateway.settings") as mock_settings, patch(

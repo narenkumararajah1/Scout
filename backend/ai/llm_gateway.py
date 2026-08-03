@@ -115,6 +115,12 @@ _PROMPT_EXCEPTIONS = (
 
 _RETRYABLE_STATUS_CODES = {408, 429, 500, 502, 503, 504}
 
+# Credentials or entitlement, not the prompt: try the next provider.
+_PROVIDER_STATUS_CODES = {401, 403, 404}
+
+# The request itself: no other provider would accept it either.
+_PROMPT_STATUS_CODES = {400, 413, 422}
+
 
 def _model_for(provider_name: str, is_primary: bool) -> str:
     """The model to ask this provider for.
@@ -178,12 +184,26 @@ def _status_code(exc: Exception):
 
 
 def _should_try_next_provider(exc: Exception) -> bool:
-    """Whether `exc` is this provider's problem rather than the prompt's."""
+    """Whether `exc` is this provider's problem rather than the prompt's.
+
+    The HTTP status is checked before the exception class, because
+    LiteLLM derives the class partly from the provider's error body and
+    the two disagree in practice. Groq answers an invalid key with HTTP
+    401 but a body saying "invalid_request_error", which LiteLLM turns
+    into BadRequestError - classified on type alone that reads as a bad
+    prompt, and the chain stopped at Groq instead of continuing to
+    OpenRouter. The status code said 401 the whole time.
+    """
+    status = _status_code(exc)
+    if status is not None:
+        if status in _PROVIDER_STATUS_CODES or status in _RETRYABLE_STATUS_CODES:
+            return True
+        if status in _PROMPT_STATUS_CODES:
+            return False
+
     if isinstance(exc, _PROMPT_EXCEPTIONS):
         return False
-    if isinstance(exc, (*_RETRYABLE_EXCEPTIONS, *_MISCONFIGURED_EXCEPTIONS)):
-        return True
-    return _status_code(exc) in _RETRYABLE_STATUS_CODES
+    return isinstance(exc, (*_RETRYABLE_EXCEPTIONS, *_MISCONFIGURED_EXCEPTIONS))
 
 
 def generate_completion(prompt: str) -> str:
