@@ -9,6 +9,13 @@ venv/
 # Environment variables
 .env
 .env.local
+# deploy/.env is a *symlink* to the root .env, not a copy - compose only
+# reads substitution variables from a .env beside its compose file, and
+# without this the stack fails to build on a fresh clone. Tracked as a
+# link (mode 120000); if it ever shows up in a diff as file contents,
+# someone has replaced the symlink with a real file and it must not be
+# committed.
+!deploy/.env
 .env.*.local
 
 # Runtime data & logs

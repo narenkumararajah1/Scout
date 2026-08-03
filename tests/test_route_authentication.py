@@ -75,6 +75,48 @@ def test_no_route_was_lost_while_adding_authentication():
     assert len(_routes()) >= 80
 
 
+class TestSchemaIsWithdrawnFromDeployments:
+    """The one unauthenticated description of the whole API.
+
+    /docs, /redoc and /openapi.json cannot be protected by a dependency -
+    a browser loading them sends no Authorization header, so requiring
+    one just 401s. An anonymous probe of the deployed stack found them
+    answering with all 68 routes and 32 request/response schemas. nginx
+    happens not to proxy those paths, so nothing off the compose network
+    could reach them, but "the reverse proxy's route list is short" is
+    not the control anyone thinks is protecting them.
+    """
+
+    def test_deployments_expose_no_schema(self):
+        from backend.main import documentation_urls
+
+        assert documentation_urls(require_authentication=True) == {
+            "docs_url": None,
+            "redoc_url": None,
+            "openapi_url": None,
+        }
+
+    def test_local_development_keeps_the_docs(self):
+        """Where they cost nothing and are genuinely useful."""
+        from backend.main import documentation_urls
+
+        assert documentation_urls(require_authentication=False) == {
+            "docs_url": "/docs",
+            "redoc_url": "/redoc",
+            "openapi_url": "/openapi.json",
+        }
+
+    def test_the_running_app_was_built_from_that_rule(self):
+        """Otherwise the rule above could be correct and unused."""
+        from backend.config import get_settings
+        from backend.main import documentation_urls
+
+        expected = documentation_urls(get_settings().require_authentication)
+        assert app.docs_url == expected["docs_url"]
+        assert app.redoc_url == expected["redoc_url"]
+        assert app.openapi_url == expected["openapi_url"]
+
+
 class TestSecretIsRequiredWhenAuthenticationIsOn:
     def test_startup_is_refused_with_an_empty_secret(self):
         from pydantic import SecretStr

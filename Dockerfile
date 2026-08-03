@@ -57,11 +57,24 @@ COPY --chown=scout:scout backend ./backend
 COPY --chown=scout:scout scripts ./scripts
 COPY --chown=scout:scout migrations ./migrations
 COPY --chown=scout:scout alembic.ini ./alembic.ini
+COPY --chown=scout:scout deploy/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # SQLite file, Chroma's persisted vectors and ingested knowledge sources
 # all live here. Mount a volume over it - without one, every restart
 # starts from an empty knowledge base.
-RUN mkdir -p /app/data && chown -R scout:scout /app/data
+#
+# /app/logs matters as much as /app/data and is easier to forget:
+# configure_logging() creates the log directory relative to the working
+# directory at import time, so a /app the runtime user cannot write to
+# kills the process before it serves anything. That failure does not
+# appear at build time - the first run just exits with
+# "PermissionError: 'logs'" and nginx answers 502.
+#
+# Chowning /app itself, not only its children, is the point: WORKDIR
+# creates it as root, and every directory the app creates at runtime
+# lands inside it.
+RUN mkdir -p /app/data /app/logs && chown -R scout:scout /app
 VOLUME ["/app/data"]
 
 USER scout
@@ -71,6 +84,10 @@ EXPOSE 8000
 # which is what makes it usable as a probe.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
     CMD curl -fsS http://localhost:8000/health || exit 1
+
+# The entrypoint runs `alembic upgrade head` before handing off, so a
+# fresh database is usable on first boot rather than merely reachable.
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # No --reload, and a single worker: Scout runs an in-process APScheduler,
 # so a second worker would mean two schedulers racing to run the same

@@ -10,6 +10,19 @@
 #   docker compose up --build
 #   docker compose exec backend python -m scripts.bootstrap_user --email you@innominds.com
 #
+# `env_file:` below is what the *containers* read. Compose's own
+# ${...} substitution is a separate mechanism that only reads a .env
+# sitting next to this file - so `deploy/.env` is a symlink to the
+# repository root's .env, and there is exactly one real configuration
+# file. Without that symlink `docker compose build` fails immediately
+# with "required variable POSTGRES_PASSWORD is missing a value" even
+# though ../.env defines it, which is a baffling first impression of a
+# stack that is otherwise fine.
+#
+# COMPOSE_ENV_FILES looks like the tidier answer and is not: compose
+# reads it from the shell before it reads any file, so setting it inside
+# the file it is meant to redirect does nothing.
+#
 # Then open http://localhost:8080.
 #
 # Only the frontend publishes a port. The API is reachable from the

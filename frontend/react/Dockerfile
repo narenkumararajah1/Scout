@@ -40,5 +40,11 @@ COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
+# 127.0.0.1, not localhost: nginx.conf says `listen 80`, which binds
+# IPv4 only, while busybox wget resolves localhost to ::1 first and gets
+# "connection refused". The site serves perfectly from outside - only
+# the check fails - so the container reports unhealthy while working,
+# which is the kind of false alarm that makes people ignore health
+# status. Observed on the first containerised run.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD wget --quiet --spider http://localhost/index.html || exit 1
+    CMD wget --quiet --spider http://127.0.0.1/index.html || exit 1

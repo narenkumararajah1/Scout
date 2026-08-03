@@ -126,7 +126,30 @@ def _warn_if_live_delivery_in_non_production() -> None:
         )
 
 
-app = FastAPI(title=settings.app_name, lifespan=lifespan)
+# /docs, /redoc and /openapi.json cannot carry a bearer token - a browser
+# loading them sends no Authorization header - so they cannot be put
+# behind get_current_user in any useful way: they would simply 401.
+# Authentication being on means this is a real deployment, and the
+# requirement there is that only login and health are public, so the
+# schema is withdrawn rather than left as the one unauthenticated
+# description of all 68 routes. With authentication off (local
+# development) they stay available, which is where they earn their keep.
+#
+# nginx does not proxy these paths and the API port is not published, so
+# nothing outside the compose network could reach them regardless; this
+# closes the same door on the inside, where a second container could.
+def documentation_urls(require_authentication: bool) -> dict:
+    """The docs endpoints to expose, or None for each when deployed."""
+    if require_authentication:
+        return {"docs_url": None, "redoc_url": None, "openapi_url": None}
+    return {"docs_url": "/docs", "redoc_url": "/redoc", "openapi_url": "/openapi.json"}
+
+
+app = FastAPI(
+    title=settings.app_name,
+    lifespan=lifespan,
+    **documentation_urls(settings.require_authentication),
+)
 
 # Only installed when origins are configured. With the SPA served from
 # the same origin as the API - the default deployment, see
