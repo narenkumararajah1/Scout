@@ -23,7 +23,25 @@ SEC EDGAR        indexed case studies          generation with citations
 
 ## Screenshots
 
-See [`screenshots/`](screenshots/).
+**Ask Scout** — answers grounded in the indexed case-study corpus, with inline
+citations and the retrieved passages shown. This is the whole thesis of the
+project in one screen.
+
+![Ask Scout](screenshots/04-ask-scout.png)
+
+**Company Intelligence** — what changed since the last run, key people ranked by
+route in, and seniority inferred deterministically from job titles.
+
+![Company Intelligence](screenshots/02-company-intelligence.png)
+
+<details>
+<summary>Executive Dashboard and Knowledge Library</summary>
+
+![Executive Dashboard](screenshots/01-dashboard.png)
+
+![Knowledge Library](screenshots/03-knowledge-library.png)
+
+</details>
 
 ---
 
