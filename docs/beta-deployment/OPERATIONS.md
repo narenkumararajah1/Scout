@@ -25,7 +25,26 @@ docker volume ls | grep scout
 
 ## Backup
 
-Take one before every upgrade and on a schedule during the beta.
+**`deploy/backup.sh` automates all of this.** Copy it to the host, make it
+executable, and add one cron entry:
+
+```bash
+crontab -e
+# 0 2 * * * /home/ubuntu/scout-backup.sh
+```
+
+It writes a timestamped directory per run, verifies its own output (dump
+header, COPY-block count, and that both `scout.db` and `chroma/` are in the
+archive), renames the directory to `.FAILED` and exits non-zero if any check
+fails, and prunes runs older than 14 days. Output goes to
+`~/scout-backups/backup.log`.
+
+Two things it got wrong on first run, both worth knowing if you adapt it:
+the log redirect must come *after* `mkdir`, and `tar tzf | grep -q` fails
+under `set -o pipefail` because `grep -q` exits early and `tar` takes
+SIGPIPE - list to a file and grep that instead.
+
+The manual equivalent, and what the script does under the hood:
 
 **Important:** write the backup somewhere inside your home directory. Colima
 only mounts `$HOME` into its VM, so a bind mount pointing at `/tmp` resolves
