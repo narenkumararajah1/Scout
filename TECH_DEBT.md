@@ -1,19 +1,141 @@
-# Transitional Architecture (post-V2->V3 parity pass)
+# Engineering Roadmap and Known Limitations
 
-This document tracks the deliberate, temporary gap between what Scout's
-repository structure now looks like and what actually runs the product.
-It exists because `docs/v3/` describes a target architecture that this
-repo is migrating toward incrementally, in place, per
-`docs/v3/16_IMPLEMENTATION_ROADMAP.md` - not a system that already
-matches that target. Phase 7C was the last implementation phase on that
-roadmap; a full V2->V3 parity review followed it (comparing every V2
-Streamlit capability against V3 feature-for-feature), and this section
-records the implementation pass that closed the gaps that review found.
-Scout V3 is now a genuine superset of V2, feature-complete and verified
-against a real running backend/frontend, not just internally-consistent
-by inspection. Every item below should be resolved (and this section
-removed) as it's addressed; new gaps discovered later should be added
-here rather than left implicit.
+Scout is feature-complete for a single-user internal beta and deployed on a
+cloud VM. This document is the honest register of what it does not yet do,
+why each gap exists, and what closing it involves.
+
+Two kinds of entry live here and it is worth separating them:
+
+**Deliberate constraints** were chosen to get a working system in front of real
+users sooner. Each has a known cost and a known resolution.
+
+**Genuine debt** is work that should be done and has not been. It is listed with
+the same specificity, because a register that only contains defensible decisions
+is a marketing document.
+
+The [Engineering log](#engineering-log) below preserves the full record of
+resolved defects and the reasoning behind each architectural decision, including
+the ones that turned out to be wrong. It is kept deliberately - the failures are
+the more useful half.
+
+---
+
+## Current limitations
+
+### Single-user by design — blocks multi-tenancy
+
+**Status:** deliberate. **Effort to close:** moderate, schema-level.
+
+One shared account, no roles, no audit trail. Every action is attributable to
+"the account" rather than a person.
+
+Four tables (`companies`, `opportunities`, `reports`, `knowledge_documents`)
+have no owner column, so per-user scoping cannot be added by filtering alone —
+it needs a migration plus a backfill decision for data created during the beta.
+Detailed in [Blocker for multi-user](#blocker-for-multi-user-four-tables-have-no-owner).
+
+*Why deferred:* multi-user without a real user base would have been speculative
+schema design. The beta tells us what scoping is actually needed.
+
+### Single instance — no horizontal scaling
+
+**Status:** deliberate. **Effort to close:** moderate.
+
+The scheduler (`AsyncIOScheduler`) runs inside the API process and uvicorn runs
+one worker, so two replicas would fire duplicate scheduled jobs. Login throttle
+counters are in-process for the same reason.
+
+*Closing it* means extracting the scheduler to its own service or a distributed
+lock, and moving throttle state to Redis or the database. Both are the same
+change, and both are prerequisites for multi-user.
+
+### Deployment image runs an end-of-life Python
+
+**Status:** genuine debt. **Effort to close:** small.
+
+`python:3.9-slim`, pinned to match the environment the test suite was proven
+against. Python 3.9 stopped receiving security fixes in October 2025, so the
+image accumulates unpatched interpreter CVEs.
+
+*Closing it* is two `FROM` lines and a full suite run. Deliberately deferred
+only so that a failure during first deployment would not be confounded with
+every other unknown. Now that the deployment is settled, this is next.
+
+### Secrets live in a file
+
+**Status:** deliberate for beta, unacceptable for production.
+
+`.env` holds the database password, JWT signing key and LLM API keys in plain
+text. No secrets manager, no rotation.
+
+*Closing it* means moving to the host's secret store. Cheap once a target
+platform is chosen; premature before that.
+
+### Backups are manual
+
+**Status:** genuine debt.
+
+Data lives in two Docker volumes on one host. The commands are documented and
+verified in `docs/beta-deployment/OPERATIONS.md`; nothing runs them on a
+schedule, and manual backups do not happen.
+
+*Closing it* is a cron entry plus a rehearsed restore. An untested backup is
+not a backup.
+
+### Retrieval failures are silent by design
+
+**Status:** mitigated, not eliminated.
+
+`retrieve_knowledge()` catches every exception and returns `[]`, so no workflow
+breaks when grounding is unavailable — it degrades to ungrounded instead. The
+cost is that a *broken* vector store and an *empty* one look identical from
+every user-facing surface.
+
+This produced a real outage: 81 documents indexed, every search returning
+nothing, and no error anywhere. Full write-up in
+[A broken vector store](#a-broken-vector-store-is-indistinguishable-from-an-empty-one).
+
+*Mitigated* by a `knowledge_retrieval` probe in `/health` that runs a real query
+rather than a ping. *Not closed* — the fallback is still silent at the call
+site, which remains the right trade for availability but should be observable.
+
+### Structured-output reliability
+
+**Status:** tolerated, upstream-dependent.
+
+`gemini-flash-lite-latest` intermittently returns malformed JSON during
+executive extraction. The stage is caught and the analysis completes without
+executives for that run.
+
+*Closing it* means a larger model, or a repair-and-retry pass on the parse.
+The multi-provider gateway already makes the model a configuration change.
+
+---
+
+## What would come next
+
+In the order I would actually do it:
+
+1. **Python 3.10+ image** — smallest change, largest security return.
+2. **Automated backups with a rehearsed restore** — the only item here that can
+   lose data.
+3. **Owner columns and per-user scoping** — unblocks everything multi-user.
+4. **Extract the scheduler** — prerequisite for more than one instance.
+5. **Secrets manager** — when a production platform is chosen.
+
+---
+
+<a name="engineering-log"></a>
+
+# Engineering log
+
+Everything below is the chronological record: resolved defects, architectural
+decisions and their reasoning, and per-phase verification notes. Entries are
+kept after resolution because the reasoning outlives the fix.
+
+Several entries record mistakes — a bug introduced while fixing another bug, a
+verification that passed vacuously, an approach abandoned after it was built.
+Those are the most useful entries in the file.
 
 ## A broken vector store is indistinguishable from an empty one
 

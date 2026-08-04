@@ -131,7 +131,7 @@ tests/            695 tests
 | [`docs/v3/`](docs/v3/) | Current architecture, data model, API specification, ADRs |
 | [`docs/beta-deployment/`](docs/beta-deployment/) | Install, configure, verify, operate, troubleshoot |
 | [`docs/design/`](docs/design/) | UI/UX standards and component library |
-| [`TECH_DEBT.md`](TECH_DEBT.md) | Known limitations, consciously deferred |
+| [`TECH_DEBT.md`](TECH_DEBT.md) | Engineering roadmap, known limitations, and the full defect log |
 
 ## Status and limitations
 
