@@ -1,5 +1,11 @@
 # Scout
 
+[![CI](https://github.com/narenkumararajah1/Scout/actions/workflows/ci.yml/badge.svg)](https://github.com/narenkumararajah1/Scout/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-695%20passing-brightgreen)](tests/)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9-blue)](requirements.txt)
+[![React](https://img.shields.io/badge/react-19-61dafb)](frontend/react/package.json)
+
 **An AI sales-intelligence platform that researches companies, finds opportunities, and grounds every recommendation in evidence.**
 
 Scout takes a company name, researches it from public sources, matches what it
@@ -12,12 +18,20 @@ what it thinks. Recommendations are retrieved from a vector-indexed corpus of re
 case studies, so "we have done this before" is a claim backed by a document rather
 than a plausible-sounding sentence.
 
+```mermaid
+flowchart LR
+    A["Company name"] --> B["Research<br/><i>public web · SEC EDGAR</i>"]
+    B --> C["Capability Matching<br/><i>vector search over<br/>indexed case studies</i>"]
+    C --> D["Opportunity Analysis<br/><i>scored · explained</i>"]
+    D --> E["Artifact Generation<br/><i>RAG with citations</i>"]
+    E --> F["Report · Meeting Brief<br/>Playbook · Outreach"]
+
+    style C fill:#e8f0fe,stroke:#3b5bdb
+    style E fill:#e8f0fe,stroke:#3b5bdb
 ```
-Research → Capability Matching → Opportunity Analysis → Artifact Generation
-   ↑                  ↑                                        ↑
-public web       vector search over            retrieval-augmented
-SEC EDGAR        indexed case studies          generation with citations
-```
+
+The two highlighted stages are where grounding happens — everything Scout claims
+traces back to an indexed document rather than to model recall.
 
 ---
 
@@ -59,17 +73,27 @@ route in, and seniority inferred deterministically from job titles.
 
 ## Architecture
 
+```mermaid
+flowchart TD
+    U(["Browser"]) -->|":443 TLS"| CADDY["Caddy<br/><i>automatic Let's Encrypt</i>"]
+    CADDY --> NGINX["nginx<br/><i>serves SPA · proxies API</i><br/>single origin, no CORS"]
+    NGINX --> API["FastAPI<br/><i>async · JWT auth · rate limited</i>"]
+
+    API --> PG[("PostgreSQL<br/>17 migrations")]
+    API --> SQ[("SQLite<br/><i>V2 entities, mid-cutover</i>")]
+    API --> CH[("ChromaDB<br/>vector index")]
+    API --> LLM["LiteLLM gateway"]
+
+    LLM -.->|"primary"| G["Gemini"]
+    LLM -.->|"on 429 / 5xx"| GR["Groq"]
+    LLM -.->|"then"| OR["OpenRouter"]
+
+    style CADDY stroke-dasharray: 5 5
+    style LLM fill:#e8f0fe,stroke:#3b5bdb
 ```
-React 19 + Vite (TypeScript)          ← SPA, served by nginx
-        │  single origin, no CORS
-        ▼
-FastAPI (Python)                      ← async API, JWT auth
-        │
-        ├── PostgreSQL     relational entities, 17 Alembic migrations
-        ├── SQLite         V2 entities during an in-progress cutover
-        ├── ChromaDB       vector index for retrieval
-        └── LiteLLM        multi-provider gateway with automatic failover
-```
+
+Caddy is dashed because TLS is staged but not yet live — see
+[Status and limitations](#status-and-limitations).
 
 Three design decisions worth calling out:
 
