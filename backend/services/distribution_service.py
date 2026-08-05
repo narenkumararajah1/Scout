@@ -64,10 +64,15 @@ def _eligible_recipients(company_id: str) -> list[Recipient]:
     ]
 
 
-def distribute_report(report: Report, company: Company) -> list[Delivery]:
+def distribute_report(report: Report, company: Company, persist: bool = True) -> list[Delivery]:
     """Sends `report` to every eligible recipient across their preferred
     channels. Returns every Delivery record created, including skipped
     and failed attempts, so callers can show the full outcome.
+
+    `persist=False` returns the same records without writing them to
+    delivery_history - required for reports that do not live in V2's
+    research_reports table, which that table's foreign key references.
+    See the comment at the insert below.
     """
     deliveries = []
     for recipient in _eligible_recipients(company.id):
@@ -93,15 +98,20 @@ def distribute_report(report: Report, company: Company) -> list[Delivery]:
                 )
                 status = STATUS_FAILED
 
-            deliveries.append(
-                create_delivery(
-                    Delivery(
-                        recipient_id=recipient.id,
-                        report_id=report.id,
-                        channel=channel,
-                        status=status,
-                    )
-                )
+            record = Delivery(
+                recipient_id=recipient.id,
+                report_id=report.id,
+                channel=channel,
+                status=status,
             )
+            # delivery_history.report_id is declared FOREIGN KEY ...
+            # REFERENCES research_reports(id) - V2's SQLite table. An
+            # intelligence report lives in Postgres, so persisting its
+            # delivery raises IntegrityError *after* the message has
+            # already gone out: the send succeeds and the request 500s.
+            # Callers that pass a report from outside research_reports
+            # therefore opt out of persistence and get the same in-memory
+            # outcome back, so the caller still reports what happened.
+            deliveries.append(create_delivery(record) if persist else record)
 
     return deliveries

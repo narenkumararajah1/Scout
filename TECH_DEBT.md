@@ -137,6 +137,45 @@ Several entries record mistakes — a bug introduced while fixing another bug, a
 verification that passed vacuously, an approach abandoned after it was built.
 Those are the most useful entries in the file.
 
+## Intelligence-report sends are not recorded in delivery_history
+
+Recorded 2026-08-05, when Distribute was added to the intelligence report
+page so Export and Distribute existed in the same place.
+
+**What happened.** The first live call returned 500 — *after* sending.
+The dry-run email was logged, then the audit insert raised
+`sqlite3.IntegrityError: FOREIGN KEY constraint failed`.
+
+**Root cause.** `delivery_history.report_id` is declared `FOREIGN KEY ...
+REFERENCES research_reports (id)` — V2's SQLite table
+(`backend/repositories/recipient_repository.py`). An intelligence report
+lives in Postgres, so its id is not in `research_reports` and the row
+cannot be written. The ordering is the nasty part: the message goes out
+first, so the caller sees a failure for an action that already happened.
+
+**Current resolution.** `distribute_report()` takes `persist=False`, and
+the intelligence-report route passes it. Delivery works and the caller
+still gets the full per-recipient outcome, because the same `Delivery`
+objects are returned unwritten. V2 report distribution is untouched and
+still records its history — verified after the fix (V2 returned 201 with
+its delivery row intact).
+
+**What this costs.** There is no audit trail for intelligence-report
+sends. For a single-user beta in dry-run that is acceptable; before real
+delivery is switched on for these, it is not — "did that report actually
+go out?" becomes unanswerable.
+
+**The real fix** is dropping that foreign key, which in SQLite means
+rebuilding the table (it has no `DROP CONSTRAINT`). Worth doing as part
+of finishing the V2→V3 cutover rather than on its own, since the
+constraint only makes sense while reports live in two stores. Deliberately
+not done here: rebuilding a live audit table to add a feature to a beta is
+the wrong trade.
+
+**Found only by running it.** Every static check passed — types, lint,
+build, 702 tests — because nothing exercised a real SQLite connection
+with a Postgres-born report id. It took one live call.
+
 ## nginx cached the backend's IP, so every redeploy took the site down
 
 Recorded 2026-08-05, fixed in `ee6456d`.

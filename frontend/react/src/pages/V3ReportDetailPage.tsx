@@ -4,8 +4,8 @@
 // Playbooks, Meeting Briefs, and Outreach Drafts. This page never
 // regenerates the report; it only renders backend/services/
 // v3_report_service.py's persisted `content` and offers the existing
-// PDF export (Phase 6) as a download - no other export/share/print
-// capability is fabricated.
+// PDF export (Phase 6) as a download, plus Distribute, which sends the
+// report through the same delivery service the V2 report page uses.
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Breadcrumbs } from "../components/ui/Breadcrumbs";
@@ -14,6 +14,7 @@ import { AIFeedback } from "../components/ui/AIFeedback";
 import { Badge } from "../components/ui/Badge";
 import { CapabilityCard } from "../components/ui/CapabilityCard";
 import { Card } from "../components/ui/Card";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { CategoryBarChart } from "../components/charts/CategoryBarChart";
 import { OpportunityScoreChart } from "../components/charts/OpportunityScoreChart";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -22,6 +23,9 @@ import { LoadingState } from "../components/ui/LoadingState";
 import { OpportunityCard } from "../components/ui/OpportunityCard";
 import { ProseSection } from "../components/ui/ProseSection";
 import { ToastContainer } from "../components/ui/Toast";
+import { useConfirm } from "../hooks/useConfirm";
+import { useDistributeIntelligenceReport } from "../hooks/useDistributeIntelligenceReport";
+import { useSystemStatus } from "../hooks/useSystemStatus";
 import { useV3Report } from "../hooks/useV3Report";
 import { useToasts } from "../hooks/useToasts";
 import { v3ReportService } from "../services/v3ReportService";
@@ -33,6 +37,9 @@ export function V3ReportDetailPage() {
   const reportQuery = useV3Report(reportId);
   const { toasts, pushToast, dismissToast } = useToasts();
   const [isExporting, setIsExporting] = useState(false);
+  const { confirm, confirmDialog } = useConfirm();
+  const statusQuery = useSystemStatus();
+  const distributeReport = useDistributeIntelligenceReport(reportId);
 
   if (!reportId) {
     return <ErrorState message="No report selected." />;
@@ -86,9 +93,34 @@ export function V3ReportDetailPage() {
     }
   }
 
+  async function handleDistribute() {
+    // Same production-safety wording as the V2 report page: say whether
+    // this actually leaves the building before asking, not after.
+    const delivery = statusQuery.data?.delivery;
+    const isLive = delivery ? delivery.email_live || delivery.teams_live : true;
+    if (
+      !(await confirm(
+        isLive
+          ? "Send this report to every eligible recipient now? This sends real email/Teams messages and can't be undone."
+          : "Send this report to every eligible recipient now? Delivery is currently in dry-run mode - no real message will be sent.",
+      ))
+    ) {
+      return;
+    }
+    pushToast("Sending report...", "progress");
+    distributeReport.mutate(undefined, {
+      onSuccess: (deliveries) => {
+        const sent = deliveries.filter((d) => d.status === "sent").length;
+        pushToast(`Distributed to ${sent} of ${deliveries.length} delivery attempt(s).`, "success");
+      },
+      onError: (error) => pushToast(getErrorMessage(error), "error"),
+    });
+  }
+
   return (
     <div className="v3-report-detail-page">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      {confirmDialog && <ConfirmDialog {...confirmDialog} />}
 
       <Breadcrumbs companyId={report.company_id} current="Intelligence Report" />
       <RelatedArtifacts companyId={report.company_id} current="report" />
@@ -98,6 +130,13 @@ export function V3ReportDetailPage() {
         <Badge label={report.status} variant={report.status === "Generated" ? "success" : "neutral"} />
         <button type="button" onClick={handleExport} disabled={isExporting}>
           {isExporting ? "Exporting..." : "Export PDF"}
+        </button>
+        {/* Beside Export, matching the V2 report page: those are the two
+            things you do with a finished report, and having Distribute on
+            only one of them meant the same document was sendable from one
+            screen and not the other. */}
+        <button type="button" onClick={handleDistribute} disabled={distributeReport.isPending}>
+          {distributeReport.isPending ? "Sending..." : "Distribute Report"}
         </button>
       </div>
 

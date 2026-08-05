@@ -7,9 +7,18 @@
 // result once it completes.
 import { apiRequestData, getStoredToken } from "../api/client";
 import type { GenerationJob } from "../types/generationJob";
+import type { Delivery } from "../types/delivery";
 import type { V3Report } from "../types/v3Report";
 
 export const v3ReportService = {
+  // Distribution goes through the same delivery service V2 reports use;
+  // the backend adapts this report into the shape those senders read.
+  // Returns one Delivery record per recipient/channel attempt, including
+  // skipped and failed ones, so the UI can report the whole outcome.
+  async distributeIntelligenceReport(reportId: string): Promise<Delivery[]> {
+    return apiRequestData<Delivery[]>(`/api/v1/reports/${reportId}/distribute`, { method: "POST" });
+  },
+
   async listForCompany(companyId: string): Promise<V3Report[]> {
     return apiRequestData<V3Report[]>(`/api/v1/reports?company_id=${companyId}`);
   },
