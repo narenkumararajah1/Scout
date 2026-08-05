@@ -3603,3 +3603,149 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   Refinement layer
+   --------------------------------------------------------------------------
+   Polish only. This deliberately does NOT restyle components.
+
+   An earlier version of this layer set a background, border, padding and
+   font on every <button>, put a border on every .card, recoloured badges
+   and table headers, and gave every control a blue focus outline. That is
+   a styling template, not a quality bar - it changed how the product looks
+   rather than how finished it feels, and it broke the sidebar toggle by
+   overriding the display property the app uses to hide it.
+
+   What stays here is the part that is genuinely refinement: type
+   hierarchy, vertical rhythm, softer elevation, and transitions. No new
+   colours, no new borders, no decorative styling. If a rule changes what
+   something *is* rather than how carefully it is set, it does not belong.
+   ========================================================================== */
+
+:root {
+  /* Existing product values, named so spacing and elevation stop being
+     re-invented per component. Nothing here is a new colour. */
+  --s-ink: #14161c;
+  --s-muted: #6b7280;
+  --s-line: #e6e8ee;
+  --s-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --s-fast: 0.14s;
+}
+
+/* --- typography ----------------------------------------------------------
+   Tighter tracking at display sizes only. Body text is untouched. */
+
+.app-shell h1,
+.app-shell h2 {
+  letter-spacing: -0.021em;
+  text-wrap: balance;
+}
+
+.page-header h1 {
+  font-size: 1.55rem;
+  font-weight: 640;
+  letter-spacing: -0.026em;
+}
+
+/* --- elevation -----------------------------------------------------------
+   The card shadow was a single 3px blur, which reads as a smudge. Two
+   stacked shadows - contact plus ambient - read as a surface resting on
+   another surface. No border added: the shadow already does that work. */
+
+.card {
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.04),
+    0 6px 16px -10px rgba(16, 24, 40, 0.12);
+  padding: 1.15rem 1.35rem;
+}
+
+/* --- interaction ---------------------------------------------------------
+   Transitions only. Buttons keep whatever colour and shape they already
+   have; they just stop changing state instantly. */
+
+.app-shell button,
+.app-shell a,
+.app-shell input,
+.app-shell select,
+.app-shell textarea {
+  transition:
+    background-color var(--s-fast) ease,
+    border-color var(--s-fast) ease,
+    color var(--s-fast) ease,
+    box-shadow var(--s-fast) ease;
+}
+
+/* Keyboard focus must remain visible - that is accessibility, not
+   decoration - but it inherits the element's own colour rather than
+   painting a blue ring on everything. */
+.app-shell :focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* --- Dashboard -----------------------------------------------------------
+   Scoped to the page. Spacing and hierarchy only: no recoloured badges, no
+   restyled navigation, nothing that changes what a component is. */
+
+/* Seven-plus notifications shared one 0.75rem gap and no boundary, so they
+   read as a single block of text. Hairlines make the rows countable. */
+.dashboard-page .notification-list {
+  gap: 0;
+}
+
+.dashboard-page .notification-list > li {
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--s-line);
+}
+
+.dashboard-page .notification-list > li:first-child {
+  padding-top: 0.2rem;
+}
+
+.dashboard-page .notification-list > li:last-child {
+  border-bottom: none;
+  padding-bottom: 0.2rem;
+}
+
+/* Three levels at three weights, with different gaps per level so the
+   grouping is unambiguous. The meta line carries the routing information
+   and was the faintest thing in the row. */
+.dashboard-page .notification-item-header {
+  margin-bottom: 0.3rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.dashboard-page .notification-summary {
+  margin: 0;
+  line-height: 1.55;
+  max-width: 74ch; /* summaries were running the full card width */
+}
+
+.dashboard-page .notification-item-footer {
+  margin-top: 0.45rem;
+}
+
+/* The attention line was link-blue but is not a link. Muting it removes a
+   colour rather than adding one. */
+.dashboard-page .morning-brief {
+  color: var(--s-muted);
+  font-size: 0.95rem;
+  margin: -0.35rem 0 1.35rem;
+}
+
+/* Figures should align across the three cards. */
+.dashboard-page .stat {
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell button,
+  .app-shell a,
+  .app-shell input,
+  .app-shell select,
+  .app-shell textarea {
+    transition: none;
+  }
+}
