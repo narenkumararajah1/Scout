@@ -3749,3 +3749,31 @@ a {
     transition: none;
   }
 }
+
+/* Date and time inputs were styled nowhere - the stylesheet only ever
+   targeted input[type="text"] and input[type="search"]. Chrome hides that
+   by drawing its own control for these types (a clock or calendar with
+   steppers), so the field is visible with no CSS at all. Safari renders a
+   bare, borderless, transparent box: on a white card the Delivery time
+   field on Administration was effectively invisible, and the schedule
+   looked like it had no time control.
+
+   This is the same border, padding and radius every other input in the
+   product already uses - extending existing styling to the types that were
+   missed, not introducing a new one. */
+input[type="time"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="month"] {
+  padding: 0.45rem;
+  border: 1px solid #d0d3d9;
+  border-radius: 6px;
+  background: #fff;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.9rem;
+  /* Safari collapses these to the text width and gives no affordance;
+     a minimum keeps the control a consistent size across engines. */
+  min-height: 2.15rem;
+  min-width: 8rem;
+}
