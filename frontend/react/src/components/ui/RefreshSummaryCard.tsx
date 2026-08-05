@@ -90,13 +90,16 @@ export function RefreshSummaryCard({
           Scout hasn't analysed this company yet. Run an analysis to establish a baseline - after that, every run
           reports what has changed since the last one.
         </p>
-        {/* "Run first analysis", not "Refresh Intelligence" as in the page
-            header: it is the same action, but there is nothing to refresh
-            yet, and reusing the header's exact label would put two
-            identically-named buttons on one screen. */}
+        {/* Same label as the page header, deliberately. This used to read
+            "Run first analysis" to avoid two identically-named buttons on
+            one screen, but it is the same action on the same company, and
+            three names for one thing ("Run first analysis", "Run
+            analysis", "Refresh Intelligence") read as three features. One
+            action, one name; the surrounding copy supplies the context
+            that there is nothing to compare against yet. */}
         {onRunAnalysis && (
           <button type="button" onClick={onRunAnalysis} disabled={isRunning}>
-            {isRunning ? "Running first analysis..." : "Run first analysis"}
+            {isRunning ? "Refreshing..." : "Refresh Intelligence"}
           </button>
         )}
       </Card>

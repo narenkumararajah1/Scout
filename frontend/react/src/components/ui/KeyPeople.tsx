@@ -113,9 +113,11 @@ export function KeyPeople({
     return (
       <Card title="Key People">
         <EmptyState message="Scout hasn't identified anyone at this company yet. People are found during analysis." />
+        {/* One name for the single analysis action, matching the page
+            header and the "What changed" card. */}
         {onRunAnalysis && (
           <button type="button" onClick={onRunAnalysis} disabled={isRunning}>
-            {isRunning ? "Running..." : "Run analysis"}
+            {isRunning ? "Refreshing..." : "Refresh Intelligence"}
           </button>
         )}
       </Card>

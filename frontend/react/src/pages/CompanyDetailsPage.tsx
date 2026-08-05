@@ -19,7 +19,7 @@ import { LoadingState } from "../components/ui/LoadingState";
 import { RefreshSummaryCard } from "../components/ui/RefreshSummaryCard";
 import { ToastContainer } from "../components/ui/Toast";
 import { useAddCompanyRelationship } from "../hooks/useAddCompanyRelationship";
-import { useAnalyzeCompany } from "../hooks/useAnalyzeCompany";
+import { useRefreshIntelligence } from "../hooks/useRefreshIntelligence";
 import { useArchiveCompany } from "../hooks/useArchiveCompany";
 import { useCompanies } from "../hooks/useCompanies";
 import { useCompany } from "../hooks/useCompany";
@@ -119,7 +119,7 @@ export function CompanyDetailsPage() {
     },
   });
 
-  const analyzeCompany = useAnalyzeCompany(companyId);
+  const refreshIntelligence = useRefreshIntelligence(companyId);
   const archiveCompany = useArchiveCompany();
   const restoreCompany = useRestoreCompany();
   const removeCompany = useRemoveCompany();
@@ -202,14 +202,13 @@ export function CompanyDetailsPage() {
 
   function handleRunAnalysis() {
     pushToast("Refreshing intelligence - this can take a minute.", "progress");
-    analyzeCompany.mutate(undefined, {
+    refreshIntelligence.mutate(undefined, {
       onSuccess: () => {
-        // POST /companies/{id}/analyze still returns a Report - that V2
-        // contract was deliberately preserved in Phase 2A - so the refresh
-        // summary has to be refetched rather than read from the response.
-        // Snapshots too, since the run added one.
-        void queryClient.invalidateQueries({ queryKey: ["refresh-summary", companyId] });
-        void queryClient.invalidateQueries({ queryKey: ["company-snapshots", companyId] });
+        // Cache invalidation lives in useRefreshIntelligence so that
+        // every caller of the action - this page, the empty states, and
+        // the Companies page's Run Scout - refreshes the same set. Doing
+        // it per-caller is how the original two-key list drifted out of
+        // date as new intelligence sections were added.
         pushToast("Intelligence refreshed - see what changed below.", "success");
       },
       onError: (error) => pushToast(getErrorMessage(error), "error"),
@@ -402,8 +401,8 @@ export function CompanyDetailsPage() {
             report is a by-product rather than the point
             (07_COMPANY_REFRESH_ENGINE.md, and the wording
             10_NAVIGATION_IMPROVEMENTS.md uses for this action). */}
-        <button type="button" onClick={handleRunAnalysis} disabled={analyzeCompany.isPending}>
-          {analyzeCompany.isPending ? "Refreshing..." : "Refresh Intelligence"}
+        <button type="button" onClick={handleRunAnalysis} disabled={refreshIntelligence.isPending}>
+          {refreshIntelligence.isPending ? "Refreshing..." : "Refresh Intelligence"}
         </button>
         <Link to={`/ask-scout?companyId=${company.id}`} className="ask-scout-link-button">
           Ask Scout about {company.name}
@@ -466,7 +465,7 @@ export function CompanyDetailsPage() {
         summary={refreshSummaryQuery.data}
         isLoading={refreshSummaryQuery.isLoading}
         onRunAnalysis={handleRunAnalysis}
-        isRunning={analyzeCompany.isPending}
+        isRunning={refreshIntelligence.isPending}
       />
 
       <Card title="Overview">
@@ -489,7 +488,7 @@ export function CompanyDetailsPage() {
         error={executivesQuery.isError ? executivesQuery.error : undefined}
         errorMessage={executivesQuery.error ? getErrorMessage(executivesQuery.error) : undefined}
         onRunAnalysis={handleRunAnalysis}
-        isRunning={analyzeCompany.isPending}
+        isRunning={refreshIntelligence.isPending}
       />
 
       {/* Above Company Intelligence because "what do they run" is the

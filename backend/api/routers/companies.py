@@ -16,6 +16,7 @@ backend/routers/companies.py, so this router and V2's (mounted at the
 unversioned /companies prefix) never collide.
 """
 
+import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
@@ -23,6 +24,7 @@ from fastapi import APIRouter, Depends, Query
 from backend.api.dependencies import get_current_user
 from backend.api.error_handlers import APIError
 from backend.database.models import User
+from backend.orchestration.manual_analysis import refresh_company_intelligence
 from backend.repositories.postgres.executive_repository import list_executives_for_company
 from backend.repositories.postgres.technology_repository import list_technologies_for_company
 from backend.repositories.research_repository import list_research_sessions
@@ -43,6 +45,8 @@ from backend.services.company_intelligence_service import build_company_intellig
 from backend.services.company_refresh_service import get_latest_refresh_summary, list_snapshot_history
 from backend.services.company_view_service import get_changes_since_last_visit, list_recently_viewed
 from backend.services.visual_intelligence_service import company_visual_trends
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/companies", tags=["companies"])
 
@@ -96,6 +100,44 @@ async def get_sales_coach_recommendation(company_id: str, current_user: User = D
     recommendation = await what_would_you_do(company)
     data = SalesCoachRecommendation.model_validate(recommendation)
     return {"success": True, "message": "Sales coach recommendation generated successfully.", "data": data.model_dump()}
+
+
+@router.post("/{company_id}/refresh")
+async def refresh_company(company_id: str, current_user: User = Depends(get_current_user)) -> dict:
+    """Re-runs analysis for one company and returns what changed.
+
+    The write counterpart to GET /refresh-summary below: that one reads
+    the stored summary cheaply, this one produces a new one. It runs the
+    *same* pipeline as V2's POST /companies/{id}/analyze with only
+    ReportingStage omitted - refreshing intelligence and publishing a
+    report are different intentions, and every refresh used to append a
+    Report nobody asked for. Reports are still produced by the scheduler
+    and by the explicit Generate Report action.
+    """
+    try:
+        company = company_service.get_company(company_id)
+    except ValueError as exc:
+        raise APIError(404, str(exc)) from exc
+
+    try:
+        result = await refresh_company_intelligence(company)
+    except ValueError as exc:
+        # A legitimate pipeline outcome (no capability matches, say)
+        # rather than a bug - matches V2 /analyze's 422 for the same case.
+        raise APIError(422, str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001 - an upstream LLM failure needs a meaningful message
+        logger.exception("Intelligence refresh failed for company %s.", company_id)
+        raise APIError(502, f"Intelligence refresh failed: {exc}") from exc
+
+    summary = result.refresh_summary
+    return {
+        "success": True,
+        "message": "Company intelligence refreshed successfully.",
+        # None when the best-effort refresh stage could not build a
+        # summary; the rest of the run still updated what Scout knows, so
+        # this is a partial success rather than an error.
+        "data": (RefreshSummaryResponse.model_validate(summary).model_dump() if summary else None),
+    }
 
 
 @router.get("/{company_id}/refresh-summary")

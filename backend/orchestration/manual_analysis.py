@@ -56,7 +56,17 @@ from backend.services.research_service import research_company
 logger = logging.getLogger(__name__)
 
 
-def _build_pipeline() -> Pipeline:
+def _build_pipeline(include_reporting: bool = True) -> Pipeline:
+    """`include_reporting=False` drops only ReportingStage.
+
+    Refreshing a company's intelligence and publishing a report are two
+    different intentions, and conflating them meant every refresh silently
+    appended a Report nobody asked for. Nothing downstream reads
+    `context.report` - CompanyRefreshStage takes its inputs from the
+    research session, opportunities, capability matches and persisted
+    entities, never from the report - so omitting the stage changes what
+    is *written*, not what the remaining stages compute.
+    """
     # References this module's own (patchable) names, not
     # backend.orchestration.stages' - so patching
     # "backend.orchestration.manual_analysis.research_company" (as the
@@ -72,7 +82,7 @@ def _build_pipeline() -> Pipeline:
             OpportunityAnalysisStage(analyze_opportunities),
             ConfidenceScoringStage(),
             EvidenceStage(),
-            ReportingStage(generate_report),
+            *([ReportingStage(generate_report)] if include_reporting else []),
             # After Reporting: the refresh engine reads this run's outputs
             # and writes only its own snapshot table, so the report is
             # already generated and persisted before it runs (V3
@@ -111,7 +121,9 @@ async def _generate_notifications(context: PipelineContext) -> None:
         )
 
 
-async def run_manual_analysis_pipeline(company: Company) -> PipelineResult:
+async def run_manual_analysis_pipeline(
+    company: Company, include_reporting: bool = True
+) -> PipelineResult:
     """Runs the full pipeline per settings.ai_orchestration_mode and
     returns every stage's output - confidence scores, evidence
     citations, and (shadow mode only) the structured ComparisonReport.
@@ -125,7 +137,7 @@ async def run_manual_analysis_pipeline(company: Company) -> PipelineResult:
     )
 
     context = PipelineContext(company=company, mode=mode)
-    context = await _build_pipeline().run(context)
+    context = await _build_pipeline(include_reporting=include_reporting).run(context)
 
     await _generate_notifications(context)
 
@@ -149,3 +161,16 @@ async def run_manual_analysis(company: Company) -> Report:
     """
     result = await run_manual_analysis_pipeline(company)
     return result.report
+
+
+async def refresh_company_intelligence(company: Company) -> PipelineResult:
+    """Re-runs the analysis pipeline to update what Scout knows about
+    `company` - signals, initiatives, technologies, key people,
+    opportunities and the "what changed" summary - **without** publishing
+    a Report.
+
+    The same pipeline as run_manual_analysis(), minus ReportingStage.
+    Publishing a report is a separate, deliberate action; before this
+    existed, every refresh appended one as a side effect.
+    """
+    return await run_manual_analysis_pipeline(company, include_reporting=False)

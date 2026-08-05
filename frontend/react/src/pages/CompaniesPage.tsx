@@ -12,6 +12,7 @@ import { useCompanies } from "../hooks/useCompanies";
 import { useConfirm } from "../hooks/useConfirm";
 import { useRemoveCompany } from "../hooks/useRemoveCompany";
 import { useRestoreCompany } from "../hooks/useRestoreCompany";
+import { eligibleForRunScout, useRunScout } from "../hooks/useRunScout";
 import { companyService } from "../services/companyService";
 import { getErrorMessage } from "../utils/errors";
 
@@ -23,6 +24,33 @@ export function CompaniesPage() {
   const restoreCompany = useRestoreCompany();
   const removeCompany = useRemoveCompany();
   const { confirm, confirmDialog } = useConfirm();
+  const runScout = useRunScout();
+
+  // Count from the unfiltered list, not the search-filtered view: the
+  // button acts on everything Scout watches, and a search box that
+  // silently shrank the batch would be a nasty surprise.
+  const runnableCount = eligibleForRunScout(companiesQuery.data ?? []).length;
+  const runScoutDone = runScout.results.filter(
+    (r) => r.status === "refreshed" || r.status === "failed",
+  ).length;
+
+  async function handleRunScout() {
+    const eligible = eligibleForRunScout(companiesQuery.data ?? []);
+    // Each refresh is a full research pipeline over live sources - slow
+    // and quota-consuming - so state the cost before committing to it,
+    // not after.
+    const confirmed = await confirm(
+      `Run Scout on ${eligible.length} ${eligible.length === 1 ? "company" : "companies"}? ` +
+        "Each is refreshed in turn, which can take several minutes and uses AI credits. " +
+        "Archived and monitoring-disabled companies are skipped.",
+    );
+    if (!confirmed) return;
+
+    // Progress and the finished summary are rendered by the Run Scout
+    // card below, which outlives a toast - a toast fired at the end of a
+    // multi-minute run is easy to miss entirely.
+    await runScout.run(eligible);
+  }
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [name, setName] = useState("");
   const [industry, setIndustry] = useState("");
@@ -111,7 +139,63 @@ export function CompaniesPage() {
         <button type="button" onClick={() => setIsFormOpen((open) => !open)}>
           {isFormOpen ? "Cancel" : "Add Company"}
         </button>
+        {/* Next to Add Company: both act on the collection rather than on
+            one row. Disabled with nothing eligible so the button never
+            starts a run that would do nothing. */}
+        <button
+          type="button"
+          className="run-scout-button"
+          onClick={handleRunScout}
+          disabled={runScout.isRunning || runnableCount === 0}
+        >
+          {runScout.isRunning ? "Running Scout..." : `Run Scout (${runnableCount})`}
+        </button>
       </div>
+
+      {(runScout.isRunning || runScout.summary) && (
+        <Card title="Run Scout">
+          <div className="run-scout-progress">
+            <progress value={runScoutDone} max={runScout.results.length || 1} />
+            <span>
+              {runScoutDone} of {runScout.results.length} companies
+            </span>
+            {runScout.isRunning && (
+              <button type="button" onClick={runScout.cancel}>
+                Cancel
+              </button>
+            )}
+          </div>
+          {runScout.summary && (
+            <p className="run-scout-summary">
+              {runScout.summary.cancelled ? "Cancelled after " : "Finished: "}
+              {runScout.summary.refreshed} refreshed
+              {runScout.summary.failed > 0 && `, ${runScout.summary.failed} failed`} in{" "}
+              {Math.round(runScout.summary.elapsedMs / 1000)}s.
+            </p>
+          )}
+          <ul className="run-scout-list">
+            {runScout.results.map((result) => (
+              <li key={result.companyId}>
+                <span>{result.name}</span>
+                <Badge
+                  label={result.status}
+                  variant={
+                    result.status === "refreshed"
+                      ? "success"
+                      : result.status === "failed"
+                        ? "danger"
+                        : "neutral"
+                  }
+                />
+                {/* Kept visible rather than only toasted: in a long run the
+                    toast for company three is long gone by the time the
+                    batch ends. */}
+                {result.detail && <small className="run-scout-detail">{result.detail}</small>}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {isFormOpen && (
         <Card title="Add a company">

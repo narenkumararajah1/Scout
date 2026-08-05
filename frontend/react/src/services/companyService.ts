@@ -100,6 +100,17 @@ export const companyService = {
     return apiRequest<Report>(`/companies/${companyId}/analyze`, { method: "POST" });
   },
 
+  // Re-runs the same pipeline as analyzeCompany() minus its reporting
+  // stage, and answers with what changed. This is what the single
+  // "Refresh Intelligence" action calls: refreshing what Scout knows and
+  // publishing a report are separate intentions, and the old wiring did
+  // both, appending a Report to the company on every refresh.
+  async refreshCompanyIntelligence(companyId: string): Promise<RefreshSummary | null> {
+    return apiRequestData<RefreshSummary | null>(`/api/v1/companies/${companyId}/refresh`, {
+      method: "POST",
+    });
+  },
+
   async archiveCompany(companyId: string): Promise<Company> {
     return apiRequest<Company>(`/companies/${companyId}/archive`, { method: "POST" });
   },
