@@ -15,50 +15,705 @@ a {
   text-decoration: none;
 }
 
-/* Login page */
-.login-page {
+/* ==========================================================================
+   Login
+   --------------------------------------------------------------------------
+   One continuous dark surface. The page carries a single ink ground and a
+   single ambient light field that crosses both columns, so the brand side
+   and the form side read as one lit plane rather than two pages abutting.
+   The layout is still two columns; only the material changed.
+
+   The card earns separation through elevation, not colour: a translucent
+   panel lifted off the ground with a hairline border, an inner top
+   highlight, and a soft shadow. On a dark ground a white card would be a
+   hole punched in the surface - contrast has to come from light, not from
+   swapping the background out.
+
+   Blue is reserved for things you can act on: the submit button, focus
+   rings, and the eyebrow. Nothing decorative uses it, which is what keeps
+   this enterprise rather than neon.
+
+   Type stays system-ui - a webfont would be a render-blocking request on
+   the page whose speed is most visible.
+   ========================================================================== */
+
+.auth-page {
+  /* Navy, not black. #080a10 was effectively neutral, which is what made
+     the unlit centre of the page read as dead space rather than as a
+     surface the light was falling short of. */
+  --ink: #0a0e1a;
+  --ink-raise: #111726;
+  --accent: #3d68ff;
+  --accent-soft: rgba(61, 104, 255, 0.16);
+
+  /* Every surface is the same ground plus light, never a different colour. */
+  --card: rgba(255, 255, 255, 0.042);
+  --card-line: rgba(255, 255, 255, 0.088);
+  --field: rgba(255, 255, 255, 0.032);
+  --field-line: rgba(255, 255, 255, 0.1);
+  --field-line-hover: rgba(255, 255, 255, 0.17);
+
+  /* Contrast measured against the ink ground, not guessed: #f3f5fb is
+     ~17:1, #a9b1c6 ~8:1, #838ca6 (placeholders only) ~4.6:1. All clear
+     AA, and the first two clear AAA. */
+  --text: #f3f5fb;
+  --text-muted: #a9b1c6;
+  --text-faint: #838ca6;
+  --danger: #ffb4ab;
+  --danger-bg: rgba(220, 70, 60, 0.12);
+  --danger-line: rgba(255, 120, 110, 0.32);
+
+  position: relative;
+  isolation: isolate; /* keeps the aurora behind content without z-index escalation */
   min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  /* The form column is narrower than the brand column and the card is
+     left-aligned within it, so the two halves sit as one composition
+     rather than drifting to opposite edges of a wide monitor. */
+  grid-template-columns: 1.02fr 0.98fr;
+  overflow: hidden;
+  /* A wide, very low-contrast wash over the base keeps the middle of the
+     page a lit navy instead of dropping to flat ink between the light
+     sources. */
+  background:
+    radial-gradient(120% 90% at 50% 40%, #101728 0%, rgba(16, 23, 40, 0) 70%),
+    var(--ink);
+  color: var(--text);
+}
+
+/* One light field for the whole page. Three layered radials rather than a
+   linear ramp: a linear gradient reads as a template, layered radials give
+   the depth that makes a dark surface feel lit instead of merely dark.
+   Weighted toward the left so the brand side still leads the composition
+   without the seam becoming visible. */
+.auth-aurora {
+  position: absolute;
+  inset: -25%;
+  z-index: -2;
+  /* Every stop fades to a *transparent version of its own colour*, never
+     to the `transparent` keyword. `transparent` computes to
+     rgba(0,0,0,0), so a blue-to-transparent ramp interpolates through
+     black and leaves a dirty grey band partway down - which is exactly
+     the harsh transition it looks like. Fading blue to alpha-zero blue
+     keeps the ramp clean the whole way out. */
+  background:
+    /* 1. the primary, now reaching well past the halfway line */
+    radial-gradient(72vmax 66vmax at 8% 10%, rgba(64, 108, 255, 0.34) 0%,
+      rgba(64, 108, 255, 0.16) 34%, rgba(64, 108, 255, 0) 74%),
+    /* 2. indigo bridge across the upper middle, so the primary does not
+          simply stop - it hands off */
+    radial-gradient(56vmax 48vmax at 44% 4%, rgba(78, 70, 220, 0.2) 0%,
+      rgba(78, 70, 220, 0) 68%),
+    /* 3. behind the card: blue-violet, deliberately the faintest of the
+          three so it lifts the panel off the ground without ever
+          reading as a spotlight on it */
+    radial-gradient(46vmax 42vmax at 71% 47%, rgba(104, 92, 246, 0.15) 0%,
+      rgba(104, 92, 246, 0) 70%),
+    /* 4. bottom-right counterweight, balancing the top-left mass */
+    radial-gradient(58vmax 54vmax at 94% 92%, rgba(56, 128, 246, 0.17) 0%,
+      rgba(56, 128, 246, 0) 72%);
+  filter: blur(16px);
+  animation: auth-drift 26s ease-in-out infinite alternate;
+}
+
+/* One soft light floating against the aurora on a much longer, opposing
+   cycle. Two layers drifting at different speeds never repeat the same
+   arrangement, so the surface keeps changing without any single moment
+   drawing the eye - which is the whole point. At 64s and 6% opacity it is
+   below conscious notice; you register that the page is alive, not that
+   something is moving. */
+.auth-aurora::after {
+  content: "";
+  position: absolute;
+  top: 22%;
+  left: 12%;
+  width: 36vmax;
+  height: 36vmax;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(126, 158, 255, 0.075) 0%, rgba(126, 158, 255, 0) 68%);
+  filter: blur(52px);
+  animation: auth-float 64s ease-in-out infinite alternate;
+}
+
+/* Hairline grid across the full page, masked so it fades out before the
+   card. Barely visible by design - it reads as precision, and it is the
+   detail that keeps a large dark area from looking empty. */
+.auth-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 58px 58px;
+  mask-image: radial-gradient(95% 85% at 38% 38%, #000 22%, transparent 100%);
+  pointer-events: none;
+}
+
+/* --- brand column ------------------------------------------------------- */
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  padding: 4rem 3.5rem;
+  background: none; /* the page owns the surface now */
+}
+
+.auth-brand-inner {
+  max-width: 30rem;
+  animation: auth-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.auth-mark {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 2.75rem;
+}
+
+.auth-mark-glyph {
+  display: grid;
+  place-items: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 13px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.035));
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  /* A whisper of the accent inside the mark - the only place blue appears
+     non-interactively, and only as light on an edge, not as fill. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    0 6px 18px -8px rgba(61, 104, 255, 0.5);
+  color: #fff;
+}
+
+.auth-mark-glyph svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.auth-wordmark {
+  font-size: 1.7rem;
+  font-weight: 660;
+  letter-spacing: -0.028em;
+}
+
+.auth-tagline {
+  margin: 0 0 1.1rem;
+  font-size: clamp(1.9rem, 2.7vw, 2.75rem);
+  line-height: 1.12;
+  font-weight: 600;
+  letter-spacing: -0.034em;
+  text-wrap: balance;
+}
+
+/* Supporting copy, deliberately a full step down: it explains the
+   headline rather than competing with it. */
+.auth-tagline-support {
+  margin: 0 0 2.5rem;
+  max-width: 30rem;
+  font-size: 0.98rem;
+  line-height: 1.62;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.auth-proof {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.auth-proof li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  animation: auth-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.auth-proof li:nth-child(1) { animation-delay: 0.10s; }
+.auth-proof li:nth-child(2) { animation-delay: 0.17s; }
+.auth-proof li:nth-child(3) { animation-delay: 0.24s; }
+
+/* Neutral, not blue: these are static marks, and reserving the accent for
+   interactive elements is what stops the page reading as decorated. */
+.auth-proof-tick {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.12rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  color: var(--text-muted);
+}
+
+.auth-proof-tick svg {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+/* --- form column -------------------------------------------------------- */
+
+.auth-panel {
+  display: flex;
+  align-items: center;
+  /* flex-start, not center: centring inside the column is what opened the
+     dead space between the branding and the card. The gutter is now a
+     deliberate 3.5rem rather than whatever the viewport left over. */
+  justify-content: flex-start;
+  padding: 3rem 2rem 3rem 3.5rem;
+  background: none;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 25.5rem;
+  padding: 2.9rem 2.75rem;
+  border-radius: 20px;
+  border: 1px solid var(--card-line);
+  background: var(--card);
+  /* Real glass: the card sits over the aurora, so blurring what is behind
+     it produces depth the same panel would not have as a flat fill. */
+  backdrop-filter: blur(22px) saturate(1.3);
+  -webkit-backdrop-filter: blur(22px) saturate(1.3);
+  /* Inner top highlight reads as a lit edge; the outer shadow seats the
+     card on the ground. Both are needed - on dark, a shadow alone is
+     nearly invisible and the panel floats without weight. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 24px 60px -20px rgba(0, 0, 0, 0.75);
+  animation: auth-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
+}
+
+/* Where backdrop-filter is unsupported the card would be a barely-visible
+   4% wash, so fall back to an opaque raised surface instead. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .auth-card {
+    background: var(--ink-raise);
+  }
+}
+
+.auth-card-head {
+  margin-bottom: 2rem;
+}
+
+.auth-eyebrow {
+  margin: 0 0 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  /* Lightened from the raw accent: #3d68ff on this ground is under 4.5:1
+     for text this small. */
+  color: #8ba4ff;
+}
+
+.auth-heading {
+  margin: 0 0 0.4rem;
+  font-size: 1.6rem;
+  font-weight: 640;
+  letter-spacing: -0.024em;
+  color: var(--text);
+}
+
+.auth-subheading {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.auth-form {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.auth-field {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.auth-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #c6ccdd;
+}
+
+.auth-input-shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  border: 1px solid var(--field-line);
+  /* Recessed rather than raised: the field is a well cut into the card,
+     which is what makes it read as an input without a light background. */
+  background: var(--field);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+
+.auth-input-shell:hover:not(:focus-within) {
+  border-color: var(--field-line-hover);
+}
+
+.auth-input-shell:focus-within {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.2),
+    0 0 0 3px var(--accent-soft);
+}
+
+.auth-input-icon {
+  display: grid;
+  place-items: center;
+  padding-left: 0.8rem;
+  color: var(--text-faint);
+  transition: color 0.16s ease;
+}
+
+.auth-input-shell:focus-within .auth-input-icon {
+  color: #8ba4ff;
+}
+
+.auth-input-icon svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.auth-input-shell input {
+  flex: 1;
+  min-width: 0; /* a flex item defaults to min-width:auto and will not shrink */
+  border: none;
+  background: none;
+  padding: 0.72rem 0.5rem 0.72rem 0.6rem;
+  font-family: inherit;
+  font-size: 0.94rem;
+  color: var(--text);
+}
+
+.auth-input-shell input:focus {
+  outline: none; /* the ring lives on the shell, so focus is still visible */
+}
+
+.auth-input-shell input::placeholder {
+  color: var(--text-faint);
+}
+
+/* Chrome paints autofilled fields near-white with near-black text, which
+   on a dark theme is the single ugliest thing that can happen to a login
+   form - and it only appears for returning users, so it is easy to ship
+   without ever seeing it. There is no property to override the fill, so
+   flood it with an inset shadow and repaint the text. */
+.auth-input-shell input:-webkit-autofill,
+.auth-input-shell input:-webkit-autofill:hover,
+.auth-input-shell input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0 1000px #12151f inset;
+  box-shadow: 0 0 0 1000px #12151f inset;
+  caret-color: var(--text);
+  transition: background-color 9999s ease-out;
+}
+
+.auth-input-shell:has(input[aria-invalid="true"]) {
+  border-color: var(--danger-line);
+  background: rgba(220, 70, 60, 0.07);
+}
+
+.auth-input-shell:has(input[aria-invalid="true"]):focus-within {
+  border-color: #ff8a80;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.2),
+    0 0 0 3px rgba(255, 120, 110, 0.2);
+}
+
+.auth-reveal {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-right: 0.3rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-faint);
+  transition: color 0.14s ease, background-color 0.14s ease;
+}
+
+.auth-reveal:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.auth-reveal:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.auth-reveal svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.auth-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--danger-line);
+  border-radius: 10px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  animation: auth-error-in 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.auth-error-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  margin-top: 0.06rem;
+}
+
+.auth-error-icon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.auth-submit {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 320px;
-  padding: 2rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.login-form label {
-  font-size: 0.85rem;
-  font-weight: 600;
+  gap: 0.55rem;
   margin-top: 0.5rem;
-}
-
-.login-form input {
-  padding: 0.5rem;
-  border: 1px solid #d0d3d9;
-  border-radius: 4px;
-}
-
-.login-form button {
-  margin-top: 1rem;
-  padding: 0.6rem;
+  padding: 0.95rem 1rem;
   border: none;
-  border-radius: 4px;
-  background: #2b59ff;
+  border-radius: 11px;
+  /* Three stops, not two: the midpoint keeps the ramp from going flat
+     through the middle of a taller button, which is what separates a
+     considered gradient from a default one. */
+  background: linear-gradient(180deg, #5a80ff 0%, #4169ff 55%, #3355e8 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 8px 24px -10px rgba(61, 104, 255, 0.75);
   color: #fff;
-  font-weight: 600;
+  font-size: 0.96rem;
+  font-weight: 620;
+  letter-spacing: -0.005em;
+  /* Distinct curves per property: the lift eases out softly, the glow
+     follows slightly slower so it reads as light catching up to the
+     movement rather than a single synchronised jump. */
+  transition:
+    transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.26s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.2s ease;
 }
 
-.login-form button:disabled {
-  opacity: 0.6;
+.auth-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 14px 32px -10px rgba(61, 104, 255, 0.85);
+}
+
+/* Snappier down than up - a press should feel immediate, a release
+   should feel settled. */
+.auth-submit:active:not(:disabled) {
+  transform: translateY(1px);
+  transition-duration: 0.06s;
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.4),
+    0 2px 8px -6px rgba(61, 104, 255, 0.6);
+}
+
+.auth-submit:focus-visible {
+  outline: 2px solid #8ba4ff;
+  outline-offset: 2px;
+}
+
+.auth-submit:disabled {
   cursor: not-allowed;
+  filter: saturate(0.6) brightness(0.85);
+}
+
+.auth-spinner {
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 999px;
+  animation: auth-spin 0.7s linear infinite;
+}
+
+.auth-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.75rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.075);
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.auth-footer-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.auth-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: #3ddc97;
+  box-shadow: 0 0 0 3px rgba(61, 220, 151, 0.16);
+}
+
+.auth-footer-meta {
+  font-variant-numeric: tabular-nums;
+}
+
+.auth-page .glyph-stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* --- motion ------------------------------------------------------------- */
+
+@keyframes auth-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes auth-error-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes auth-float {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(26vw, -12vh, 0) scale(1.22); }
+}
+
+@keyframes auth-drift {
+  from { transform: translate3d(-2%, -1%, 0) scale(1); }
+  to   { transform: translate3d(3%, 2%, 0) scale(1.08); }
+}
+
+/* --- responsive --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  /* The brand column becomes a header band. The proof list is dropped
+     rather than stacked: on a phone it would push the form below the fold,
+     and getting in beats reading marketing copy. */
+  .auth-brand {
+    padding: 2.25rem 1.5rem 0;
+    align-items: flex-start;
+  }
+
+  .auth-mark {
+    margin-bottom: 1.25rem;
+  }
+
+  .auth-tagline {
+    margin-bottom: 0;
+    font-size: 1.4rem;
+  }
+
+  .auth-proof {
+    display: none;
+  }
+
+  .auth-panel {
+    /* Centred again once stacked - the left bias only exists to close the
+       gap between two side-by-side columns. */
+    justify-content: center;
+    padding: 2rem 1.25rem 3rem;
+    align-items: flex-start;
+  }
+
+  .auth-tagline-support {
+    display: none;
+  }
+
+  .auth-card {
+    padding: 2rem 1.6rem;
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .auth-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .auth-heading {
+    font-size: 1.4rem;
+  }
+
+  /* Wrapping beats truncating a version string. */
+  .auth-footer {
+    flex-wrap: wrap;
+    row-gap: 0.4rem;
+  }
+}
+
+/* Honour the OS setting: the aurora is continuous motion, which is exactly
+   what this preference exists to stop. */
+@media (prefers-reduced-motion: reduce) {
+  .auth-brand-inner,
+  .auth-proof li,
+  .auth-card,
+  .auth-error {
+    animation: none;
+  }
+
+  .auth-aurora,
+  .auth-aurora::after {
+    animation: none;
+  }
+
+  .auth-spinner {
+    /* Kept, but slow enough to read as status rather than motion - the
+       button otherwise gives no signal that anything is happening. */
+    animation-duration: 2s;
+  }
+
+  .auth-submit {
+    transition: none;
+  }
 }
 
 /* App shell - sidebar and header stay in place; .app-content is the

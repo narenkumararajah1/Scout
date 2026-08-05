@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
+import { readFileSync } from "node:fs";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -44,7 +45,17 @@ function spaRoutesBeforeProxy(prefixes: string[]): Plugin {
   };
 }
 
+// The login footer shows a version, and a hardcoded string there would
+// be a lie the moment anyone bumps package.json. Read it at build time so
+// the number on screen is always the number that shipped.
+const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf-8")) as {
+  version: string;
+};
+
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   plugins: [spaRoutesBeforeProxy(["/companies", "/reports", "/analytics"]), react()],
   server: {
     port: 5173,
