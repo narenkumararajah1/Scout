@@ -137,6 +137,69 @@ Several entries record mistakes — a bug introduced while fixing another bug, a
 verification that passed vacuously, an approach abandoned after it was built.
 Those are the most useful entries in the file.
 
+## nginx cached the backend's IP, so every redeploy took the site down
+
+Recorded 2026-08-05, fixed in `ee6456d`.
+
+**What happened.** Changing an SMTP value in `.env` on the VM needs
+`docker compose up -d` to recreate the backend, because `restart` does
+not re-read the environment. Docker gave the new container a different
+address — 172.18.0.2 became 172.18.0.3 — and the entire site began
+returning 502. Both containers were healthy and the backend answered
+`/health` correctly on its own port throughout. nginx was still dialling
+the old address:
+
+```
+connect() failed (111: Connection refused) while connecting to upstream,
+upstream: "http://172.18.0.2:8000/system/status"
+```
+
+**Root cause.** An `upstream` block resolves its server name exactly
+once, when the configuration loads. Nothing re-resolves it afterwards, so
+nginx held a dead address indefinitely. Restarting nginx by hand was the
+only remedy, and the same thing would have happened on every subsequent
+deploy.
+
+**Why it went unnoticed.** The stack had only ever been started fresh.
+On a cold `up`, nginx starts after the backend and resolves the right
+address, so the first deployment of a machine always works. The failure
+needs a *second* deploy that recreates the backend — which is exactly
+what routine configuration changes do. A first-deploy smoke test can
+never catch it.
+
+**The fix** resolves through Docker's embedded DNS instead of caching:
+
+```nginx
+resolver 127.0.0.11 valid=10s ipv6=off;
+set $scout_api http://backend:8000;
+...
+proxy_pass $scout_api$request_uri;
+```
+
+`$request_uri` is load-bearing, not decoration. The moment `proxy_pass`
+contains a variable, nginx stops appending the matched URI on its own and
+would proxy every request to `/` — a fix that silently breaks every route
+is worse than the bug. It carries the query string too.
+
+Removing the `upstream` block has a second benefit: nginx no longer
+resolves the backend at config-load time, so it no longer needs the
+backend to be resolvable in order to start at all.
+
+**Verified by reproducing the failure rather than assuming it was gone.**
+Stopped the backend, parked a throwaway container on its old address so
+Docker could not hand the same one back, then restarted it — it came up
+on 172.18.0.5 with a different container squatting 172.18.0.3. The site
+recovered on its own within the DNS TTL and nginx's `StartedAt` was
+unchanged, proving no restart was involved. Accept-header SPA routing and
+query-string forwarding were re-checked and are unchanged.
+
+**What this does not fix.** A redeploy still returns 502 for roughly
+30–45 seconds while the backend genuinely is down running migrations and
+seeding. That is real downtime, not a proxy problem, and no nginx setting
+removes it. Zero-downtime deploys would need a second backend instance
+and a health-gated cutover — out of scope for a single-instance beta, and
+noted here so the remaining gap is not mistaken for this bug returning.
+
 ## A broken vector store is indistinguishable from an empty one
 
 Recorded 2026-07-31, after ingesting 81 real case studies and finding
