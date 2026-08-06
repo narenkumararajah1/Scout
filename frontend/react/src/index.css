@@ -3777,3 +3777,100 @@ input[type="month"] {
   min-height: 2.15rem;
   min-width: 8rem;
 }
+
+/* ==========================================================================
+   Large-display scaling
+   --------------------------------------------------------------------------
+   Reported from testing: fine on a 15" laptop, poor on a 27" monitor.
+
+   The cause was not that anything broke - it was that nothing stopped
+   growing. .app-content was `flex: 1` with padding and no max-width, so on
+   a 2560px display every page filled roughly 2400px of usable width and
+   body text ran past 200 characters per line. Comfortable measure is
+   60-80. Meanwhile the login headline's clamp ceiling bound at ~1630px, so
+   past that the type stopped scaling while the space around it kept
+   growing, and the composition visually shrank.
+
+   Everything here is an *upper* bound. Nothing below 1440px changes, so
+   the laptop view that already worked is untouched.
+   ========================================================================== */
+
+/* Cap the reading column and centre it. One rule, every page. */
+.app-content > * {
+  max-width: 1500px;
+  margin-inline: auto;
+}
+
+/* Wider gutters once there is room for them - cramped padding at 2560px
+   reads as an oversight. */
+@media (min-width: 1800px) {
+  .app-content {
+    padding: 2rem 2.5rem;
+  }
+}
+
+@media (min-width: 2200px) {
+  .app-content {
+    padding: 2.5rem 3rem;
+  }
+}
+
+/* --- login ---------------------------------------------------------------
+   The card is capped at 25.5rem while its column grew without limit, so on
+   a wide monitor it became a small box adrift in a very large half. Cap
+   the whole two-column composition and centre it instead. */
+
+@media (min-width: 1700px) {
+  .auth-page {
+    /* The grid still spans the viewport so the aurora and ground stay
+       full-bleed; only the content inside each column is bounded. */
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .auth-brand {
+    justify-content: flex-end;
+    padding-right: 4.5rem;
+  }
+
+  .auth-brand-inner {
+    max-width: 34rem;
+  }
+
+  .auth-panel {
+    padding-left: 4.5rem;
+  }
+
+  /* The card grows a little rather than staying laptop-sized, so it holds
+     its relationship to the headline beside it. */
+  .auth-card {
+    max-width: 27.5rem;
+  }
+}
+
+/* The old ceiling bound at roughly 1630px. These let the display type keep
+   scaling to the top of the range instead of stalling. */
+@media (min-width: 1700px) {
+  .auth-tagline {
+    font-size: clamp(2.75rem, 2.5vw, 3.4rem);
+  }
+
+  .auth-tagline-support {
+    font-size: 1.05rem;
+    max-width: 34rem;
+  }
+
+  .auth-proof li {
+    font-size: 0.95rem;
+  }
+}
+
+/* --- dashboard -----------------------------------------------------------
+   Three stat cards spread across 2400px become three very wide boxes with
+   a number stranded at the left of each. Cap the row so they stay a group
+   of cards rather than three panels. */
+
+@media (min-width: 1800px) {
+  .dashboard-page .dashboard-summary {
+    max-width: 1100px;
+  }
+}
