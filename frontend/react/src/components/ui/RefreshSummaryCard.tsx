@@ -118,18 +118,11 @@ export function RefreshSummaryCard({
         {summary.opportunity_count === 1 ? "y" : "ies"} captured
       </p>
 
-      {/* Suppressed for a first refresh. The meta line above already gives
-          when and what was captured, and the hint below explains that this
-          is a baseline, so the narrative adds nothing there. It also avoids
-          a contradiction on snapshots written before the backend gained a
-          dedicated first-refresh narrative: those rows persist the
-          no-change wording ("no meaningful changes since the last refresh")
-          which reads as false next to the baseline hint. Narratives are
-          stored rather than regenerated on purpose, so old rows keep their
-          original text. */}
-      {summary.narrative && !summary.is_first_refresh && (
-        <p className="refresh-narrative">{summary.narrative}</p>
-      )}
+      {/* The narrative is no longer rendered here. It is Scout's assessment
+          of the account, and the page now opens with it under that name -
+          repeating it verbatim two thirds of the way down made the same
+          paragraph appear twice on one screen. This card keeps the job its
+          title claims: what changed between the last two refreshes. */}
 
       {summary.is_first_refresh ? (
         <p className="refresh-hint">
@@ -179,16 +172,6 @@ export function RefreshSummaryCard({
         </>
       )}
 
-      {summary.recommended_actions.length > 0 && (
-        <div className="refresh-actions">
-          <h4>Recommended next steps</h4>
-          <ol>
-            {summary.recommended_actions.map((action, index) => (
-              <li key={index}>{action}</li>
-            ))}
-          </ol>
-        </div>
-      )}
     </Card>
   );
 }

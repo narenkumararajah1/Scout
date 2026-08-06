@@ -735,8 +735,8 @@ a {
   top: -100%;
   left: 0.5rem;
   z-index: 100;
-  background: #fff;
-  color: #1a1a1a;
+  background: #f3f5fb;
+  color: #0a0e1a;
   padding: 0.6rem 1rem;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -780,7 +780,7 @@ a {
 }
 
 .sidebar-nav a.active {
-  background: #2b59ff;
+  background: var(--s-accent);
   color: #fff;
 }
 
@@ -805,7 +805,7 @@ a {
   display: block;
   height: 2px;
   width: 100%;
-  background: #fff;
+  background: var(--s-surface);
   border-radius: 2px;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
@@ -845,8 +845,8 @@ a {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background: #fff;
-  border-bottom: 1px solid #e3e5ea;
+  background: var(--s-surface);
+  border-bottom: 1px solid var(--s-line);
 }
 
 /* Global Search (Priority 3) - available from every page via the
@@ -861,14 +861,14 @@ a {
 .global-search-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 6px;
   font-size: 0.9rem;
 }
 
 .global-search-input:focus {
   outline: none;
-  border-color: #2b59ff;
+  border-color: var(--s-accent);
   box-shadow: 0 0 0 2px rgba(43, 89, 255, 0.15);
 }
 
@@ -879,8 +879,8 @@ a {
   right: 0;
   max-height: 70vh;
   overflow-y: auto;
-  background: #fff;
-  border: 1px solid #e3e5ea;
+  background: var(--s-surface);
+  border: 1px solid var(--s-line);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   z-index: 30;
@@ -889,14 +889,14 @@ a {
 
 .global-search-status {
   padding: 0.75rem;
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.9rem;
 }
 
 .global-search-group + .global-search-group {
   margin-top: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px solid #e3e5ea;
+  border-top: 1px solid var(--s-line);
 }
 
 .global-search-group-label {
@@ -905,7 +905,7 @@ a {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .global-search-result {
@@ -922,17 +922,17 @@ a {
 
 .global-search-result:hover,
 .global-search-result.active {
-  background: #f2f4f8;
+  background: var(--s-ground);
 }
 
 .global-search-result-label {
   font-size: 0.9rem;
-  color: #1f2430;
+  color: var(--s-text);
 }
 
 .global-search-result-sublabel {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 /* Account controls live only here - a single top-right profile menu,
@@ -959,7 +959,7 @@ a {
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 999px;
-  background: #2b59ff;
+  background: var(--s-accent);
   color: #fff;
   font-weight: 600;
   font-size: 0.9rem;
@@ -970,10 +970,10 @@ a {
   top: calc(100% + 0.5rem);
   right: 0;
   min-width: 200px;
-  background: #fff;
+  background: var(--s-surface);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border: 1px solid #e3e5ea;
+  border: 1px solid var(--s-line);
   overflow: hidden;
   z-index: 30;
 }
@@ -981,8 +981,8 @@ a {
 .user-menu-dropdown-header {
   padding: 0.75rem 1rem;
   font-size: 0.8rem;
-  color: #6b7280;
-  border-bottom: 1px solid #e3e5ea;
+  color: var(--s-muted);
+  border-bottom: 1px solid var(--s-line);
   overflow-wrap: break-word;
 }
 
@@ -1001,12 +1001,12 @@ a {
   background: none;
   border-radius: 4px;
   font-size: 0.9rem;
-  color: #1f2430;
+  color: var(--s-text);
   cursor: pointer;
 }
 
 .user-menu-item:hover {
-  background: #f2f4f8;
+  background: var(--s-ground);
 }
 
 .app-content {
@@ -1018,7 +1018,7 @@ a {
 
 /* Shared components */
 .card {
-  background: #fff;
+  background: var(--s-surface);
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   padding: 1rem 1.25rem;
@@ -1040,56 +1040,56 @@ a {
 }
 
 .badge-success {
-  background: #e3f8ec;
-  color: #1c7c4d;
+  background: var(--s-success-tint);
+  color: var(--s-success);
 }
 
 .badge-warning {
-  background: #fff4e0;
-  color: #9a6400;
+  background: var(--s-warning-tint);
+  color: var(--s-warning);
 }
 
 .badge-danger {
-  background: #fdeaea;
-  color: #b42318;
+  background: var(--s-danger-tint);
+  color: var(--s-danger);
 }
 
 .badge-neutral {
-  background: #eceef1;
-  color: #4b5162;
+  background: var(--s-ground);
+  color: var(--s-muted);
 }
 
 .state {
   padding: 0.75rem 0;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .state-error {
-  color: #b42318;
+  color: var(--s-danger);
 }
 
 .form-error {
-  color: #b42318;
+  color: var(--s-danger);
   font-size: 0.85rem;
 }
 
 .archived-banner {
-  background: #f3f4f6;
-  border: 1px solid #d0d3d9;
+  background: var(--s-ground);
+  border: 1px solid var(--s-line-strong);
   border-radius: 6px;
   padding: 0.65rem 1rem;
   font-size: 0.9rem;
-  color: #565f5c;
+  color: var(--s-muted);
   margin-bottom: 1rem;
 }
 
 .since-last-visit-banner {
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
+  background: var(--s-accent-tint);
+  border: 1px solid var(--s-accent-tint);
   border-radius: 6px;
   padding: 0.65rem 1rem;
   font-size: 0.9rem;
-  color: #3730a3;
+  color: var(--s-accent);
   margin-bottom: 1rem;
 }
 
@@ -1103,29 +1103,16 @@ a {
 }
 
 .delivery-live-banner {
-  background: #fff7ed;
+  background: var(--s-warning-tint);
   border: 1px solid #fdba74;
   border-radius: 6px;
   padding: 0.65rem 1rem;
   font-size: 0.9rem;
-  color: #9a3412;
+  color: var(--s-warning);
   margin-bottom: 1rem;
 }
 
 /* Dashboard */
-.dashboard-summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.stat {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0;
-}
-
 .notification-list {
   list-style: none;
   padding: 0;
@@ -1143,7 +1130,7 @@ a {
 
 .notification-summary {
   margin: 0.25rem 0 0;
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.9rem;
 }
 
@@ -1156,17 +1143,11 @@ a {
 }
 
 .notification-recommended-action {
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .notification-recommended-action::before {
   content: "· ";
-}
-
-.morning-brief {
-  color: #4338ca;
-  font-size: 1rem;
-  margin: -0.5rem 0 1rem;
 }
 
 /* Related Companies (roadmap Phase 6) */
@@ -1185,20 +1166,20 @@ a {
   flex-wrap: wrap;
   gap: 0.6rem;
   padding: 0.5rem 0.75rem;
-  background: #fff;
+  background: var(--s-surface);
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .relationship-notes {
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.85rem;
 }
 
 .relationship-remove-button {
   margin-left: auto;
   font-size: 0.8rem;
-  color: #b91c1c;
+  color: var(--s-danger);
   background: none;
   border: none;
   cursor: pointer;
@@ -1221,7 +1202,7 @@ a {
 
 .add-company-form input {
   padding: 0.5rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
 }
 
@@ -1246,13 +1227,13 @@ a {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1rem;
-  background: #fff;
+  background: var(--s-surface);
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .company-remove-button {
-  color: #b42318;
+  color: var(--s-danger);
   border-color: #f3c6c1;
 }
 
@@ -1261,7 +1242,7 @@ a {
   align-items: center;
   gap: 0.4rem;
   font-size: 0.9rem;
-  color: #565f5c;
+  color: var(--s-muted);
   cursor: pointer;
 }
 
@@ -1277,20 +1258,20 @@ a {
 }
 
 .breadcrumbs a {
-  color: #565f5c;
+  color: var(--s-muted);
 }
 
 .breadcrumbs a:hover {
-  color: #1a1a1a;
+  color: var(--s-text);
   text-decoration: underline;
 }
 
 .breadcrumb-separator {
-  color: #9ca3af;
+  color: var(--s-faint);
 }
 
 .breadcrumb-current {
-  color: #1a1a1a;
+  color: var(--s-text);
   font-weight: 600;
   /* An artifact title can be long (an outreach subject line); it may
      wrap, but must never widen the page. */
@@ -1313,7 +1294,7 @@ a {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .sidebar-recent ul {
@@ -1326,7 +1307,7 @@ a {
   display: block;
   padding: 0.35rem 0.6rem;
   border-radius: 6px;
-  color: #b6bcc8;
+  color: var(--s-faint);
   font-size: 0.85rem;
   /* Company names are unbounded; the sidebar is a fixed 220px, so a long
      one truncates rather than pushing the layout. */
@@ -1347,7 +1328,7 @@ a {
 
 /* Administration */
 .card-description {
-  color: #6b7280;
+  color: var(--s-muted);
   margin: 0;
 }
 
@@ -1364,13 +1345,13 @@ a {
 .add-recipient-form select,
 .recipient-preferences-form select {
   padding: 0.5rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
 }
 
 .add-recipient-form fieldset,
 .recipient-preferences-form fieldset {
-  border: 1px solid #e3e5ea;
+  border: 1px solid var(--s-line);
   border-radius: 4px;
   padding: 0.5rem 0.75rem;
 }
@@ -1394,7 +1375,7 @@ a {
 
 .recipient-list-item {
   padding: 0.75rem 1rem;
-  background: #fff;
+  background: var(--s-surface);
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
@@ -1408,7 +1389,7 @@ a {
 
 .recipient-summary {
   margin: 0.15rem 0 0;
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.85rem;
 }
 
@@ -1432,13 +1413,13 @@ a {
   flex-wrap: wrap;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e3e5ea;
+  border-bottom: 1px solid var(--s-line);
 }
 
 .generate-form select,
 .generate-form input[type="text"] {
   padding: 0.45rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
 }
 
@@ -1459,7 +1440,7 @@ a {
 .ai-feedback {
   margin-top: 0.75rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--s-line);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -1467,7 +1448,7 @@ a {
 
 .ai-feedback-label {
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .ai-feedback-buttons {
@@ -1479,19 +1460,19 @@ a {
 .ai-feedback-button {
   padding: 0.3rem 0.65rem;
   font-size: 0.85rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
-  background: #fff;
+  background: var(--s-surface);
   cursor: pointer;
 }
 
 .ai-feedback-button:hover:not(:disabled) {
-  background: #f3f4f6;
+  background: var(--s-ground);
 }
 
 .ai-feedback-thanks {
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .ai-feedback-note {
@@ -1503,7 +1484,7 @@ a {
 
 .ai-feedback-note textarea {
   padding: 0.45rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
   font-family: inherit;
   resize: vertical;
@@ -1516,7 +1497,7 @@ a {
 
 .ai-feedback-error {
   font-size: 0.8rem;
-  color: #b91c1c;
+  color: var(--s-danger);
 }
 
 .generate-form-outreach select,
@@ -1524,7 +1505,7 @@ a {
   width: 100%;
   max-width: 420px;
   padding: 0.45rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
   font-family: inherit;
 }
@@ -1540,7 +1521,7 @@ a {
   flex: 1;
   min-width: 240px;
   padding: 0.55rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
 }
 
@@ -1548,21 +1529,21 @@ a {
   display: inline-flex;
   align-items: center;
   padding: 0.45rem 0.9rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
-  background: #fff;
-  color: #1a1a1a;
+  background: var(--s-surface);
+  color: var(--s-text);
   text-decoration: none;
   font-size: 0.9rem;
 }
 
 .ask-scout-link-button:hover {
-  background: #f3f4f6;
+  background: var(--s-ground);
 }
 
 .ask-scout-focus-banner {
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
+  background: var(--s-accent-tint);
+  border: 1px solid var(--s-accent-tint);
   border-radius: 6px;
   padding: 0.55rem 0.85rem;
   margin: 0 0 0.75rem;
@@ -1573,7 +1554,7 @@ a {
   border: none;
   background: none;
   padding: 0;
-  color: #4338ca;
+  color: var(--s-accent);
   text-decoration: underline;
   cursor: pointer;
   font-size: inherit;
@@ -1585,7 +1566,7 @@ a {
   max-width: 360px;
   margin-bottom: 0.75rem;
   padding: 0.5rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
 }
 
@@ -1600,7 +1581,7 @@ a {
 
 .conversation-entry {
   padding: 0.75rem 1rem;
-  background: #fff;
+  background: var(--s-surface);
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
@@ -1611,7 +1592,7 @@ a {
 }
 
 .conversation-answer {
-  color: #4b5162;
+  color: var(--s-muted);
 }
 
 .conversation-answer > :first-child {
@@ -1630,13 +1611,13 @@ a {
 
 .conversation-answer th,
 .conversation-answer td {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--s-line);
   padding: 0.4rem 0.6rem;
   text-align: left;
 }
 
 .conversation-answer th {
-  background: #f9fafb;
+  background: var(--s-ground);
 }
 
 .conversation-related-companies,
@@ -1650,8 +1631,8 @@ a {
 .conversation-company-chip {
   padding: 0.3rem 0.7rem;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #4338ca;
+  background: var(--s-accent-tint);
+  color: var(--s-accent);
   text-decoration: none;
   font-size: 0.85rem;
 }
@@ -1663,14 +1644,14 @@ a {
 .conversation-suggested-actions button {
   padding: 0.3rem 0.7rem;
   font-size: 0.85rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
-  background: #fff;
+  background: var(--s-surface);
   cursor: pointer;
 }
 
 .conversation-suggested-actions button:hover:not(:disabled) {
-  background: #f3f4f6;
+  background: var(--s-ground);
 }
 
 /* Data table (e.g. workflow run history) */
@@ -1688,13 +1669,13 @@ a {
 .data-table td {
   padding: 0.5rem 0.75rem;
   text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--s-line);
   white-space: nowrap;
 }
 
 .data-table th {
   font-weight: 600;
-  color: #4b5162;
+  color: var(--s-muted);
 }
 
 /* Confirm dialog */
@@ -1709,7 +1690,7 @@ a {
 }
 
 .confirm-dialog {
-  background: #fff;
+  background: var(--s-surface);
   border-radius: 8px;
   padding: 1.5rem;
   max-width: 24rem;
@@ -1738,7 +1719,7 @@ a {
   max-width: 24rem;
   padding: 0.5rem 0.75rem;
   margin-bottom: 1rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
 }
 
@@ -1752,7 +1733,7 @@ a {
 
 .company-overview dt {
   font-weight: 600;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .company-overview dd {
@@ -1768,7 +1749,7 @@ a {
 
 .sales-coach-recommendation dt {
   font-weight: 600;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .sales-coach-recommendation dd {
@@ -1786,7 +1767,7 @@ a {
   margin: 1.25rem 0 0.5rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--s-text);
 }
 
 .chart-section-title:first-of-type {
@@ -1798,7 +1779,7 @@ a {
    Enhancements Phase 5). */
 .chart-section-hint {
   margin: 0 0 0.6rem;
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.82rem;
   line-height: 1.5;
 }
@@ -1807,7 +1788,7 @@ a {
   list-style: none;
   margin: 0;
   padding: 0 0 0 1rem;
-  border-left: 2px solid #e5e7eb;
+  border-left: 2px solid var(--s-line);
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
@@ -1829,7 +1810,7 @@ a {
   width: 0.55rem;
   height: 0.55rem;
   border-radius: 999px;
-  background: #4f46e5;
+  background: var(--s-accent);
 }
 
 .intelligence-timeline-research .intelligence-timeline-marker {
@@ -1842,15 +1823,15 @@ a {
 
 .intelligence-timeline-type {
   font-weight: 600;
-  color: #4b5563;
+  color: var(--s-text);
 }
 
 .intelligence-timeline-label {
-  color: #1f2937;
+  color: var(--s-text);
 }
 
 .intelligence-timeline-date {
-  color: #9ca3af;
+  color: var(--s-faint);
   margin-left: auto;
   font-size: 0.8rem;
 }
@@ -1894,7 +1875,7 @@ a {
 
 .toast-info,
 .toast-progress {
-  background: #2b59ff;
+  background: var(--s-accent);
 }
 
 .toast-error {
@@ -1922,7 +1903,7 @@ a {
 
 .opportunity-list-item {
   padding: 0.75rem 1rem;
-  background: #fff;
+  background: var(--s-surface);
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
@@ -1937,7 +1918,7 @@ a {
 .opportunity-description,
 .opportunity-confidence {
   margin: 0.25rem 0 0;
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.85rem;
 }
 
@@ -1952,7 +1933,7 @@ a {
 .exec-dashboard-reasoning {
   margin: 0.5rem 0 0;
   padding-left: 1.1rem;
-  color: #4b5563;
+  color: var(--s-text);
   font-size: 0.85rem;
 }
 
@@ -1970,14 +1951,14 @@ a {
 .exec-dashboard-actions button {
   padding: 0.3rem 0.7rem;
   font-size: 0.85rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
-  background: #fff;
+  background: var(--s-surface);
   cursor: pointer;
 }
 
 .exec-dashboard-actions button:hover:not(:disabled) {
-  background: #f3f4f6;
+  background: var(--s-ground);
 }
 
 /* Why Innominds map (Sales Playbook detail) */
@@ -1992,19 +1973,19 @@ a {
 
 .why-innominds-map li::marker {
   font-weight: 700;
-  color: #4338ca;
+  color: var(--s-accent);
 }
 
 .why-innominds-label {
   display: block;
   font-weight: 600;
-  color: #374151;
+  color: var(--s-text);
   margin-bottom: 0.25rem;
 }
 
 /* Report detail */
 .report-generated-at {
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.85rem;
 }
 
@@ -2019,11 +2000,11 @@ a {
 .card-title {
   font-weight: 700;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #eceef1;
+  border-bottom: 1px solid var(--s-line);
 }
 
 .report-section-intro {
-  color: #6b7280;
+  color: var(--s-muted);
   font-style: italic;
   margin: 0 0 1rem;
   line-height: 1.55;
@@ -2032,7 +2013,7 @@ a {
 .prose-section p {
   margin: 0 0 0.85rem;
   line-height: 1.65;
-  color: #2b2f38;
+  color: var(--s-text);
 }
 
 .prose-section p:last-child {
@@ -2042,7 +2023,7 @@ a {
 .prose-section-lead p:first-child {
   font-size: 1.05rem;
   font-weight: 500;
-  color: #14161c;
+  color: var(--s-ink);
 }
 
 .numbered-list {
@@ -2065,8 +2046,8 @@ a {
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 50%;
-  background: #eef1ff;
-  color: #2b59ff;
+  background: var(--s-accent-tint);
+  color: var(--s-accent);
   font-weight: 700;
   font-size: 0.85rem;
   display: flex;
@@ -2102,7 +2083,7 @@ a {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #2b59ff;
+  background: var(--s-accent);
 }
 
 .bullet-list-compact {
@@ -2112,7 +2093,7 @@ a {
 
 .bullet-list-compact .bullet-list-item {
   font-size: 0.9rem;
-  color: #4b5162;
+  color: var(--s-muted);
 }
 
 .opportunity-grid {
@@ -2122,10 +2103,10 @@ a {
 }
 
 .opportunity-card {
-  border: 1px solid #e3e5ea;
+  border: 1px solid var(--s-line);
   border-radius: 8px;
   padding: 1rem 1.1rem;
-  background: #fbfbfd;
+  background: var(--s-ground);
 }
 
 .opportunity-card-header {
@@ -2140,7 +2121,7 @@ a {
 .opportunity-card-title {
   margin: 0;
   font-size: 1rem;
-  color: #14161c;
+  color: var(--s-ink);
 }
 
 .opportunity-card-badges {
@@ -2152,14 +2133,14 @@ a {
 .opportunity-card-focus {
   margin: 0 0 0.5rem;
   font-weight: 600;
-  color: #4b5162;
+  color: var(--s-muted);
   font-size: 0.9rem;
 }
 
 .opportunity-card-description {
   margin: 0;
   line-height: 1.6;
-  color: #2b2f38;
+  color: var(--s-text);
 }
 
 .capability-list {
@@ -2169,7 +2150,7 @@ a {
 }
 
 .capability-card {
-  border-left: 3px solid #2b59ff;
+  border-left: 3px solid var(--s-accent);
   padding: 0.25rem 0 0.25rem 0.9rem;
 }
 
@@ -2183,13 +2164,13 @@ a {
 .capability-card-name {
   margin: 0;
   font-size: 0.95rem;
-  color: #14161c;
+  color: var(--s-ink);
 }
 
 .capability-card-description {
   margin: 0;
   line-height: 1.6;
-  color: #2b2f38;
+  color: var(--s-text);
 }
 
 .objection-list {
@@ -2200,19 +2181,19 @@ a {
 
 .objection-item {
   border-radius: 6px;
-  background: #f7f8fa;
+  background: var(--s-ground);
   padding: 0.75rem 0.9rem;
 }
 
 .objection-item-question {
   margin: 0 0 0.35rem;
   font-weight: 600;
-  color: #14161c;
+  color: var(--s-ink);
 }
 
 .objection-item-answer {
   margin: 0;
-  color: #2b2f38;
+  color: var(--s-text);
   line-height: 1.55;
 }
 
@@ -2227,7 +2208,7 @@ a {
 
 .tag-item {
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #eceef1;
+  border-bottom: 1px solid var(--s-line);
 }
 
 .tag-item:last-child {
@@ -2237,7 +2218,7 @@ a {
 
 .tag-item-name {
   font-weight: 600;
-  color: #14161c;
+  color: var(--s-ink);
   margin-right: 0.5rem;
 }
 
@@ -2249,7 +2230,7 @@ a {
 
 .tag-item-detail {
   margin: 0.35rem 0 0;
-  color: #4b5162;
+  color: var(--s-muted);
   font-size: 0.9rem;
   line-height: 1.5;
 }
@@ -2274,7 +2255,7 @@ a {
   display: flex;
   justify-content: space-between;
   padding: 0.6rem 1rem;
-  background: #fff;
+  background: var(--s-surface);
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
@@ -2293,13 +2274,13 @@ a {
 }
 
 .notification-list-item.unread {
-  background: #eef2ff;
+  background: var(--s-accent-tint);
 }
 
 .notification-action {
   margin: 0.25rem 0 0;
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 /* Settings */
@@ -2311,14 +2292,14 @@ a {
 .outreach-edit-subject {
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
 }
 
 .outreach-edit-content {
   width: 100%;
   padding: 0.65rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
   font-family: inherit;
   line-height: 1.55;
@@ -2341,7 +2322,7 @@ a {
 .send-outreach-form input,
 .send-outreach-form select {
   padding: 0.5rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 4px;
 }
 
@@ -2365,7 +2346,7 @@ a {
   flex-direction: column;
   min-width: 110px;
   padding: 0.75rem 1rem;
-  background: #fff;
+  background: var(--s-surface);
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
@@ -2377,23 +2358,23 @@ a {
 }
 
 .knowledge-stat-label {
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.8rem;
 }
 
 /* Failed ingestions are the one number an administrator has to act on. */
 .knowledge-stat-alert .knowledge-stat-value {
-  color: #b91c1c;
+  color: var(--s-danger);
 }
 
 .knowledge-hint {
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.85rem;
   margin: 0.5rem 0 0;
 }
 
 .knowledge-optional {
-  color: #9ca3af;
+  color: var(--s-faint);
   font-weight: 400;
   font-size: 0.75rem;
 }
@@ -2407,7 +2388,7 @@ a {
 .knowledge-search-form input {
   flex: 1 1 260px;
   padding: 0.5rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 6px;
   font-family: inherit;
 }
@@ -2423,9 +2404,9 @@ a {
 
 .knowledge-search-result {
   padding: 0.75rem;
-  background: #f9fafb;
+  background: var(--s-ground);
   border-radius: 6px;
-  border-left: 3px solid #4338ca;
+  border-left: 3px solid var(--s-accent);
 }
 
 .knowledge-search-result-header {
@@ -2443,7 +2424,7 @@ a {
 
 .knowledge-search-result-header a {
   margin-left: auto;
-  color: #4338ca;
+  color: var(--s-accent);
   font-size: 0.85rem;
 }
 
@@ -2453,7 +2434,7 @@ a {
 
 .knowledge-search-result-content {
   margin: 0;
-  color: #374151;
+  color: var(--s-text);
   font-size: 0.9rem;
   line-height: 1.5;
 }
@@ -2482,7 +2463,7 @@ a {
 .knowledge-form select,
 .knowledge-form textarea {
   padding: 0.5rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 6px;
   font-family: inherit;
   font-size: 0.9rem;
@@ -2524,11 +2505,11 @@ a {
   align-items: center;
   gap: 0.5rem;
   padding: 0.3rem 0;
-  border-bottom: 1px solid #f0f1f4;
+  border-bottom: 1px solid var(--s-line);
 }
 
 .run-scout-detail {
-  color: #6b7280;
+  color: var(--s-muted);
   overflow-wrap: anywhere;
 }
 
@@ -2559,7 +2540,7 @@ a {
 .knowledge-filters select,
 .knowledge-filters input[type="search"] {
   padding: 0.4rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 6px;
   font-family: inherit;
   /* Contain rather than overlay: native select popups are drawn by the
@@ -2597,7 +2578,7 @@ a {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.85rem 1rem;
-  background: #fff;
+  background: var(--s-surface);
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
@@ -2610,7 +2591,7 @@ a {
 .knowledge-document-title {
   display: block;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--s-text);
   margin-bottom: 0.35rem;
 }
 
@@ -2626,13 +2607,13 @@ a {
 
 .knowledge-document-description {
   margin: 0.4rem 0 0;
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.85rem;
 }
 
 .knowledge-document-failure {
   margin: 0.4rem 0 0;
-  color: #b91c1c;
+  color: var(--s-danger);
   font-size: 0.85rem;
 }
 
@@ -2644,7 +2625,7 @@ a {
 }
 
 .knowledge-document-meta dt {
-  color: #9ca3af;
+  color: var(--s-faint);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -2665,7 +2646,7 @@ a {
 }
 
 .knowledge-actions button.danger {
-  color: #b91c1c;
+  color: var(--s-danger);
 }
 
 .knowledge-detail-grid {
@@ -2676,7 +2657,7 @@ a {
 }
 
 .knowledge-detail-grid dt {
-  color: #9ca3af;
+  color: var(--s-faint);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -2693,7 +2674,7 @@ a {
 }
 
 .knowledge-detail-ref a {
-  color: #4338ca;
+  color: var(--s-accent);
 }
 
 .knowledge-detail-ref a:hover {
@@ -2702,7 +2683,7 @@ a {
 
 .knowledge-detail-description {
   margin: 1rem 0 0;
-  color: #374151;
+  color: var(--s-text);
 }
 
 .knowledge-tag-groups {
@@ -2720,7 +2701,7 @@ a {
 }
 
 .knowledge-tag-label {
-  color: #9ca3af;
+  color: var(--s-faint);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -2730,7 +2711,7 @@ a {
 .knowledge-preview {
   margin: 0;
   padding: 0.75rem;
-  background: #f9fafb;
+  background: var(--s-ground);
   border-radius: 6px;
   max-height: 320px;
   overflow: auto;
@@ -2756,18 +2737,18 @@ a {
   flex-wrap: wrap;
   gap: 0.6rem;
   padding: 0.5rem 0.75rem;
-  background: #f9fafb;
+  background: var(--s-ground);
   border-radius: 6px;
   font-size: 0.85rem;
 }
 
 .knowledge-version-item.current {
-  background: #eef2ff;
+  background: var(--s-accent-tint);
 }
 
 .knowledge-version-item a {
   margin-left: auto;
-  color: #4338ca;
+  color: var(--s-accent);
 }
 
 .knowledge-version-item a:hover {
@@ -2780,13 +2761,13 @@ a {
 .conversation-sources {
   margin-top: 0.75rem;
   padding: 0.5rem 0.75rem;
-  background: #f9fafb;
+  background: var(--s-ground);
   border-radius: 6px;
 }
 
 .conversation-sources summary {
   cursor: pointer;
-  color: #4338ca;
+  color: var(--s-accent);
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -2812,7 +2793,7 @@ a {
 }
 
 .conversation-source-header a {
-  color: #4338ca;
+  color: var(--s-accent);
   font-size: 0.8rem;
 }
 
@@ -2822,14 +2803,14 @@ a {
 
 .conversation-source-content {
   margin: 0.25rem 0 0;
-  color: #374151;
+  color: var(--s-text);
   font-size: 0.85rem;
   line-height: 1.5;
 }
 
 /* Company Refresh Engine (V3 Enhancements Phase 2B) */
 .refresh-meta {
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.8rem;
   margin: 0 0 0.6rem;
 }
@@ -2838,12 +2819,12 @@ a {
   margin: 0 0 0.75rem;
   font-size: 1rem;
   line-height: 1.55;
-  color: #1f2937;
+  color: var(--s-text);
 }
 
 .refresh-hint,
 .refresh-empty {
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.9rem;
   margin: 0 0 0.5rem;
 }
@@ -2851,7 +2832,7 @@ a {
 .refresh-counts {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--s-text);
   margin: 0 0 0.5rem;
 }
 
@@ -2866,16 +2847,16 @@ a {
 
 .refresh-change {
   padding: 0.6rem 0.75rem;
-  background: #f9fafb;
+  background: var(--s-ground);
   border-radius: 6px;
   /* A left rail encodes significance in form as well as wording, so what
      needs attention reads at a glance without parsing the badges. */
-  border-left: 3px solid #d1d5db;
+  border-left: 3px solid var(--s-line-strong);
 }
 
 .refresh-change-major {
-  border-left-color: #4338ca;
-  background: #eef2ff;
+  border-left-color: var(--s-accent);
+  background: var(--s-accent-tint);
 }
 
 .refresh-change-header {
@@ -2892,7 +2873,7 @@ a {
 
 .refresh-change-detail {
   margin: 0.35rem 0 0;
-  color: #4b5563;
+  color: var(--s-text);
   font-size: 0.85rem;
   line-height: 1.45;
 }
@@ -2904,18 +2885,18 @@ a {
 }
 
 .refresh-change-was {
-  color: #9ca3af;
+  color: var(--s-faint);
   text-decoration: line-through;
 }
 
 .refresh-change-now {
-  color: #1f2937;
+  color: var(--s-text);
   font-weight: 600;
 }
 
 .refresh-change-source {
   margin: 0.3rem 0 0;
-  color: #9ca3af;
+  color: var(--s-faint);
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -2925,7 +2906,7 @@ a {
   background: none;
   border: none;
   padding: 0;
-  color: #4338ca;
+  color: var(--s-accent);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -2938,7 +2919,7 @@ a {
 .refresh-actions {
   margin-top: 1rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--s-line);
 }
 
 .refresh-actions h4 {
@@ -2946,7 +2927,7 @@ a {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .refresh-actions ol {
@@ -2966,7 +2947,7 @@ a {
 
 .intelligence-timeline-detail {
   display: block;
-  color: #9ca3af;
+  color: var(--s-faint);
   font-size: 0.75rem;
 }
 
@@ -2976,7 +2957,7 @@ a {
   background: none;
   border: none;
   padding: 0;
-  color: #4338ca;
+  color: var(--s-accent);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -2988,7 +2969,7 @@ a {
 }
 
 .grounded-in-hint {
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.8rem;
   margin: 0.5rem 0 0;
 }
@@ -3004,9 +2985,9 @@ a {
 
 .grounded-in-item {
   padding: 0.6rem 0.75rem;
-  background: #f9fafb;
+  background: var(--s-ground);
   border-radius: 6px;
-  border-left: 3px solid #c7d2fe;
+  border-left: 3px solid var(--s-accent-tint);
 }
 
 .grounded-in-item-header {
@@ -3025,7 +3006,7 @@ a {
 
 .grounded-in-item-header a {
   margin-left: auto;
-  color: #4338ca;
+  color: var(--s-accent);
   font-size: 0.8rem;
 }
 
@@ -3035,7 +3016,7 @@ a {
 
 .grounded-in-content {
   margin: 0;
-  color: #374151;
+  color: var(--s-text);
   font-size: 0.85rem;
   line-height: 1.5;
   /* Retrieved passages are chunks of real documents and can be long or
@@ -3061,20 +3042,20 @@ a {
 }
 
 .key-people-tabs button {
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
+  background: var(--s-ground);
+  border: 1px solid var(--s-line);
   border-radius: 999px;
   padding: 0.3rem 0.85rem;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #4b5563;
+  color: var(--s-text);
   cursor: pointer;
 }
 
 .key-people-tabs button.is-active {
-  background: #eef2ff;
-  border-color: #c7d2fe;
-  color: #4338ca;
+  background: var(--s-accent-tint);
+  border-color: var(--s-accent-tint);
+  color: var(--s-accent);
 }
 
 .key-people-paths {
@@ -3092,9 +3073,9 @@ a {
 
 .key-person {
   padding: 0.7rem 0.85rem;
-  background: #f9fafb;
+  background: var(--s-ground);
   border-radius: 6px;
-  border-left: 3px solid #c7d2fe;
+  border-left: 3px solid var(--s-accent-tint);
 }
 
 .key-person-identity {
@@ -3111,7 +3092,7 @@ a {
 }
 
 .key-person-title {
-  color: #4b5563;
+  color: var(--s-text);
   font-size: 0.85rem;
   overflow-wrap: anywhere;
 }
@@ -3133,7 +3114,7 @@ a {
 }
 
 .key-person-reasons li {
-  color: #374151;
+  color: var(--s-text);
   font-size: 0.85rem;
   line-height: 1.5;
 }
@@ -3141,7 +3122,7 @@ a {
 .key-person-linkedin {
   display: inline-block;
   margin-top: 0.5rem;
-  color: #4338ca;
+  color: var(--s-accent);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -3162,7 +3143,7 @@ a {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .key-people-org ul {
@@ -3175,7 +3156,7 @@ a {
 }
 
 .key-people-caveat {
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.8rem;
   margin: 0.75rem 0 0;
 }
@@ -3272,7 +3253,6 @@ a {
     padding: 1rem;
   }
 
-  .dashboard-summary,
   .opportunity-list-item-header {
     grid-template-columns: 1fr;
   }
@@ -3317,11 +3297,11 @@ a {
 }
 
 .related-artifacts-label {
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .related-artifacts a {
-  color: #4338ca;
+  color: var(--s-accent);
   font-weight: 600;
 }
 
@@ -3342,14 +3322,14 @@ a {
   margin: 0 0 0.2rem;
   font-size: 0.9rem;
   font-weight: 700;
-  color: #1f2430;
+  color: var(--s-text);
 }
 
 .technology-group-count {
   padding: 0.05rem 0.45rem;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #4338ca;
+  background: var(--s-accent-tint);
+  color: var(--s-accent);
   font-size: 0.75rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -3357,7 +3337,7 @@ a {
 
 .technology-group-description {
   margin: 0 0 0.6rem;
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.8rem;
   line-height: 1.5;
 }
@@ -3377,9 +3357,9 @@ a {
   flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0.45rem 0.7rem;
-  background: #f9fafb;
+  background: var(--s-ground);
   border-radius: 6px;
-  border-left: 3px solid #c7d2fe;
+  border-left: 3px solid var(--s-accent-tint);
 }
 
 .technology-name {
@@ -3392,16 +3372,16 @@ a {
   /* Pushed right on a wide row, but wraps under the name on a phone
      rather than squeezing the technology name. */
   margin-left: auto;
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.78rem;
 }
 
 .technology-note {
   margin: 0 0 0.5rem;
   padding: 0.5rem 0.7rem;
-  background: #fffbeb;
+  background: var(--s-warning-tint);
   border-radius: 6px;
-  color: #92400e;
+  color: var(--s-warning);
   font-size: 0.82rem;
   line-height: 1.5;
 }
@@ -3411,7 +3391,7 @@ a {
   background: none;
   border: none;
   padding: 0;
-  color: #4338ca;
+  color: var(--s-accent);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -3440,7 +3420,7 @@ a {
 .bulk-selection {
   margin: 0;
   font-size: 0.85rem;
-  color: #374151;
+  color: var(--s-text);
 }
 
 .bulk-actions {
@@ -3451,9 +3431,9 @@ a {
 }
 
 .bulk-secondary {
-  background: #fff;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background: var(--s-surface);
+  color: var(--s-text);
+  border: 1px solid var(--s-line-strong);
 }
 
 .bulk-progress {
@@ -3462,14 +3442,14 @@ a {
 
 .bulk-progress-bar {
   height: 6px;
-  background: #e5e7eb;
+  background: var(--s-ground);
   border-radius: 999px;
   overflow: hidden;
 }
 
 .bulk-progress-fill {
   height: 100%;
-  background: #4f46e5;
+  background: var(--s-accent);
   border-radius: 999px;
   /* Only the width animates, so a long batch reads as steady movement
      rather than a bar that jumps once per file. */
@@ -3479,7 +3459,7 @@ a {
 .bulk-progress-text {
   margin: 0.4rem 0 0;
   font-size: 0.85rem;
-  color: #374151;
+  color: var(--s-text);
   /* File names vary wildly in length; without this the panel resizes on
      every single file and the whole card jitters for the whole run. */
   white-space: nowrap;
@@ -3490,13 +3470,13 @@ a {
 .bulk-progress-counts {
   margin: 0.15rem 0 0;
   font-size: 0.78rem;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .bulk-summary {
   margin-top: 0.6rem;
   padding-top: 0.6rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--s-line);
 }
 
 .bulk-summary h4 {
@@ -3510,7 +3490,7 @@ a {
 .bulk-elapsed {
   font-size: 0.78rem;
   font-weight: 400;
-  color: #6b7280;
+  color: var(--s-muted);
 }
 
 .bulk-summary-grid {
@@ -3522,7 +3502,7 @@ a {
 
 .bulk-summary-grid dt {
   font-size: 0.72rem;
-  color: #6b7280;
+  color: var(--s-muted);
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
@@ -3538,15 +3518,15 @@ a {
 .bulk-hint-warn {
   margin: 0 0 0.6rem;
   font-size: 0.82rem;
-  color: #92400e;
-  background: #fffbeb;
+  color: var(--s-warning);
+  background: var(--s-warning-tint);
   border: 1px solid #fde68a;
   border-radius: 6px;
   padding: 0.4rem 0.6rem;
 }
 
 .bulk-group {
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--s-line);
   padding: 0.4rem 0;
 }
 
@@ -3589,12 +3569,12 @@ a {
 }
 
 .bulk-file-path {
-  color: #374151;
+  color: var(--s-text);
   overflow-wrap: anywhere;
 }
 
 .bulk-file-detail {
-  color: #6b7280;
+  color: var(--s-muted);
   font-size: 0.75rem;
 }
 
@@ -3726,20 +3706,6 @@ a {
   margin-top: 0.45rem;
 }
 
-/* The attention line was link-blue but is not a link. Muting it removes a
-   colour rather than adding one. */
-.dashboard-page .morning-brief {
-  color: var(--s-muted);
-  font-size: 0.95rem;
-  margin: -0.35rem 0 1.35rem;
-}
-
-/* Figures should align across the three cards. */
-.dashboard-page .stat {
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .app-shell button,
   .app-shell a,
@@ -3766,9 +3732,9 @@ input[type="date"],
 input[type="datetime-local"],
 input[type="month"] {
   padding: 0.45rem;
-  border: 1px solid #d0d3d9;
+  border: 1px solid var(--s-line-strong);
   border-radius: 6px;
-  background: #fff;
+  background: var(--s-surface);
   color: inherit;
   font-family: inherit;
   font-size: 0.9rem;
@@ -3864,13 +3830,4120 @@ input[type="month"] {
   }
 }
 
-/* --- dashboard -----------------------------------------------------------
-   Three stat cards spread across 2400px become three very wide boxes with
-   a number stranded at the left of each. Cap the row so they stay a group
-   of cards rather than three panels. */
+/* ==========================================================================
+   Workspace - dark
+   --------------------------------------------------------------------------
+   The login page's design language, adapted for screens that carry data.
 
-@media (min-width: 1800px) {
-  .dashboard-page .dashboard-summary {
-    max-width: 1100px;
+   What carries over: one continuous ink ground, one ambient light field, a
+   hairline grid for precision, surfaces made from light rather than from a
+   different colour, blue reserved for things you can act on.
+
+   What deliberately does not carry over: the login card's 22px backdrop
+   blur and 20px radius. A login page has one panel; this has dozens, and
+   glass at that strength on every surface is both expensive to composite
+   and visually noisy - it turns a workspace into a stack of frosted
+   plates. Here real blur is spent only where something genuinely floats
+   over content (the header, dropdowns, dialogs, toasts). Everything else
+   is the same ground plus a few percent of light, a hairline, and an inner
+   top highlight - the login card's recipe at a quieter volume.
+
+   The other adaptation is density. Data screens need more rows per inch
+   than a sign-in form, so separation comes from hairlines and hover states
+   rather than from gaps between floating panels.
+
+   Contrast is measured against the #0a0e1a ground, not guessed:
+   #f3f5fb ~17:1, #e6eaf5 ~15:1, #a9b1c6 ~8:1, #838ca6 ~4.6:1, and the
+   lightened accent #8ba4ff ~6.6:1. The raw accent #3d68ff is used only
+   behind white text or as a border, never as small text on the ground.
+   ========================================================================== */
+
+/* Overscroll and the area behind a rubber-banding scroll both reveal the
+   body, so it has to be the same ink as the workspace. */
+body {
+  background: #0a0e1a;
+  color: #e6eaf5;
+}
+
+.app-shell {
+  /* Re-point the design tokens. Almost every surface, border and text
+     colour in this stylesheet already routes through these, so the theme
+     turns over here rather than in several hundred separate overrides. */
+  --s-ink: #f3f5fb;
+  --s-text: #e6eaf5;
+  --s-muted: #a9b1c6;
+  --s-faint: #838ca6;
+
+  --s-surface: rgba(255, 255, 255, 0.04);
+  --s-ground: rgba(255, 255, 255, 0.022);
+  --s-hover: rgba(255, 255, 255, 0.055);
+  --s-line: rgba(255, 255, 255, 0.078);
+  --s-line-strong: rgba(255, 255, 255, 0.13);
+
+  --s-accent: #3d68ff;
+  --s-accent-hover: #5b80ff;
+  /* Text-safe accent. #3d68ff is under 4.5:1 on this ground, so anything
+     small and blue uses this instead. */
+  --s-accent-text: #8ba4ff;
+  --s-accent-tint: rgba(61, 104, 255, 0.16);
+  --s-accent-ring: rgba(61, 104, 255, 0.4);
+
+  /* Status stays informational, never decorative, and never competes with
+     the accent: a low-alpha wash of its own hue plus a light foreground. */
+  --s-success: #6ee7a8;
+  --s-success-tint: rgba(52, 211, 153, 0.12);
+  --s-warning: #fbc76a;
+  --s-warning-tint: rgba(245, 158, 11, 0.12);
+  --s-danger: #ff9d94;
+  --s-danger-tint: rgba(239, 68, 68, 0.13);
+
+  /* On a dark ground a shadow is nearly invisible on its own, so every
+     elevation pairs an outer shadow with an inner top highlight. */
+  --s-shadow-1: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  --s-shadow-2:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    0 12px 32px -16px rgba(0, 0, 0, 0.7);
+  --s-shadow-3:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 24px 60px -20px rgba(0, 0, 0, 0.78);
+
+  position: relative;
+  isolation: isolate; /* keeps the light field behind content without z-index escalation */
+  background:
+    radial-gradient(140% 110% at 38% 22%, #131b30 0%, rgba(19, 27, 48, 0) 72%),
+    #0a0e1a;
+  color: var(--s-text);
+}
+
+/* One light field for the whole workspace, not one per panel - which is
+   what makes the sidebar, header and page read as a single surface. Fixed
+   rather than absolute so the light stays anchored to the viewport instead
+   of scrolling away on a long page.
+
+   Every stop fades to a transparent version of its own colour. The
+   `transparent` keyword computes to rgba(0,0,0,0), so a blue ramp to
+   `transparent` interpolates through black and leaves a dirty band. */
+.app-shell::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    /* 1. the primary, over the content column rather than behind the nav */
+    radial-gradient(70vmax 62vmax at 26% -4%, rgba(64, 108, 255, 0.3) 0%,
+      rgba(64, 108, 255, 0.12) 36%, rgba(64, 108, 255, 0) 74%),
+    /* 2. an indigo hand-off across the upper right, so the primary does not
+          simply stop */
+    radial-gradient(58vmax 48vmax at 72% -8%, rgba(88, 78, 232, 0.2) 0%,
+      rgba(88, 78, 232, 0) 68%),
+    /* 3. bottom-right counterweight, balancing the mass at the top */
+    radial-gradient(62vmax 56vmax at 98% 96%, rgba(56, 128, 246, 0.16) 0%,
+      rgba(56, 128, 246, 0) 72%);
+  filter: blur(18px);
+  animation: workspace-drift 34s ease-in-out infinite alternate;
+}
+
+/* Hairline grid, masked so it fades out well before the content column.
+   Below conscious notice by design - it reads as precision, and it is what
+   keeps a large dark area from looking like an empty void. */
+.app-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 62px 62px;
+  mask-image: radial-gradient(78% 68% at 34% 6%, #000 8%, transparent 100%);
+  -webkit-mask-image: radial-gradient(78% 68% at 34% 6%, #000 8%, transparent 100%);
+}
+
+@keyframes workspace-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(1.5%, 1.2%, 0) scale(1.05); }
+}
+
+/* --- navigation ----------------------------------------------------------
+   The sidebar was a near-black block against a light page - two materials
+   meeting at a hard seam. It is now the same ground as everything else,
+   separated by a hairline and a barely-there darkening. "One continuous
+   workspace" is mostly this one change. */
+.app-shell .sidebar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.016), rgba(0, 0, 0, 0.12));
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--s-text);
+  padding: 1.5rem 0.85rem;
+}
+
+.app-shell .sidebar-brand {
+  padding: 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 640;
+  letter-spacing: -0.02em;
+  color: var(--s-ink);
+}
+
+.app-shell .sidebar-nav a {
+  position: relative;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 520;
+  color: var(--s-muted);
+  transition: background-color var(--s-fast) ease, color var(--s-fast) ease;
+}
+
+.app-shell .sidebar-nav a:hover {
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--s-ink);
+}
+
+/* The active item was a solid blue block, which spent the accent on
+   decoration. A tint plus a rail says the same thing and leaves the
+   saturated blue for things you click. */
+.app-shell .sidebar-nav a.active {
+  background: rgba(61, 104, 255, 0.14);
+  color: #c3d0ff;
+  font-weight: 600;
+}
+
+.app-shell .sidebar-nav a.active::before {
+  content: "";
+  position: absolute;
+  left: -0.85rem;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--s-accent);
+  box-shadow: 0 0 12px rgba(61, 104, 255, 0.7);
+}
+
+.app-shell .sidebar-section-heading {
+  color: var(--s-faint);
+}
+
+.app-shell .sidebar-recent a {
+  color: var(--s-muted);
+}
+
+.app-shell .sidebar-recent a:hover,
+.app-shell .sidebar-recent a.active {
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--s-ink);
+}
+
+.app-shell .sidebar-toggle-bar {
+  background: var(--s-ink);
+}
+
+.app-shell .sidebar-backdrop {
+  background: rgba(6, 9, 17, 0.62);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* --- header --------------------------------------------------------------
+   Genuinely floats over scrolling content, so this is one of the few
+   places real blur earns its cost. */
+.app-shell .app-header {
+  background: rgba(10, 14, 26, 0.6);
+  backdrop-filter: blur(16px) saturate(1.25);
+  -webkit-backdrop-filter: blur(16px) saturate(1.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.app-shell .app-content {
+  background: none;
+}
+
+/* --- fields --------------------------------------------------------------
+   Recessed wells cut into the surface, exactly as on the login page. A
+   raised input on a dark ground reads as a button. */
+.app-shell input[type="text"],
+.app-shell input[type="email"],
+.app-shell input[type="search"],
+.app-shell input[type="password"],
+.app-shell input[type="url"],
+.app-shell input[type="number"],
+.app-shell input[type="date"],
+.app-shell input[type="time"],
+.app-shell input[type="datetime-local"],
+.app-shell select,
+.app-shell textarea,
+.app-shell .global-search-input {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.26);
+  color: var(--s-text);
+}
+
+.app-shell input:hover:not(:focus),
+.app-shell select:hover:not(:focus),
+.app-shell textarea:hover:not(:focus) {
+  border-color: rgba(255, 255, 255, 0.17);
+}
+
+.app-shell input:focus,
+.app-shell select:focus,
+.app-shell textarea:focus,
+.app-shell .global-search-input:focus {
+  border-color: var(--s-accent);
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.2),
+    0 0 0 3px var(--s-accent-ring);
+}
+
+/* Native date/time pickers and select arrows paint dark-on-dark otherwise. */
+.app-shell input[type="date"],
+.app-shell input[type="time"],
+.app-shell input[type="datetime-local"],
+.app-shell select {
+  color-scheme: dark;
+}
+
+/* Chrome repaints autofilled fields near-white with near-black text. There
+   is no property that overrides the fill, so flood it with an inset shadow
+   and repaint the text. */
+.app-shell input:-webkit-autofill,
+.app-shell input:-webkit-autofill:hover,
+.app-shell input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--s-text);
+  -webkit-box-shadow: inset 0 0 0 100px #141a2a;
+  caret-color: var(--s-text);
+}
+
+/* --- controls ------------------------------------------------------------ */
+.app-shell button:not(.sidebar-toggle) {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  color: var(--s-text);
+}
+
+.app-shell button:not(.sidebar-toggle):hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.app-shell .primary-button,
+.app-shell button[type="submit"]:not(.ghost-button) {
+  border-color: transparent;
+  background: linear-gradient(180deg, #4a73ff, #3457f0);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 8px 20px -10px rgba(61, 104, 255, 0.85);
+  color: #fff;
+}
+
+.app-shell .primary-button:hover:not(:disabled),
+.app-shell button[type="submit"]:not(.ghost-button):hover:not(:disabled) {
+  background: linear-gradient(180deg, #5b80ff, #3d68ff);
+  border-color: transparent;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 10px 26px -8px rgba(61, 104, 255, 0.95);
+}
+
+.app-shell .company-remove-button,
+.app-shell .danger-button {
+  border-color: rgba(255, 120, 110, 0.3);
+  background: var(--s-danger-tint);
+  color: var(--s-danger);
+}
+
+.app-shell .company-remove-button:hover:not(:disabled),
+.app-shell .danger-button:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(255, 120, 110, 0.45);
+}
+
+/* --- surfaces ------------------------------------------------------------
+   The login card's recipe at workspace volume: ground plus light, a
+   hairline, an inner top highlight, and a shadow that seats it. No blur -
+   a card that does not overlap anything gains nothing from blurring the
+   flat ground behind it, and pays full compositing cost for it. */
+.app-shell .card {
+  border: 1px solid var(--s-line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.028));
+  box-shadow: var(--s-shadow-2);
+}
+
+.app-shell .card-title {
+  color: var(--s-ink);
+}
+
+/* Things that genuinely float get real glass. */
+.app-shell .global-search-results,
+.app-shell .confirm-dialog,
+.app-shell .toast,
+.app-shell .quick-switcher {
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: rgba(17, 23, 38, 0.86);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  box-shadow: var(--s-shadow-3);
+}
+
+.app-shell .confirm-dialog-overlay {
+  background: rgba(6, 9, 17, 0.66);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* --- data ----------------------------------------------------------------
+   A table gets its structure from hairlines and a hover wash, never from
+   striped fills, which on a dark ground read as banding. */
+.app-shell .data-table th {
+  background: rgba(255, 255, 255, 0.028);
+  border-bottom-color: var(--s-line);
+  color: var(--s-faint);
+}
+
+.app-shell .data-table td {
+  border-bottom-color: rgba(255, 255, 255, 0.055);
+  color: var(--s-text);
+}
+
+.app-shell .data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.app-shell .badge {
+  border-width: 1px;
+  border-style: solid;
+}
+
+.app-shell .badge-success {
+  background: var(--s-success-tint);
+  border-color: rgba(52, 211, 153, 0.3);
+  color: var(--s-success);
+}
+
+.app-shell .badge-warning {
+  background: var(--s-warning-tint);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: var(--s-warning);
+}
+
+.app-shell .badge-danger {
+  background: var(--s-danger-tint);
+  border-color: rgba(239, 68, 68, 0.32);
+  color: var(--s-danger);
+}
+
+.app-shell .badge-neutral {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--s-line);
+  color: var(--s-muted);
+}
+
+/* --- links and focus ----------------------------------------------------- */
+.app-shell a:not(.nav-link):not(.sidebar-nav a):not(.ask-scout-link-button):hover {
+  color: var(--s-accent-text);
+}
+
+.app-shell :focus-visible {
+  outline: 2px solid var(--s-accent-text);
+  outline-offset: 2px;
+}
+
+/* --- dashboard notifications --------------------------------------------- */
+.dashboard-page .notification-list > li {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-page .notification-item-header {
+  color: var(--s-ink);
+}
+
+.dashboard-page .notification-summary {
+  color: var(--s-muted);
+}
+
+.dashboard-page .notification-item-footer {
+  color: var(--s-text);
+}
+
+.dashboard-page .notification-recommended-action {
+  color: var(--s-faint);
+}
+
+.dashboard-page .notification-item-header .badge,
+.dashboard-page .notification-item-header .badge-success {
+  background: rgba(61, 104, 255, 0.16);
+  border-color: rgba(61, 104, 255, 0.34);
+  color: #a9bcff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell::before {
+    animation: none;
+  }
+}
+
+/* --- header, continued ---------------------------------------------------
+   The header repeated the wordmark that the sidebar already shows, two
+   inches away. On a screen whose whole point is one continuous workspace,
+   the same brand twice is the clearest possible signal that it is not.
+   It stays in the DOM and stays visible on a phone, where the sidebar is
+   a closed drawer and this is the only wordmark on screen. */
+@media (min-width: 769px) {
+  .app-shell .app-header-title {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Dashboard - the watch floor
+   --------------------------------------------------------------------------
+   Two columns, deliberately unequal: the judgement Scout has reached, beside
+   the field it reached it from. The login page is a claim beside an action;
+   this is the same skeleton doing a different job, which is how the product
+   inherits an identity from the sign-in screen rather than copying it.
+
+   Hierarchy is built from exactly one display-scale line, one saturated
+   accent (the action), and everything else at or below body size. Nothing
+   above the log sits in a container - the composition holds it.
+
+   Motion budget is three things, and they all resolve within a second of
+   arrival: the status dot, which keeps pulsing because the monitoring
+   genuinely is continuous; the arrival of the verdict in reading order; and
+   the watch enumerating itself in rank order. Nothing loops afterwards.
+   ========================================================================== */
+
+/* --- status rail ---------------------------------------------------------
+   The one place the system speaks about itself. Caption-scale and factual:
+   an AI that announces itself loudly reads as a demo, one that states what
+   it is doing reads as infrastructure. */
+.watch-rail {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.35rem 0 1.9rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+  animation: verdict-rise 0.55s var(--s-ease) both;
+}
+
+.watch-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--s-muted);
+}
+
+.watch-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6f93ff;
+  box-shadow: 0 0 0 3px rgba(61, 104, 255, 0.2), 0 0 12px rgba(61, 104, 255, 0.85);
+  animation: watch-pulse 3.4s var(--s-ease) infinite;
+}
+
+.watch-rail-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.watch-rail-new {
+  color: var(--s-accent-text);
+}
+
+/* The rail wraps between facts, never inside one. "Scout is monitoring 19 /
+   companies" broken across two lines reads as a layout accident. */
+.watch-live,
+.watch-rail-fact,
+.watch-rail-date {
+  white-space: nowrap;
+}
+
+.watch-rail-date {
+  margin-left: auto;
+  color: #6f7896;
+}
+
+/* --- the composition -----------------------------------------------------
+   1.15/0.85 rather than a half-and-half split: an even two-column layout has
+   no primary side, and this page has a very clear one. */
+.watchfloor {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: clamp(2.5rem, 5vw, 5rem);
+  align-items: start;
+  padding-bottom: 3.5rem;
+}
+
+/* --- the judgement -------------------------------------------------------- */
+.verdict {
+  min-width: 0;
+  padding-top: clamp(1rem, 5vh, 3rem);
+}
+
+.verdict-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0 0 1.1rem;
+  font-size: 0.7rem;
+  font-weight: 640;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--s-accent-text);
+}
+
+/* The count is the honest qualifier on the claim above it - four
+   opportunities reach the top of the scale, not one - so it is attached to
+   the label rather than buried in the prose. */
+.verdict-eyebrow-count {
+  padding: 0.16rem 0.5rem;
+  border: 1px solid rgba(61, 104, 255, 0.32);
+  border-radius: var(--s-radius-pill);
+  background: rgba(61, 104, 255, 0.13);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  color: #a9bcff;
+}
+
+.verdict-headline {
+  margin: 0 0 1.15rem;
+  max-width: 15ch;
+  font-size: clamp(2.5rem, 4.6vw, 4.1rem);
+  font-weight: 650;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  color: var(--s-ink);
+  text-wrap: balance;
+}
+
+.verdict-title {
+  margin: 0 0 0.85rem;
+  max-width: 40ch;
+  font-size: 1.12rem;
+  font-weight: 560;
+  line-height: 1.4;
+  letter-spacing: -0.016em;
+  color: #cdd4e6;
+}
+
+.verdict-body {
+  margin: 0 0 1.9rem;
+  max-width: 52ch;
+  font-size: 0.975rem;
+  line-height: 1.72;
+  color: var(--s-muted);
+}
+
+/* --- the chain -----------------------------------------------------------
+   Scout's whole claim is that a recommendation traces back to something, so
+   the trace is a structural element rather than a sentence. Three nodes on
+   one lit thread, reading left to right: observed, matched, recommended.
+   The thread is the only ornament on the page and it is carrying the
+   argument, which is the test it has to pass. */
+.chain {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 2rem;
+  padding: 0;
+  max-width: 30rem;
+  list-style: none;
+}
+
+.chain::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  top: 5px;
+  height: 1px;
+  background: linear-gradient(90deg,
+    rgba(111, 147, 255, 0.75) 0%,
+    rgba(124, 108, 255, 0.5) 58%,
+    rgba(124, 108, 255, 0.14) 100%);
+}
+
+.chain-step {
+  position: relative;
+  padding-top: 1.35rem;
+}
+
+.chain-step::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0a0e1a;
+  box-shadow: inset 0 0 0 2px #6f93ff, 0 0 10px rgba(61, 104, 255, 0.7);
+}
+
+.chain-count {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 640;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--s-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.chain-label {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 560;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+/* --- the action ----------------------------------------------------------
+   Text-led. On a page with one thing to do, a filled button competes with
+   the headline; the accent alone marks it and the arrow moves so it still
+   behaves like a control. */
+.verdict-action {
+  margin: 0 0 1.4rem;
+}
+
+.verdict-action a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 570;
+  letter-spacing: -0.008em;
+  color: var(--s-accent-text);
+}
+
+.verdict-action a span {
+  transition: transform var(--s-slow) var(--s-ease);
+}
+
+.verdict-action a:hover {
+  color: #b9c8ff;
+}
+
+.verdict-action a:hover span {
+  transform: translateX(4px);
+}
+
+.verdict-also {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--s-faint);
+}
+
+.verdict-also a {
+  color: var(--s-muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  transition: color var(--s-fast) ease, border-color var(--s-fast) ease;
+}
+
+.verdict-also a:hover {
+  color: var(--s-ink);
+  border-bottom-color: var(--s-accent-text);
+}
+
+/* --- the watch -----------------------------------------------------------
+   The counter that said "19" is now the nineteen. Continuous monitoring is
+   the product's central claim, so the set under watch is a first-class
+   object on the first screen rather than a number describing one.
+
+   Each cell encodes three real facts - top of the scale, unread signals,
+   anything open at all - in weight and light rather than in a legend of
+   colours, and every cell is a link to that company. */
+.watch {
+  min-width: 0;
+  padding-top: clamp(1rem, 5vh, 3rem);
+}
+
+.watch-heading {
+  margin: 0 0 1.1rem;
+  font-size: 0.7rem;
+  font-weight: 640;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.watch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.25rem, 1fr));
+  /* padding: 0 is load-bearing - a bare <ul> keeps the UA's 40px
+     padding-inline-start, which silently ate a whole grid track. */
+  margin: 0 0 1.1rem;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 12px;
+  /* One ruled lattice rather than nineteen bordered chips - but drawn with
+     inset hairlines on the cells, not with grid gaps. A gap lattice leaves
+     the last row's unfilled tracks showing the rule colour, so a watch list
+     that does not divide evenly ends in a bright empty rectangle. */
+  background: #0d1220;
+  list-style: none;
+  overflow: hidden;
+}
+
+.watch-cell {
+  box-shadow:
+    inset -1px 0 0 rgba(255, 255, 255, 0.055),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.055);
+  animation: watch-settle 0.45s var(--s-ease) both;
+}
+
+.watch-cell a {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  min-height: 2.6rem;
+  font-size: 0.79rem;
+  font-weight: 520;
+  line-height: 1.25;
+  color: var(--s-muted);
+  transition: background-color var(--s-fast) ease, color var(--s-fast) ease;
+}
+
+.watch-cell a:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--s-ink);
+}
+
+/* Two lines rather than an ellipsis. "Hertz Global Holdi…" is a company
+   nobody can identify at a glance, which defeats the point of the field. */
+.watch-cell-name {
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* A company Scout is watching but has nothing open on. Dimmed rather than
+   hidden: the watch is only meaningful if it shows the quiet ones too. */
+.watch-cell.is-quiet a {
+  color: #5f6884;
+}
+
+/* Top of the priority scale. Light, not colour: a tinted fill and a lifted
+   text weight, so the four leads read at a glance without four coloured
+   badges shouting over the headline beside them. */
+.watch-cell.is-lead {
+  background:
+    linear-gradient(180deg, rgba(61, 104, 255, 0.22), rgba(61, 104, 255, 0.1)),
+    #0d1220;
+}
+
+.watch-cell.is-lead a {
+  color: #dce3ff;
+  font-weight: 600;
+}
+
+.watch-cell.is-lead a:hover {
+  background: rgba(61, 104, 255, 0.16);
+  color: #fff;
+}
+
+.watch-cell-dot {
+  flex-shrink: 0;
+  margin-left: auto;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6f93ff;
+  box-shadow: 0 0 8px rgba(61, 104, 255, 0.9);
+}
+
+.watch-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  color: #6f7896;
+}
+
+.watch-key {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+}
+
+.watch-key-signal {
+  margin-left: 0.9rem;
+  border-radius: 50%;
+  width: 5px;
+  height: 5px;
+  background: #6f93ff;
+  box-shadow: 0 0 8px rgba(61, 104, 255, 0.9);
+}
+
+.watch-key-lead {
+  background: linear-gradient(180deg, rgba(61, 104, 255, 0.75), rgba(61, 104, 255, 0.35));
+}
+
+/* --- arrival -------------------------------------------------------------- */
+.verdict-eyebrow,
+.verdict-headline,
+.verdict-title,
+.verdict-body,
+.chain,
+.verdict-action,
+.verdict-also {
+  animation: verdict-rise 0.6s var(--s-ease) both;
+}
+
+.verdict-headline { animation-delay: 0.07s; }
+.verdict-title { animation-delay: 0.13s; }
+.verdict-body { animation-delay: 0.18s; }
+.chain { animation-delay: 0.24s; }
+.verdict-action { animation-delay: 0.3s; }
+.verdict-also { animation-delay: 0.35s; }
+
+.watch-heading,
+.watch-legend {
+  animation: verdict-rise 0.6s var(--s-ease) 0.2s both;
+}
+
+@keyframes verdict-rise {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* The watch resolves cell by cell in rank order - Scout enumerating what it
+   is looking at. Opacity only; nineteen cells sliding would be a stunt. */
+@keyframes watch-settle {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes watch-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(61, 104, 255, 0.2), 0 0 12px rgba(61, 104, 255, 0.75); }
+  50% { box-shadow: 0 0 0 6px rgba(61, 104, 255, 0.06), 0 0 20px rgba(61, 104, 255, 1); }
+}
+
+/* --- responsive ----------------------------------------------------------- */
+@media (max-width: 1180px) {
+  .watchfloor {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3rem;
+  }
+
+  .watch {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 980px) {
+  .watch-rail {
+    flex-wrap: wrap;
+    gap: 0.45rem 0.7rem;
+  }
+
+  .watch-rail-date {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .watch-rail-date {
+    display: none;
+  }
+
+  /* The clamp floor still breaks this line after "Start with"; a phone
+     column cannot carry display type at that size. */
+  .verdict-headline {
+    max-width: none;
+    font-size: 2rem;
+    letter-spacing: -0.036em;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .watch-rail,
+  .watch-live-dot,
+  .watch-cell,
+  .verdict-eyebrow,
+  .verdict-headline,
+  .verdict-title,
+  .verdict-body,
+  .chain,
+  .verdict-action,
+  .verdict-also,
+  .watch-heading,
+  .watch-legend,
+  .feed-head,
+  .feed-item {
+    animation: none;
+  }
+
+  .watch-cell a,
+  .feed-item a,
+  .feed-action span,
+  .verdict-action a span {
+    transition: none;
+  }
+}
+
+/* The recommendation, found in the field. This is the one cell that ties the
+   two columns together: you read "Start with Siemens" on the left and your
+   eye lands on Siemens lit brightest on the right. Without it the watch is
+   an inventory sitting next to a headline; with it, the headline is visibly
+   a selection *from* the watch. */
+.watch-cell.is-featured {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(61, 104, 255, 0.34), rgba(61, 104, 255, 0.17)),
+    #0d1220;
+  box-shadow:
+    inset -1px 0 0 rgba(255, 255, 255, 0.055),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.055),
+    inset 0 0 0 1px rgba(111, 147, 255, 0.4),
+    0 0 22px -4px rgba(61, 104, 255, 0.5);
+  z-index: 1;
+}
+
+.watch-cell.is-featured a,
+.watch-cell.is-featured a:hover {
+  color: #fff;
+  font-weight: 640;
+}
+
+.watch-cell.is-featured a::before {
+  content: "";
+  width: 3px;
+  align-self: stretch;
+  margin: -0.6rem 0.15rem -0.6rem -0.35rem;
+  border-radius: 0 2px 2px 0;
+  background: #7d9dff;
+  box-shadow: 0 0 10px rgba(111, 147, 255, 0.9);
+}
+
+/* ==========================================================================
+   Dashboard - the intelligence feed
+   --------------------------------------------------------------------------
+   The old section was a ruled table of prose: every row opened with the same
+   words, nothing was scannable, and it read as an audit log bolted under the
+   hero. This is a feed - the surface where Scout posts what it has found.
+
+   Three things do the work, and none of them is an effect:
+
+   1. A spine. These events are genuinely time-ordered, so the timeline is
+      structure rather than ornament. The node is lit while an item is unread
+      and hollows out once it is read, which gives "new" a place to live that
+      is not another badge.
+
+   2. The kind of event, named. The backend already sorts every notification
+      into one of five types and the old list discarded that, so the eye had
+      nothing to sort on. Naming it is the single largest legibility gain
+      available here, and it costs one caption-scale line.
+
+   3. One action per row. This feed exists to move someone into a workflow,
+      so the recommended action sits at the end of the row as the row's
+      point, not as grey text trailing the summary.
+
+   Elevation is deliberately low. These are rows on the page's own ground
+   that lift a few percent on hover; making them cards would give each item
+   the same visual weight as the recommendation above, which is exactly the
+   hierarchy the page is built to avoid.
+   ========================================================================== */
+
+.feed {
+  padding-bottom: 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.075);
+}
+
+.feed-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 1.75rem 0 1.15rem;
+}
+
+.feed-heading {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 640;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.feed-count {
+  padding: 0.16rem 0.5rem;
+  border: 1px solid rgba(61, 104, 255, 0.32);
+  border-radius: var(--s-radius-pill);
+  background: rgba(61, 104, 255, 0.13);
+  font-size: 0.66rem;
+  font-weight: 620;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a9bcff;
+}
+
+.feed-list {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The spine. Drawn on the list rather than per row so it is one continuous
+   line, and faded at both ends so it reads as a stream passing through the
+   view rather than a bracket around four items. */
+.feed-list::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 5px;
+  width: 1px;
+  background: linear-gradient(180deg,
+    rgba(111, 147, 255, 0) 0%,
+    rgba(111, 147, 255, 0.55) 7%,
+    rgba(124, 108, 255, 0.3) 60%,
+    rgba(124, 108, 255, 0) 100%);
+}
+
+.feed-item {
+  animation: verdict-rise 0.5s var(--s-ease) both;
+}
+
+.feed-item + .feed-item {
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.feed-item a {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.35rem 1.5rem;
+  padding: 1.15rem 1rem 1.15rem 2.1rem;
+  border-radius: 10px;
+  transition: background-color var(--s-fast) ease;
+}
+
+.feed-item a:hover {
+  background: rgba(255, 255, 255, 0.032);
+}
+
+/* --- the node ------------------------------------------------------------
+   Sits on the spine, aligned to the row's first text line. Filled and lit
+   while unread; a hollow ring once read. */
+.feed-node {
+  position: absolute;
+  top: 1.32rem;
+  left: 0;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #0a0e1a;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.22);
+  transition: box-shadow var(--s-slow) var(--s-ease);
+}
+
+.feed-item.is-new .feed-node {
+  background: #6f93ff;
+  box-shadow:
+    0 0 0 3px rgba(10, 14, 26, 1),
+    0 0 0 4px rgba(111, 147, 255, 0.35),
+    0 0 14px rgba(61, 104, 255, 0.9);
+}
+
+/* --- the row ------------------------------------------------------------- */
+.feed-meta {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+/* The event kind. A tinted chip rather than a coloured badge per type -
+   five saturated colours competing under a headline would be a legend, not
+   a hierarchy. */
+.feed-kind {
+  padding: 0.18rem 0.45rem;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #b6c0d8;
+  letter-spacing: 0.07em;
+}
+
+.feed-item.is-new .feed-kind {
+  background: rgba(61, 104, 255, 0.17);
+  color: #a9bcff;
+}
+
+.feed-company {
+  color: var(--s-muted);
+}
+
+.feed-time {
+  color: #6f7896;
+  font-weight: 560;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.feed-title {
+  grid-column: 1;
+  font-size: 1rem;
+  font-weight: 570;
+  line-height: 1.4;
+  letter-spacing: -0.014em;
+  color: var(--s-ink);
+}
+
+.feed-summary {
+  grid-column: 1;
+  max-width: 78ch;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--s-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* --- the action ----------------------------------------------------------
+   Right-aligned and vertically anchored to the row's top line, so a column
+   of actions forms down the right edge and the feed reads as a queue of
+   things to do rather than a list of things that happened. */
+.feed-action {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 560;
+  color: var(--s-faint);
+  transition: color var(--s-fast) ease;
+}
+
+.feed-action span {
+  transition: transform var(--s-slow) var(--s-ease);
+}
+
+.feed-item a:hover .feed-action {
+  color: var(--s-accent-text);
+}
+
+.feed-item a:hover .feed-action span {
+  transform: translateX(3px);
+}
+
+.feed-head {
+  animation: verdict-rise 0.6s var(--s-ease) 0.45s both;
+}
+
+@media (max-width: 720px) {
+  .feed-item a {
+    grid-template-columns: minmax(0, 1fr);
+    padding-right: 0;
+  }
+
+  /* The action drops below the summary rather than squeezing a second
+     column out of a phone's width. */
+  .feed-action {
+    grid-column: 1;
+    grid-row: auto;
+    margin-top: 0.45rem;
+    color: var(--s-accent-text);
+  }
+}
+
+/* ==========================================================================
+   Dashboard - refinement pass
+   --------------------------------------------------------------------------
+   Structure is unchanged. This layer is depth, light, rhythm and motion.
+
+   The motion budget is deliberately small and every item in it earns its
+   place by saying something:
+
+     continuous - the rail dot (the system is running) and one slow sweep
+                  across the watch (Scout is scanning the field). Two, and
+                  they are distinguishable from each other.
+     one-shot   - the arrival sequence, plus the chain resolving left to
+                  right, which is the page saying "this conclusion was
+                  reached" rather than "here is a row of numbers".
+     on demand  - hover and focus.
+
+   Nothing else loops. A dashboard where several things breathe at once
+   reads as a screensaver, not as infrastructure.
+   ========================================================================== */
+
+/* --- the conclusion ------------------------------------------------------
+   Display type on a dark ground looks pasted on unless it is lit. A wide,
+   very low-opacity bloom in the accent's own hue reads as the headline
+   sitting in the page's light rather than on top of it - the same reason
+   the login card carries an inner top highlight. */
+.verdict-headline {
+  text-shadow: 0 0 60px rgba(126, 158, 255, 0.16);
+}
+
+/* The recommendation lands last and slowest. Everything above it arrives on
+   a 0.6s curve; the headline takes 0.75s and settles from slightly further
+   down, so the eye reaches it a beat after the label that qualifies it.
+   That beat is the difference between a conclusion and a data point. */
+.verdict-headline {
+  animation-duration: 0.75s;
+}
+
+.verdict-eyebrow-count {
+  transition: border-color var(--s-slow) var(--s-ease), background-color var(--s-slow) var(--s-ease);
+}
+
+.verdict-action a {
+  border-radius: 6px;
+  padding: 0.15rem 0.1rem;
+  transition: color var(--s-fast) ease;
+}
+
+/* --- the chain resolves --------------------------------------------------
+   The thread draws left to right and each node lights as the thread reaches
+   it. This is the one place motion carries meaning rather than polish: it
+   shows the order Scout worked in - observed, matched, recommended - which
+   a static row of three numbers cannot. Runs once, takes under a second,
+   and the layout is identical before and after. */
+.chain::before {
+  transform-origin: left center;
+  animation: chain-draw 0.85s var(--s-ease) 0.34s both;
+}
+
+.chain-step::before {
+  animation: chain-node 0.4s var(--s-ease) both;
+}
+
+.chain-step:nth-child(1)::before { animation-delay: 0.44s; }
+.chain-step:nth-child(2)::before { animation-delay: 0.68s; }
+.chain-step:nth-child(3)::before { animation-delay: 0.92s; }
+
+@keyframes chain-draw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes chain-node {
+  from {
+    opacity: 0;
+    box-shadow: inset 0 0 0 2px rgba(111, 147, 255, 0.35), 0 0 0 rgba(61, 104, 255, 0);
+  }
+  60% {
+    box-shadow: inset 0 0 0 2px #6f93ff, 0 0 16px rgba(61, 104, 255, 1);
+  }
+  to {
+    opacity: 1;
+    box-shadow: inset 0 0 0 2px #6f93ff, 0 0 10px rgba(61, 104, 255, 0.7);
+  }
+}
+
+/* --- the watch is being watched ------------------------------------------
+   Two things make this panel read as live rather than printed.
+
+   First, depth: the lattice is now recessed into the page - an inner shadow
+   at the top edge and a soft outer glow - so it sits *in* the surface like
+   an instrument rather than on top of it like a table.
+
+   Second, one slow sweep. A single band of very faint light crosses the
+   grid every 14 seconds. At 4% peak opacity it is below conscious notice;
+   you register that something is scanning, not that something is animating.
+   It is masked to the panel and sits behind the cells, so it never touches
+   legibility. */
+.watch-grid {
+  position: relative;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 14px 28px -22px rgba(0, 0, 0, 0.9),
+    0 18px 44px -26px rgba(0, 0, 0, 0.75),
+    0 0 60px -30px rgba(61, 104, 255, 0.45);
+}
+
+.watch-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg,
+    rgba(111, 147, 255, 0) 42%,
+    rgba(111, 147, 255, 0.04) 50%,
+    rgba(111, 147, 255, 0) 58%);
+  background-size: 260% 100%;
+  animation: watch-sweep 14s linear infinite;
+}
+
+@keyframes watch-sweep {
+  from { background-position: 160% 0; }
+  to { background-position: -60% 0; }
+}
+
+/* Cells sit above the sweep. */
+.watch-cell {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- cell interaction ----------------------------------------------------
+   At rest the grid answers "what is Scout tracking". On hover it answers
+   "how much is here" - the open-opportunity count fades in where the row
+   has room for it. Information appearing on demand is what separates an
+   instrument from a picture of one. */
+.watch-cell-count {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 620;
+  color: var(--s-faint);
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transform: translateX(-3px);
+  transition: opacity var(--s-slow) var(--s-ease), transform var(--s-slow) var(--s-ease);
+}
+
+.watch-cell a:hover .watch-cell-count,
+.watch-cell a:focus-visible .watch-cell-count {
+  opacity: 1;
+  transform: none;
+}
+
+/* A cell with a signal already uses the right-hand slot for its dot, so the
+   count takes the space beside it rather than pushing it off. */
+.watch-cell .watch-cell-dot {
+  margin-left: 0;
+}
+
+.watch-cell a {
+  transition:
+    background-color var(--s-fast) ease,
+    color var(--s-fast) ease,
+    box-shadow var(--s-slow) var(--s-ease);
+}
+
+.watch-cell a:hover {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+}
+
+.watch-cell.is-lead a:hover,
+.watch-cell.is-featured a:hover {
+  box-shadow: inset 0 0 0 1px rgba(111, 147, 255, 0.45);
+}
+
+/* The signal dot brightens when you reach the row that carries it. */
+.watch-cell-dot {
+  transition: box-shadow var(--s-slow) var(--s-ease), transform var(--s-slow) var(--s-ease);
+}
+
+.watch-cell a:hover .watch-cell-dot {
+  transform: scale(1.25);
+  box-shadow: 0 0 14px rgba(111, 147, 255, 1);
+}
+
+/* --- feed interaction ----------------------------------------------------
+   The node is the row's handle on the spine, so it responds when the row
+   does. Growth only - a colour change would fight the unread state that the
+   node already encodes. */
+.feed-item a:hover .feed-node {
+  transform: scale(1.18);
+}
+
+.feed-node {
+  transition: box-shadow var(--s-slow) var(--s-ease), transform var(--s-slow) var(--s-ease);
+}
+
+/* A hovered row gets a hairline at its leading edge - it reads as the row
+   coming forward out of the stream, and it aligns with the spine so the
+   two never look like separate systems. */
+.feed-item a::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  width: 1px;
+  border-radius: 1px;
+  background: linear-gradient(180deg, rgba(111, 147, 255, 0), #6f93ff, rgba(111, 147, 255, 0));
+  opacity: 0;
+  transition: opacity var(--s-slow) var(--s-ease);
+}
+
+.feed-item a:hover::before {
+  opacity: 0.55;
+}
+
+.feed-title,
+.feed-kind {
+  transition: color var(--s-fast) ease, background-color var(--s-fast) ease;
+}
+
+.feed-item a:hover .feed-title {
+  color: #fff;
+}
+
+/* --- focus ---------------------------------------------------------------
+   Every interactive element on this page is a link inside a dark field, so
+   the focus ring has to be visible without being the loudest thing on the
+   screen. Offset inward on grid cells, which have no gap to spare. */
+.watch-cell a:focus-visible {
+  outline: 2px solid var(--s-accent-text);
+  outline-offset: -2px;
+  border-radius: 2px;
+}
+
+.feed-item a:focus-visible,
+.verdict-action a:focus-visible {
+  outline: 2px solid var(--s-accent-text);
+  outline-offset: 2px;
+}
+
+/* --- rhythm --------------------------------------------------------------
+   The three movements of the page were spaced by whatever their own padding
+   happened to add up to. These make the intervals deliberate: the rail sits
+   close to what it describes, the watch floor gets the largest interval
+   because it is the page body, and the feed is separated by a rule
+   rather than by distance. */
+.watchfloor {
+  padding-bottom: 4rem;
+}
+
+.feed {
+  margin-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chain::before,
+  .chain-step::before,
+  .watch-grid::after {
+    animation: none;
+  }
+
+  .chain::before {
+    transform: none;
+  }
+
+  .watch-cell-count {
+    transition: none;
+  }
+
+  .watch-cell a,
+  .watch-cell-dot,
+  .feed-node,
+  .feed-item a::before {
+    transition: none;
+  }
+
+  .feed-item a:hover .feed-node,
+  .watch-cell a:hover .watch-cell-dot {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Dashboard - the verdict follows your attention
+   --------------------------------------------------------------------------
+   The page's two halves have always claimed to be one instrument. This is
+   what makes them one: the watch is the control, the verdict is the readout.
+
+   The whole interaction is carried by three rules - a cross-fade on the
+   readout, a state on the cell you are pointing at, and a mark that keeps
+   the default visible so you can always find your way back. No new colour,
+   no new surface, nothing moves that was not already there.
+   ========================================================================== */
+
+/* At rest the readout arrives in reading order. From the first preview
+   onward it cross-fades instead: re-running a 350ms stagger on every hover
+   would make the page feel slow and busy, where a single 190ms fade reads as
+   "Scout re-focused". */
+.verdict-swap.has-previewed {
+  animation: verdict-refocus 0.19s var(--s-ease) both;
+}
+
+/* Once the readout is a live surface, the stagger on its children has to go
+   with it - they remount together and would otherwise fire in sequence on
+   every hover. */
+.verdict-swap.has-previewed .verdict-eyebrow,
+.verdict-swap.has-previewed .verdict-headline,
+.verdict-swap.has-previewed .verdict-title,
+.verdict-swap.has-previewed .verdict-body,
+.verdict-swap.has-previewed .chain,
+.verdict-swap.has-previewed .verdict-action {
+  animation: none;
+}
+
+/* The chain still resolves on the recommendation, where it is a statement
+   about how Scout reached a conclusion. Under preview it is inspection, not
+   argument, so it simply appears - drawing it again on every hover would
+   turn a meaningful gesture into a tic. */
+.verdict.is-previewing .chain::before {
+  animation: none;
+  transform: none;
+}
+
+.verdict.is-previewing .chain-step::before {
+  animation: none;
+}
+
+@keyframes verdict-refocus {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Preview is a quieter register than the recommendation: the headline is a
+   name rather than a sentence, so it sits a step down in scale and drops the
+   bloom that marks the conclusion. The difference in grammar and weight is
+   what tells you which mode you are in, with no label saying so. */
+.verdict.is-previewing .verdict-headline {
+  font-size: clamp(2.1rem, 3.4vw, 3.1rem);
+  text-shadow: none;
+  color: #e9edf9;
+}
+
+.verdict.is-previewing .verdict-eyebrow {
+  color: var(--s-faint);
+}
+
+.verdict.is-previewing .verdict-eyebrow-count {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--s-muted);
+}
+
+.verdict-body-quiet {
+  color: var(--s-faint);
+}
+
+/* --- the cell you are pointing at ----------------------------------------
+   Distinct from both the pick and the leads, because all three can be on
+   screen at once. The pick keeps its rail and its glow; this is a brightened
+   surface with a full hairline, which reads as "selected" rather than
+   "recommended". */
+.watch-cell.is-previewing {
+  z-index: 2;
+}
+
+.watch-cell.is-previewing a {
+  background: rgba(255, 255, 255, 0.075);
+  color: var(--s-ink);
+  box-shadow: inset 0 0 0 1px rgba(111, 147, 255, 0.5);
+}
+
+.watch-cell.is-previewing .watch-cell-count {
+  opacity: 1;
+  transform: none;
+}
+
+.watch-cell.is-featured.is-previewing a {
+  background: rgba(61, 104, 255, 0.28);
+}
+
+/* While you are inspecting something else, Scout's pick stays legible but
+   steps back - it is no longer what the readout is showing. */
+.watch-grid:hover .watch-cell.is-featured:not(.is-previewing) a {
+  color: #cdd6f4;
+}
+
+.watch-key-pick {
+  background: linear-gradient(180deg, #9db3ff, #5b80ff);
+  box-shadow: 0 0 8px rgba(111, 147, 255, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verdict-swap.has-previewed {
+    animation: none;
+  }
+}
+
+/* The readout is a live surface now, so its height must not depend on which
+   company you are pointing at. Content shifting under the pointer is the
+   single clearest tell that an interaction was added rather than designed;
+   the floor is set from the tallest state so the watch beside it never
+   moves. */
+.verdict {
+  min-height: 24rem;
+}
+
+/* What else is open at the company under the pointer. Caption-scale and
+   ruled, so it reads as a manifest under the headline rather than a second
+   list competing with the feed below. */
+.verdict-others {
+  margin: 0 0 1.9rem;
+  padding: 0;
+  max-width: 46ch;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.verdict-others li {
+  display: flex;
+  gap: 0.7rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--s-muted);
+}
+
+.verdict-others-rank {
+  flex-shrink: 0;
+  color: #6f7896;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1180px) {
+  /* Stacked, the readout sits above the watch and a fixed floor would just
+     be a gap. */
+  .verdict {
+    min-height: 0;
+  }
+}
+
+/* ==========================================================================
+   Dashboard - focus, not swap
+   --------------------------------------------------------------------------
+   The interaction was right and the transition was wrong. A block that
+   cross-fades is content being replaced; attention moving is something else
+   entirely - the frame holds, most of the scene stays put, and one thing
+   becomes the subject while everything around it recedes.
+
+   So this pass removes motion rather than adding it. Four changes:
+
+     1. Depth of field. Pointing at a company dims the rest of the watch
+        instead of only brightening one cell. That single state change is
+        what makes it read as focus - the grid becomes the thing you are
+        looking *through*.
+     2. The sweep stops. Scout is no longer scanning the field, it is
+        looking at one thing, so the ambient scan pauses for as long as you
+        are inspecting. A system that settles reads as deliberate.
+     3. The readout re-reads rather than cross-fades: elements resolve in
+        reading order over 100ms instead of the block blinking at once.
+     4. Direction. Content enters from below when you move further down the
+        ranking, from above when you move up.
+   ========================================================================== */
+
+/* --- depth of field ------------------------------------------------------ */
+.watch-cell a,
+.watch-cell.is-quiet a {
+  transition:
+    background-color var(--s-fast) ease,
+    color var(--s-slow) var(--s-ease),
+    opacity var(--s-slow) var(--s-ease),
+    box-shadow var(--s-slow) var(--s-ease);
+}
+
+.watch-grid.is-focusing .watch-cell:not(.is-previewing) {
+  opacity: 0.4;
+}
+
+/* Scout's pick recedes less than the rest. It is still the answer to the
+   page's question even while you are looking at something else, and losing
+   it entirely would make the default hard to find your way back to. */
+.watch-grid.is-focusing .watch-cell.is-featured:not(.is-previewing) {
+  opacity: 0.66;
+}
+
+.watch-cell {
+  transition: opacity var(--s-slow) var(--s-ease);
+}
+
+/* Scanning stops while something is being read. */
+.watch-grid.is-focusing::after {
+  animation-play-state: paused;
+  opacity: 0;
+  transition: opacity var(--s-slow) var(--s-ease);
+}
+
+.watch-grid::after {
+  transition: opacity var(--s-slow) var(--s-ease);
+}
+
+/* Calmer at rest, too: a longer cycle and a fainter band. The sweep should
+   be something you notice you noticed, not something you watch. */
+.watch-grid::after {
+  background: linear-gradient(105deg,
+    rgba(111, 147, 255, 0) 42%,
+    rgba(111, 147, 255, 0.032) 50%,
+    rgba(111, 147, 255, 0) 58%);
+  animation-duration: 20s;
+}
+
+/* --- the rail settles ---------------------------------------------------- */
+.watch-rail.is-focused .watch-live-dot {
+  animation: none;
+  box-shadow: 0 0 0 3px rgba(61, 104, 255, 0.24), 0 0 16px rgba(61, 104, 255, 0.95);
+}
+
+.watch-rail.is-focused .watch-live {
+  color: var(--s-ink);
+}
+
+.watch-live {
+  transition: color var(--s-slow) var(--s-ease);
+}
+
+.watch-live-dot {
+  transition: box-shadow var(--s-slow) var(--s-ease);
+}
+
+/* --- the readout re-reads ------------------------------------------------
+   Replacing the block cross-fade. Each element resolves in reading order,
+   16ms apart, over about 100ms total - fast enough to feel instant, ordered
+   enough to feel like attention travelling down the panel rather than a
+   panel being replaced. */
+.verdict-swap.has-previewed {
+  animation: none;
+}
+
+.verdict-swap.has-previewed > * {
+  animation: verdict-reread 0.16s var(--s-ease) both;
+}
+
+.verdict-swap.has-previewed > *:nth-child(2) { animation-delay: 0.016s; }
+.verdict-swap.has-previewed > *:nth-child(3) { animation-delay: 0.032s; }
+.verdict-swap.has-previewed > *:nth-child(4) { animation-delay: 0.048s; }
+.verdict-swap.has-previewed > *:nth-child(5) { animation-delay: 0.064s; }
+.verdict-swap.has-previewed > *:nth-child(6) { animation-delay: 0.08s; }
+
+.verdict-swap.has-previewed[data-direction="down"] > * {
+  animation-name: verdict-reread-down;
+}
+
+.verdict-swap.has-previewed[data-direction="up"] > * {
+  animation-name: verdict-reread-up;
+}
+
+@keyframes verdict-reread {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes verdict-reread-down {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes verdict-reread-up {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* The chain is drawn once, on the recommendation, as a statement about how
+   Scout reached a conclusion. Redrawing it every time the pointer returns to
+   the default would turn that statement into a twitch. */
+.verdict-swap.has-previewed .chain::before,
+.verdict-swap.has-previewed .chain-step::before {
+  animation: none;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verdict-swap.has-previewed > * {
+    animation: none;
+  }
+
+  .watch-cell,
+  .watch-cell a,
+  .watch-live,
+  .watch-live-dot,
+  .watch-grid::after {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Companies - the portfolio
+   --------------------------------------------------------------------------
+   Same materials, motion and typography as the Dashboard; a different job.
+
+   The Dashboard is focus: one company, one recommendation, everything else
+   receding. This page is comparison: the whole book at once, every company
+   placed against every other. So where the Dashboard's interaction narrows
+   attention, this one re-orders the field - and the rows physically travel
+   to their new standing, because which companies move when the question
+   changes is the thing a silent re-sort throws away.
+
+   Rank is the design. It is the first element on every row, set in tabular
+   figures at display weight, because the page's whole question is "who is
+   ahead". Administration - archive, restore, delete - stays available but
+   steps out of the reading order; it is not what anyone comes here to see.
+   ========================================================================== */
+
+.portfolio-rail {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.35rem 0 1.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+  animation: verdict-rise 0.55s var(--s-ease) both;
+}
+
+.portfolio-rail-lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--s-muted);
+  white-space: nowrap;
+}
+
+.portfolio-rail-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6f93ff;
+  box-shadow: 0 0 0 3px rgba(61, 104, 255, 0.2), 0 0 12px rgba(61, 104, 255, 0.85);
+  animation: watch-pulse 3.4s var(--s-ease) infinite;
+}
+
+.portfolio-rail-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.portfolio-rail-new {
+  color: var(--s-accent-text);
+}
+
+/* --- head ---------------------------------------------------------------- */
+.portfolio-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 1.6rem;
+  animation: verdict-rise 0.6s var(--s-ease) 0.06s both;
+}
+
+.portfolio-title {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.9rem, 2.6vw, 2.5rem);
+  font-weight: 640;
+  letter-spacing: -0.036em;
+  line-height: 1.05;
+  color: var(--s-ink);
+}
+
+/* The rule the list is currently obeying, stated. A re-rankable list whose
+   ordering rule is invisible is just a list that moves. */
+.portfolio-subtitle {
+  margin: 0;
+  max-width: 56ch;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--s-muted);
+  transition: opacity var(--s-fast) ease;
+}
+
+.portfolio-admin {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+/* --- the lens control ----------------------------------------------------
+   A segmented control, recessed into the page like an instrument setting
+   rather than raised like a row of buttons. The active segment is the only
+   thing here carrying the accent. */
+.portfolio-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  animation: verdict-rise 0.6s var(--s-ease) 0.12s both;
+}
+
+.lens-group {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.app-shell .lens-group .lens {
+  border: none;
+  border-radius: 7px;
+  padding: 0.42rem 0.8rem;
+  background: none;
+  box-shadow: none;
+  font-size: 0.8rem;
+  font-weight: 550;
+  letter-spacing: -0.006em;
+  color: var(--s-muted);
+  transition: color var(--s-fast) ease, background-color var(--s-slow) var(--s-ease);
+}
+
+.app-shell .lens-group .lens:hover:not(.is-active) {
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--s-ink);
+}
+
+.app-shell .lens-group .lens.is-active {
+  background: linear-gradient(180deg, rgba(61, 104, 255, 0.3), rgba(61, 104, 255, 0.16));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 18px -6px rgba(61, 104, 255, 0.8);
+  color: #dce3ff;
+  font-weight: 600;
+}
+
+.app-shell .portfolio-search {
+  flex: 1;
+  min-width: 12rem;
+  max-width: 22rem;
+}
+
+.portfolio-archived {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--s-muted);
+  white-space: nowrap;
+}
+
+/* --- the list ------------------------------------------------------------
+   One ruled column, no cards. Nineteen bordered panels would be nineteen
+   competing surfaces; the comparison only reads if the rows share a plane. */
+.portfolio-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.075);
+  animation: verdict-rise 0.6s var(--s-ease) 0.18s both;
+}
+
+.portfolio-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color var(--s-fast) ease;
+}
+
+.portfolio-row:hover {
+  background: rgba(255, 255, 255, 0.032);
+}
+
+/* Standing, in tabular figures so the column is a true ruler. This is the
+   answer to the page's question, so it gets display weight and sits first. */
+.portfolio-rank {
+  padding: 1rem 0 1rem 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 640;
+  line-height: 1;
+  letter-spacing: -0.038em;
+  color: #7d87a3;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--s-slow) var(--s-ease);
+}
+
+.portfolio-row:hover .portfolio-rank {
+  color: var(--s-muted);
+}
+
+/* The leaders read brighter without a badge - weight and light rather than
+   another coloured chip competing with the accent on the control above. */
+.portfolio-row.is-lead .portfolio-rank {
+  color: #a9bcff;
+}
+
+.portfolio-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.2rem 1.25rem;
+  padding: 0.95rem 0;
+  min-width: 0;
+}
+
+.portfolio-name {
+  grid-column: 1;
+  font-size: 1rem;
+  font-weight: 560;
+  letter-spacing: -0.014em;
+  color: var(--s-ink);
+  transition: color var(--s-fast) ease;
+}
+
+.portfolio-row:hover .portfolio-name {
+  color: #fff;
+}
+
+.portfolio-industry {
+  grid-column: 1;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--s-faint);
+}
+
+/* The justification for the placement. Caption-scale and right-aligned, so
+   the eye reads name-then-evidence and the column of facts stays scannable
+   down the page. */
+.portfolio-facts {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 540;
+  letter-spacing: 0.01em;
+  color: var(--s-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.portfolio-fact.is-quiet {
+  color: #5f6884;
+}
+
+.portfolio-fact.is-lead {
+  color: #a9bcff;
+}
+
+.portfolio-fact.is-signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--s-accent-text);
+}
+
+.portfolio-signal-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6f93ff;
+  box-shadow: 0 0 8px rgba(61, 104, 255, 0.9);
+}
+
+.portfolio-row.is-uncovered .portfolio-name {
+  color: var(--s-muted);
+}
+
+.portfolio-row.is-archived {
+  opacity: 0.55;
+}
+
+/* --- administration, out of the way --------------------------------------
+   Present on every row, revealed on hover or keyboard focus. Archive and
+   Delete are not what anyone opens this page to do, and a column of them
+   down the right edge would say they are. */
+.portfolio-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-right: 0.25rem;
+  opacity: 0;
+  transition: opacity var(--s-slow) var(--s-ease);
+}
+
+.portfolio-row:hover .portfolio-actions,
+.portfolio-actions:focus-within {
+  opacity: 1;
+}
+
+.app-shell .portfolio-actions button {
+  padding: 0.32rem 0.6rem;
+  font-size: 0.75rem;
+}
+
+/* Keyboard users never hover, so the actions must be reachable without it. */
+.portfolio-actions button:focus-visible {
+  outline: 2px solid var(--s-accent-text);
+  outline-offset: 2px;
+}
+
+.portfolio-link:focus-visible {
+  outline: 2px solid var(--s-accent-text);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+/* --- run scout, add company ---------------------------------------------
+   Both are episodic: they appear when in use and are not part of the
+   page's resting composition. */
+.run-scout-panel,
+.portfolio-form {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.4rem;
+  border: 1px solid var(--s-line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.025));
+  box-shadow: var(--s-shadow-2);
+  animation: verdict-rise 0.4s var(--s-ease) both;
+}
+
+.run-scout-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 0.85rem;
+  color: var(--s-muted);
+}
+
+.run-scout-progress progress {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  accent-color: var(--s-accent);
+}
+
+.run-scout-summary {
+  margin: 0.85rem 0 0;
+  font-size: 0.9rem;
+  color: var(--s-ink);
+}
+
+.run-scout-list {
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.run-scout-list > li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+  font-size: 0.85rem;
+  color: var(--s-text);
+}
+
+.run-scout-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.run-scout-list > li.is-refreshed .run-scout-status {
+  color: var(--s-success);
+}
+
+.run-scout-list > li.is-failed .run-scout-status {
+  color: var(--s-danger);
+}
+
+.run-scout-detail {
+  color: var(--s-faint);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 860px) {
+  .portfolio-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .portfolio-row {
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+  }
+
+  /* The facts stack under the name rather than being squeezed into a
+     second column a phone cannot spare. */
+  .portfolio-link {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .portfolio-facts {
+    grid-column: 1;
+    grid-row: auto;
+    flex-wrap: wrap;
+    white-space: normal;
+    margin-top: 0.3rem;
+  }
+
+  .portfolio-actions {
+    grid-column: 2;
+  }
+}
+
+/* Reveal-on-hover is a pointer affordance. The right signal is the input
+   device, not the viewport: a touch tablet at 900px has no hover either,
+   and a narrow window on a laptop still does. */
+@media (hover: none) {
+  .portfolio-actions {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-rail,
+  .portfolio-rail-dot,
+  .portfolio-head,
+  .portfolio-controls,
+  .portfolio-list,
+  .run-scout-panel,
+  .portfolio-form {
+    animation: none;
+  }
+
+  .portfolio-row,
+  .portfolio-rank,
+  .portfolio-actions,
+  .app-shell .lens-group .lens {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Company Intelligence - the case file
+   --------------------------------------------------------------------------
+   Dashboard = briefing room. Companies = portfolio view. This is the case
+   file on one account, and its personality is depth: it is the only page
+   where a conclusion can be interrogated rather than just read.
+
+   The page used to be thirteen equal-weight cards - Overview, Key People,
+   Technology Stack, initiatives, three charts, playbooks, briefs, drafts,
+   reports - with no argument about which mattered, and none of them was the
+   opportunity. Everything below is generated *from* opportunities, so the
+   case file was missing the case. This section leads, and the rest becomes
+   supporting material by contrast rather than by deletion.
+
+   The signature interaction is the thread: pull any conclusion open and see
+   what Scout actually recorded when it drew it.
+   ========================================================================== */
+
+.casefile {
+  margin-bottom: 2rem;
+  animation: verdict-rise 0.6s var(--s-ease) 0.04s both;
+}
+
+.casefile-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.1rem;
+}
+
+.casefile-heading {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 640;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.casefile-standing {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--s-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.casefile-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.075);
+}
+
+.casefile-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* The row is a control, so it is a real button - keyboard-operable and
+   announcing its own expanded state - rather than a div with a click. */
+.app-shell .casefile-summary {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0 0.75rem;
+  width: 100%;
+  padding: 1.1rem 0.9rem 1.1rem 0.35rem;
+  margin-inline: -0.35rem;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  box-shadow: none;
+  text-align: left;
+  transition: background-color var(--s-fast) ease;
+}
+
+.app-shell .casefile-summary:hover {
+  background: rgba(255, 255, 255, 0.032);
+}
+
+.casefile-index {
+  font-size: 1.2rem;
+  font-weight: 640;
+  line-height: 1.25;
+  letter-spacing: -0.035em;
+  color: #7d87a3;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--s-slow) var(--s-ease);
+}
+
+.casefile-item.is-open .casefile-index,
+.app-shell .casefile-summary:hover .casefile-index {
+  color: #a9bcff;
+}
+
+.casefile-body {
+  min-width: 0;
+  display: block;
+}
+
+.casefile-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 560;
+  line-height: 1.4;
+  letter-spacing: -0.014em;
+  color: var(--s-ink);
+}
+
+.casefile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.casefile-tag {
+  padding: 0.16rem 0.45rem;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #b6c0d8;
+}
+
+.casefile-tag.is-lead {
+  background: rgba(61, 104, 255, 0.17);
+  color: #a9bcff;
+}
+
+/* --- the pull ------------------------------------------------------------
+   Named rather than an anonymous chevron. "Why" states what opening the row
+   gets you, which is the whole promise of the page. */
+.casefile-pull {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding-top: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 580;
+  letter-spacing: 0.02em;
+  color: var(--s-faint);
+  white-space: nowrap;
+  transition: color var(--s-fast) ease;
+}
+
+.app-shell .casefile-summary:hover .casefile-pull,
+.casefile-item.is-open .casefile-pull {
+  color: var(--s-accent-text);
+}
+
+.casefile-chevron {
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform var(--s-slow) var(--s-ease);
+}
+
+.casefile-item.is-open .casefile-chevron {
+  transform: rotate(-135deg) translate(-2px, -2px);
+}
+
+/* --- the thread ----------------------------------------------------------
+   grid-template-rows 0fr -> 1fr animates a genuinely unknown height without
+   measuring anything in JavaScript, which is what makes this smooth for a
+   block whose content varies from one paragraph to six. */
+.casefile-thread {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--s-slow) var(--s-ease);
+}
+
+.casefile-item.is-open .casefile-thread {
+  grid-template-rows: 1fr;
+}
+
+.casefile-thread-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.casefile-item.is-open .casefile-thread-inner {
+  /* The inset rail ties the opened evidence to the row it belongs to, so a
+     long thread never reads as a sibling block floating under the list. */
+  margin: 0 0 1.35rem 3.25rem;
+  padding-left: 1.15rem;
+  border-left: 1px solid rgba(111, 147, 255, 0.32);
+}
+
+.thread-block + .thread-block {
+  margin-top: 1.35rem;
+}
+
+.thread-label {
+  margin: 0 0 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 640;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+/* Scout's own recorded reasoning, at reading measure. This is the substance
+   of the page - the one place the product's "grounded in evidence" claim is
+   answerable - so it is set as prose, not as chips. */
+.thread-reasoning {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 74ch;
+}
+
+.thread-reasoning > li {
+  position: relative;
+  padding-left: 1rem;
+  margin-bottom: 0.7rem;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--s-muted);
+}
+
+.thread-reasoning > li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.68em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(111, 147, 255, 0.55);
+}
+
+.thread-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.thread-evidence > li {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.thread-evidence-count {
+  font-size: 0.9rem;
+  font-weight: 640;
+  color: var(--s-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.thread-evidence-type {
+  font-size: 0.7rem;
+  font-weight: 580;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--s-muted);
+}
+
+/* The limit, stated. A product whose claim is traceability should say where
+   the trace stops rather than letting the absence pass as completeness. */
+.thread-note {
+  margin: 0.7rem 0 0;
+  max-width: 62ch;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: #6f7896;
+}
+
+.thread-services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.thread-services > li {
+  padding: 0.28rem 0.6rem;
+  border: 1px solid rgba(61, 104, 255, 0.28);
+  border-radius: var(--s-radius-pill);
+  background: rgba(61, 104, 255, 0.11);
+  font-size: 0.78rem;
+  font-weight: 540;
+  color: #b9c8ff;
+}
+
+/* --- everything else steps back -----------------------------------------
+   The supporting material is not deleted - every workflow still lives here -
+   but it stops competing with the case. */
+.company-details-page > .card > .card-title {
+  font-size: 0.7rem;
+  font-weight: 620;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .casefile,
+  .casefile-thread,
+  .casefile-chevron,
+  .casefile-index,
+  .app-shell .casefile-summary {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* --- the assessment ------------------------------------------------------
+   The page opens with Scout's read on the account rather than with a list.
+   Set as prose at reading measure, because it is an argument, not a field:
+   this is the paragraph that tells you what kind of company you are looking
+   at and what state it is in. The opportunities below are what it led to. */
+.assessment {
+  margin-bottom: 2.25rem;
+  animation: verdict-rise 0.6s var(--s-ease) both;
+}
+
+.assessment-heading {
+  margin: 0 0 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 640;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.assessment-narrative {
+  margin: 0 0 0.85rem;
+  max-width: 76ch;
+  font-size: 1.02rem;
+  line-height: 1.7;
+  letter-spacing: -0.006em;
+  color: #d5dcec;
+}
+
+.assessment-meta {
+  margin: 0;
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  color: #6f7896;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- where the arc lands -------------------------------------------------
+   Assessment, then the case, then the move. Sits inside the case-file
+   section rather than as a separate card, because it is the conclusion of
+   that argument and not another topic. */
+.assessment-next {
+  margin-top: 1.85rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.075);
+}
+
+.assessment-next-heading {
+  margin: 0 0 0.9rem;
+  font-size: 0.7rem;
+  font-weight: 640;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--s-accent-text);
+}
+
+.assessment-actions {
+  margin: 0;
+  padding: 0;
+  max-width: 74ch;
+  list-style: none;
+  counter-reset: none;
+}
+
+.assessment-actions > li {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  gap: 0.7rem;
+  padding: 0.55rem 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--s-text);
+}
+
+/* Numbered because these are a sequence Scout proposes, in order - not a
+   set of equivalent options. The numbering encodes something true. */
+.assessment-action-index {
+  font-size: 0.72rem;
+  font-weight: 640;
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+  color: #6f93ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.assessment-next-note {
+  margin: 0.9rem 0 0;
+  max-width: 62ch;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: #6f7896;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assessment {
+    animation: none;
+  }
+}
+
+/* --- the three movements -------------------------------------------------
+   The case file used to be twelve cards in whatever order they were built.
+   They are now grouped by the question they answer - who this account is,
+   how it is moving, and what Scout can produce from that - because a reader
+   who has just absorbed an assessment needs the supporting material in the
+   order they would ask for it, not in commit order.
+
+   The headings are rules with a label, not panels. They divide without
+   adding another surface to a page that already has plenty. */
+.section-group {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 3rem 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 640;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--s-muted);
+}
+
+.section-group::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.02) 60%,
+    rgba(255, 255, 255, 0));
+}
+
+.section-group-note {
+  margin: 0 0 1.15rem;
+  max-width: 64ch;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #6f7896;
+}
+
+/* The first movement follows the case file directly, so it does not need
+   the full interval the later two use to separate them from what precedes. */
+.casefile + .section-group {
+  margin-top: 2.25rem;
+}
+
+/* ==========================================================================
+   Analytics - the demand map
+   --------------------------------------------------------------------------
+   Another room, not another dashboard.
+
+   Every other page in Scout reads account -> work: which company, then what
+   Scout found there. This one reads work -> accounts. It answers a question
+   none of the others can: what kind of business is Scout actually finding,
+   and where is the demand concentrated? That is a practice question rather
+   than a seller's, and the inversion of the axis is the page's whole
+   identity - so the signature interaction *is* the inversion. Choose a
+   service line and the same ranked instrument re-measures against a
+   different subject.
+
+   Visually it is deliberately quieter than the Dashboard. No hero, no
+   display type: this is an instrument panel, and the bars are the content.
+   ========================================================================== */
+
+.demand-rail {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.35rem 0 1.9rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+  animation: verdict-rise 0.55s var(--s-ease) both;
+}
+
+.demand-rail-lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--s-muted);
+  white-space: nowrap;
+}
+
+.demand-rail-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6f93ff;
+  box-shadow: 0 0 0 3px rgba(61, 104, 255, 0.2), 0 0 12px rgba(61, 104, 255, 0.85);
+  animation: watch-pulse 3.4s var(--s-ease) infinite;
+}
+
+.demand-rail-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.demand-head {
+  margin-bottom: 1.9rem;
+  animation: verdict-rise 0.6s var(--s-ease) 0.06s both;
+}
+
+/* Smaller than the Dashboard's headline on purpose. This page is read, not
+   arrived at - a display-scale title here would make it a second briefing
+   screen, which is precisely what it must not be. */
+.demand-title {
+  margin: 0 0 0.45rem;
+  font-size: clamp(1.6rem, 2.1vw, 2.1rem);
+  font-weight: 640;
+  letter-spacing: -0.032em;
+  line-height: 1.1;
+  color: var(--s-ink);
+}
+
+.demand-subtitle {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--s-muted);
+}
+
+.app-shell .demand-back {
+  margin-top: 1rem;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 550;
+  color: var(--s-accent-text);
+  background: rgba(61, 104, 255, 0.1);
+  border-color: rgba(61, 104, 255, 0.28);
+}
+
+.app-shell .demand-back:hover:not(:disabled) {
+  background: rgba(61, 104, 255, 0.18);
+  border-color: rgba(61, 104, 255, 0.45);
+}
+
+/* --- the instrument ------------------------------------------------------ */
+.demand-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: verdict-rise 0.6s var(--s-ease) 0.12s both;
+}
+
+.demand-row {
+  padding: 1.15rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.demand-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* The service row is a control, because choosing it flips the whole page. */
+.app-shell .demand-row-head.is-control {
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  text-align: left;
+  border-radius: 6px;
+}
+
+.demand-name {
+  font-size: 1rem;
+  font-weight: 560;
+  letter-spacing: -0.014em;
+  color: var(--s-ink);
+  transition: color var(--s-fast) ease;
+}
+
+.app-shell .demand-row-head.is-control:hover .demand-name {
+  color: #fff;
+}
+
+.demand-count {
+  font-size: 1.15rem;
+  font-weight: 640;
+  letter-spacing: -0.03em;
+  color: var(--s-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The bar is the page's content, not decoration - so it gets the accent and
+   a lit leading edge, and nothing else on the row competes with it. */
+.demand-track {
+  display: block;
+  height: 6px;
+  margin: 0.6rem 0 0.55rem;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.045);
+  overflow: hidden;
+}
+
+.demand-bar {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(61, 104, 255, 0.55), #6f93ff);
+  box-shadow: 0 0 14px -2px rgba(61, 104, 255, 0.75);
+}
+
+.demand-meta {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--s-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.demand-depth {
+  color: var(--s-muted);
+}
+
+.demand-lead-tag {
+  margin-left: 0.5rem;
+  padding: 0.14rem 0.4rem;
+  border-radius: 5px;
+  background: rgba(61, 104, 255, 0.16);
+  font-size: 0.66rem;
+  font-weight: 620;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #a9bcff;
+}
+
+/* --- inverted view -------------------------------------------------------- */
+.demand-list.is-accounts .demand-name {
+  color: var(--s-ink);
+}
+
+.demand-opportunities {
+  margin: 0.35rem 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 76ch;
+}
+
+.demand-opportunities > li {
+  position: relative;
+  padding-left: 0.95rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--s-muted);
+}
+
+.demand-opportunities > li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(111, 147, 255, 0.5);
+}
+
+.demand-actions {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+  opacity: 0;
+  transition: opacity var(--s-slow) var(--s-ease);
+}
+
+.demand-row:hover .demand-actions,
+.demand-actions:focus-within {
+  opacity: 1;
+}
+
+.app-shell .demand-actions button {
+  padding: 0.32rem 0.6rem;
+  font-size: 0.75rem;
+}
+
+@media (hover: none) {
+  .demand-actions {
+    opacity: 1;
+  }
+}
+
+/* --- what nobody is asking for -------------------------------------------
+   The reason a practice lead opens this page at all. Set apart rather than
+   ranked, because the point is not their order - it is that they are all
+   near zero. */
+.demand-quiet {
+  margin-top: 2.5rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.075);
+  animation: verdict-rise 0.6s var(--s-ease) 0.2s both;
+}
+
+.demand-quiet-heading {
+  margin: 0 0 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 640;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.demand-quiet-note {
+  margin: 0 0 1rem;
+  max-width: 60ch;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: #6f7896;
+}
+
+.demand-quiet-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-shell .demand-quiet-list button {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 520;
+  color: var(--s-muted);
+}
+
+.demand-quiet-count {
+  font-size: 0.75rem;
+  font-weight: 640;
+  color: #6f7896;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demand-rail,
+  .demand-rail-dot,
+  .demand-head,
+  .demand-list,
+  .demand-quiet {
+    animation: none;
+  }
+
+  .demand-actions,
+  .demand-name {
+    transition: none;
+  }
+}
+
+/* --- observations --------------------------------------------------------
+   The page leads with what Scout noticed; the bars below are the evidence
+   for it. A page of charts is a report, and nobody opens an intelligence
+   product to read a report. The figure is set large and the claim beside it
+   in plain language, so each line reads as a sentence with a number in it
+   rather than as a statistic with a caption. */
+.observations {
+  margin: 0 0 2.25rem;
+  padding: 0;
+  list-style: none;
+  max-width: 74ch;
+  animation: verdict-rise 0.6s var(--s-ease) 0.1s both;
+}
+
+.observations > li {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.observations > li:last-child {
+  border-bottom: none;
+}
+
+.observation-figure {
+  font-size: 1.5rem;
+  font-weight: 640;
+  line-height: 1;
+  letter-spacing: -0.038em;
+  color: #a9bcff;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.observation-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--s-text);
+}
+
+/* --- the capability's own pattern ----------------------------------------
+   The inverted view answers "how does this capability behave", not just
+   "who wants it" - what it travels with, and how Scout finds it. Comparing
+   patterns rather than accounts is the point of the room. */
+.pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  gap: 2rem;
+  margin-bottom: 2.25rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+  animation: verdict-rise 0.5s var(--s-ease) both;
+}
+
+.pattern-label {
+  margin: 0 0 0.9rem;
+  font-size: 0.7rem;
+  font-weight: 640;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.pattern-accounts-label {
+  margin-bottom: 0.4rem;
+}
+
+.pattern-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6f7896;
+}
+
+/* Each pairing is itself a lens - following one is how you traverse the
+   capability graph rather than backing out to the map every time. */
+.pattern-pairs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pattern-pairs > li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.app-shell .pattern-pairs button {
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  font-size: 0.88rem;
+  font-weight: 520;
+  text-align: left;
+  color: var(--s-muted);
+  transition: color var(--s-fast) ease;
+}
+
+.app-shell .pattern-pairs button:hover {
+  color: var(--s-accent-text);
+}
+
+.pattern-pair-count {
+  font-size: 0.85rem;
+  font-weight: 620;
+  color: var(--s-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.pattern-mix {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pattern-mix > li {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) 2.5rem;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.3rem 0;
+}
+
+.pattern-mix-type {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--s-muted);
+}
+
+.pattern-mix-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.045);
+  overflow: hidden;
+}
+
+.pattern-mix-bar {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(61, 104, 255, 0.45), #6f93ff);
+}
+
+.pattern-mix-share {
+  font-size: 0.78rem;
+  color: var(--s-faint);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .observations,
+  .pattern-grid {
+    animation: none;
+  }
+
+  .app-shell .pattern-pairs button {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Sales Enablement - the work queue
+   --------------------------------------------------------------------------
+   The only room in the product about work rather than understanding. Every
+   other page answers a question about accounts or patterns; this one answers
+   "what has Scout prepared, and what is waiting on me?"
+
+   That makes it the one page whose headline is a count of things blocked on
+   a person. In production all four outreach drafts sit unread at status
+   Draft, and the page says so in its title rather than making you find it -
+   the old page hid the entire contents behind a company dropdown, which for
+   a queue is the wrong shape entirely.
+
+   Visually: flatter and denser than the other rooms. A queue is scanned and
+   worked through, not contemplated, so there is no hero and the rows are
+   close together.
+   ========================================================================== */
+
+.queue-rail {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.35rem 0 1.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+  animation: verdict-rise 0.55s var(--s-ease) both;
+}
+
+.queue-rail-lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--s-muted);
+  white-space: nowrap;
+}
+
+.queue-rail-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6f93ff;
+  box-shadow: 0 0 0 3px rgba(61, 104, 255, 0.2), 0 0 12px rgba(61, 104, 255, 0.85);
+  animation: watch-pulse 3.4s var(--s-ease) infinite;
+}
+
+.queue-rail-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.queue-head {
+  margin-bottom: 2rem;
+  animation: verdict-rise 0.6s var(--s-ease) 0.06s both;
+}
+
+/* The title is the count of what is blocked. It is the only number on the
+   page that changes what someone does next. */
+.queue-title {
+  margin: 0 0 0.5rem;
+  max-width: 22ch;
+  font-size: clamp(1.75rem, 2.4vw, 2.35rem);
+  font-weight: 645;
+  letter-spacing: -0.036em;
+  line-height: 1.1;
+  color: var(--s-ink);
+}
+
+.queue-subtitle {
+  margin: 0;
+  max-width: 64ch;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--s-muted);
+}
+
+.queue-section-label {
+  margin: 0 0 0.9rem;
+  font-size: 0.7rem;
+  font-weight: 640;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.queue-awaiting,
+.queue-prepared,
+.queue-gap {
+  margin-bottom: 2.5rem;
+  animation: verdict-rise 0.6s var(--s-ease) 0.12s both;
+}
+
+.queue-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.queue-item {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+  transition: background-color var(--s-fast) ease;
+}
+
+.queue-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.queue-item-body {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.15rem 1rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0.85rem 0.75rem 0.85rem 0.35rem;
+  margin-left: -0.35rem;
+  border-radius: 8px;
+}
+
+/* The kind is a fixed column so the queue can be read down the left edge -
+   what sort of thing each row is matters more here than anywhere else. */
+.queue-kind {
+  grid-row: 1 / span 2;
+  align-self: center;
+  padding: 0.18rem 0.45rem;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.66rem;
+  font-weight: 620;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b6c0d8;
+  text-align: center;
+}
+
+/* Blocked on a person: the one state on this page that means someone has to
+   do something. It is the only place the accent appears in the list. */
+.queue-kind.is-blocked {
+  background: rgba(61, 104, 255, 0.18);
+  color: #a9bcff;
+}
+
+.queue-item-title {
+  grid-column: 2;
+  font-size: 0.94rem;
+  font-weight: 545;
+  line-height: 1.4;
+  letter-spacing: -0.012em;
+  color: var(--s-ink);
+}
+
+.queue-item-meta {
+  grid-column: 2;
+  font-size: 0.78rem;
+  color: var(--s-faint);
+}
+
+.queue-item-company {
+  color: var(--s-muted);
+}
+
+.queue-item-action {
+  flex-shrink: 0;
+  padding-right: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 560;
+  white-space: nowrap;
+  color: var(--s-accent-text);
+}
+
+.queue-list.is-awaiting {
+  border-top-color: rgba(61, 104, 255, 0.3);
+}
+
+/* --- the gap -------------------------------------------------------------
+   Where the useful move is to start something rather than finish it. The
+   only section on the page whose buttons cost AI credits, so it states that
+   before you press one. */
+.queue-gap-note {
+  margin: 0 0 1.1rem;
+  max-width: 66ch;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #6f7896;
+}
+
+.queue-gap-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.queue-gap-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.queue-gap-company {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  min-width: 0;
+  font-size: 0.94rem;
+  font-weight: 545;
+  color: var(--s-ink);
+}
+
+.queue-gap-count {
+  font-size: 0.76rem;
+  font-weight: 560;
+  color: var(--s-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.queue-gap-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--s-slow) var(--s-ease);
+}
+
+.queue-gap-row:hover .queue-gap-actions,
+.queue-gap-actions:focus-within {
+  opacity: 1;
+}
+
+.app-shell .queue-gap-actions button {
+  padding: 0.32rem 0.6rem;
+  font-size: 0.75rem;
+}
+
+@media (hover: none) {
+  .queue-gap-actions {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 720px) {
+  .queue-item-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .queue-kind {
+    grid-row: auto;
+    justify-self: start;
+    margin-bottom: 0.3rem;
+  }
+
+  .queue-item-title,
+  .queue-item-meta {
+    grid-column: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .queue-rail,
+  .queue-rail-dot,
+  .queue-head,
+  .queue-awaiting,
+  .queue-prepared,
+  .queue-gap {
+    animation: none;
+  }
+
+  .queue-item,
+  .queue-gap-actions {
+    transition: none;
+  }
+}
+
+/* The queue fills in rather than blocking. Stated plainly so a short list
+   is never mistaken for a complete one. */
+.queue-gathering {
+  margin: 0 0 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 560;
+  letter-spacing: 0.06em;
+  color: #6f7896;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- the pipeline --------------------------------------------------------
+   The page's spine, and the thing that makes it a workflow rather than a
+   list of documents. Stages read left to right toward a customer, each
+   carrying how many accounts are sitting in it. A stage with nothing in it
+   is disabled rather than hidden, because an empty "Sent" is the single
+   most informative thing on this page: in production nothing has ever
+   reached a customer, and a funnel that quietly omitted the empty end
+   would hide exactly that.
+
+   Selecting a stage is the signature interaction: you are not inspecting a
+   document, you are picking up the part of the pipeline that has stopped. */
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 2rem;
+  padding: 0;
+  list-style: none;
+  animation: verdict-rise 0.6s var(--s-ease) 0.1s both;
+}
+
+.app-shell .pipeline-stage button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.022);
+  box-shadow: none;
+  text-align: left;
+  transition:
+    background-color var(--s-fast) ease,
+    border-color var(--s-fast) ease,
+    box-shadow var(--s-slow) var(--s-ease);
+}
+
+.app-shell .pipeline-stage button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.app-shell .pipeline-stage.is-active button {
+  background: linear-gradient(180deg, rgba(61, 104, 255, 0.26), rgba(61, 104, 255, 0.13));
+  border-color: rgba(111, 147, 255, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 20px -6px rgba(61, 104, 255, 0.8);
+}
+
+/* An empty stage is still information - it just cannot be worked. */
+.app-shell .pipeline-stage button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.pipeline-count {
+  font-size: 1.5rem;
+  font-weight: 640;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--s-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.pipeline-stage.is-active .pipeline-count {
+  color: #dce3ff;
+}
+
+.pipeline-label {
+  font-size: 0.72rem;
+  font-weight: 580;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+  color: var(--s-faint);
+}
+
+.pipeline-stage.is-active .pipeline-label {
+  color: #a9bcff;
+}
+
+/* --- the stage being worked ---------------------------------------------- */
+.stage-panel {
+  animation: verdict-rise 0.5s var(--s-ease) both;
+}
+
+.stage-panel-count {
+  margin-left: 0.7rem;
+  font-weight: 560;
+  letter-spacing: 0.06em;
+  color: #6f7896;
+}
+
+.stage-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.stage-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 1rem 0.6rem 1rem 0.35rem;
+  margin-inline: -0.35rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+  transition: background-color var(--s-fast) ease;
+}
+
+.stage-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.stage-row-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.stage-company {
+  font-size: 1rem;
+  font-weight: 560;
+  letter-spacing: -0.014em;
+  color: var(--s-ink);
+}
+
+.stage-status {
+  margin: 0.2rem 0 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--s-muted);
+}
+
+/* Evidence that the account has been worked - deliberately small, because
+   the documents are proof of progress rather than the point. */
+.stage-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stage-evidence > li > a,
+.stage-evidence-more {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 5px;
+  font-size: 0.68rem;
+  font-weight: 580;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #8d97b2;
+  transition: color var(--s-fast) ease, border-color var(--s-fast) ease;
+}
+
+.stage-evidence > li > a:hover {
+  color: var(--s-accent-text);
+  border-color: rgba(111, 147, 255, 0.4);
+}
+
+.stage-evidence-more {
+  color: #6f7896;
+}
+
+/* One move forward, always in the same place on the row, so the column of
+   next actions can be read straight down. */
+.stage-advance {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 560;
+  white-space: nowrap;
+  color: var(--s-accent-text);
+}
+
+.app-shell button.stage-advance.is-button {
+  padding: 0.4rem 0.75rem;
+  border-color: rgba(61, 104, 255, 0.32);
+  background: rgba(61, 104, 255, 0.12);
+  color: #b9c8ff;
+}
+
+.app-shell button.stage-advance.is-button:hover:not(:disabled) {
+  background: rgba(61, 104, 255, 0.22);
+  border-color: rgba(61, 104, 255, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pipeline,
+  .stage-panel {
+    animation: none;
+  }
+
+  .app-shell .pipeline-stage button,
+  .stage-row,
+  .stage-evidence > li > a {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Ask Scout - have we done this before?
+   --------------------------------------------------------------------------
+   The only room where the user sets the agenda. Every other page decides what
+   to show you; this one answers what you asked, across the whole corpus - 81
+   ingested case studies of delivered work plus the capability model - rather
+   than one account's record.
+
+   Which makes checkability the whole design problem. An answer about your own
+   delivery history that you cannot verify is worse than no answer, and the
+   backend was already returning everything needed to verify it: inline [1]
+   markers, the passage behind each, and a relevance score. The page was
+   rendering the markers as dead text and hiding the passages in a collapsed
+   drawer, so the reader had to map claim to source by counting.
+
+   Here the marker is the interaction. It is a real button, it says which
+   source it opens, and pressing it puts the passage that produced that
+   sentence directly underneath - scored, and linked into the Library.
+   ========================================================================== */
+
+.ask-rail {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.35rem 0 1.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+  animation: verdict-rise 0.55s var(--s-ease) both;
+}
+
+.ask-rail-lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--s-muted);
+  white-space: nowrap;
+}
+
+.ask-rail-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6f93ff;
+  box-shadow: 0 0 0 3px rgba(61, 104, 255, 0.2), 0 0 12px rgba(61, 104, 255, 0.85);
+  animation: watch-pulse 3.4s var(--s-ease) infinite;
+}
+
+.ask-rail-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.ask-head {
+  margin-bottom: 1.75rem;
+  animation: verdict-rise 0.6s var(--s-ease) 0.06s both;
+}
+
+.ask-title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.85rem, 2.5vw, 2.4rem);
+  font-weight: 645;
+  letter-spacing: -0.036em;
+  line-height: 1.1;
+  color: var(--s-ink);
+}
+
+.ask-subtitle {
+  margin: 0;
+  max-width: 66ch;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: var(--s-muted);
+}
+
+/* --- the question ---------------------------------------------------------
+   The input is the page's primary control, so it is given real presence
+   rather than the default field size used everywhere else. */
+.ask-form {
+  margin-bottom: 2.25rem;
+  animation: verdict-rise 0.6s var(--s-ease) 0.12s both;
+}
+
+.ask-field {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.app-shell .ask-field input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.98rem;
+}
+
+.app-shell .ask-field button {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.92rem;
+}
+
+.ask-scope {
+  margin-top: 0.7rem;
+  font-size: 0.8rem;
+  color: var(--s-faint);
+}
+
+.ask-scope-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-shell .ask-scope-picker select {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.78rem;
+}
+
+.ask-scope-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--s-muted);
+}
+
+.app-shell .ask-scope-active button {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
+}
+
+/* --- the thread ---------------------------------------------------------- */
+.ask-thread {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ask-turn {
+  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ask-turn:last-child {
+  border-bottom: none;
+}
+
+/* The question is set as the user's own voice - quieter and smaller than the
+   answer, because on this page the answer is the content. */
+.ask-question {
+  margin: 0 0 1rem;
+  padding-left: 0.9rem;
+  border-left: 2px solid rgba(111, 147, 255, 0.4);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--s-muted);
+}
+
+.ask-answer {
+  max-width: 78ch;
+  font-size: 0.97rem;
+  line-height: 1.72;
+  color: var(--s-text);
+}
+
+.ask-answer p,
+.ask-answer ul,
+.ask-answer ol {
+  margin: 0 0 0.9rem;
+}
+
+.ask-answer strong {
+  color: var(--s-ink);
+  font-weight: 600;
+}
+
+.ask-answer li {
+  margin-bottom: 0.4rem;
+}
+
+/* --- the citation --------------------------------------------------------
+   A real button, sized to sit in running text without breaking the line
+   rhythm. This is the page's signature: the number in the sentence is the
+   control that shows you where the sentence came from. */
+.app-shell button.cite {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.25rem;
+  margin: 0 0.12rem;
+  vertical-align: baseline;
+  border: 1px solid rgba(111, 147, 255, 0.4);
+  border-radius: 4px;
+  background: rgba(61, 104, 255, 0.14);
+  box-shadow: none;
+  font-size: 0.68rem;
+  font-weight: 640;
+  line-height: 1;
+  color: #a9bcff;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color var(--s-fast) ease,
+    border-color var(--s-fast) ease,
+    color var(--s-fast) ease;
+}
+
+.app-shell button.cite:hover {
+  background: rgba(61, 104, 255, 0.3);
+  border-color: rgba(111, 147, 255, 0.7);
+  color: #dce3ff;
+}
+
+.app-shell button.cite.is-open {
+  background: #3d68ff;
+  border-color: #6f93ff;
+  color: #fff;
+  box-shadow: 0 0 14px -2px rgba(61, 104, 255, 0.9);
+}
+
+/* --- the passage ---------------------------------------------------------
+   Raised off the answer, because it is a different kind of thing: not Scout
+   talking, but the source text Scout read. */
+.cite-panel {
+  margin: 1.1rem 0 0;
+  padding: 1rem 1.15rem;
+  border: 1px solid rgba(111, 147, 255, 0.28);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(61, 104, 255, 0.09), rgba(61, 104, 255, 0.035));
+  box-shadow: var(--s-shadow-2);
+  animation: verdict-rise 0.24s var(--s-ease) both;
+}
+
+.cite-panel-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-bottom: 0.7rem;
+}
+
+.cite-panel-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 4px;
+  background: #3d68ff;
+  font-size: 0.7rem;
+  font-weight: 640;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.cite-panel-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.88rem;
+  font-weight: 570;
+  color: var(--s-ink);
+}
+
+/* The retrieval score, shown rather than hidden. A citation without a
+   strength is an assertion; with one it is a measurement. */
+.cite-panel-relevance {
+  padding: 0.14rem 0.45rem;
+  border-radius: var(--s-radius-pill);
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 0.68rem;
+  font-weight: 620;
+  letter-spacing: 0.04em;
+  color: #b6c0d8;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cite-panel-content {
+  margin: 0;
+  max-width: 80ch;
+  font-size: 0.87rem;
+  line-height: 1.68;
+  color: var(--s-muted);
+}
+
+.ask-grounding {
+  margin: 1rem 0 0;
+  font-size: 0.79rem;
+  line-height: 1.55;
+  color: #6f7896;
+}
+
+.ask-related {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.ask-related-label {
+  font-size: 0.68rem;
+  font-weight: 620;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.ask-related a {
+  padding: 0.22rem 0.55rem;
+  border: 1px solid var(--s-line);
+  border-radius: var(--s-radius-pill);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.8rem;
+  color: var(--s-muted);
+}
+
+.ask-related a:hover {
+  color: var(--s-accent-text);
+  border-color: rgba(111, 147, 255, 0.4);
+}
+
+.ask-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  .ask-field {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ask-rail,
+  .ask-rail-dot,
+  .ask-head,
+  .ask-form,
+  .cite-panel {
+    animation: none;
+  }
+
+  .app-shell button.cite {
+    transition: none;
   }
 }
