@@ -9291,14 +9291,14 @@ body {
 
 /* --- panels ------------------------------------------------------------- */
 
-.admin-panel {
+.ops-panel {
   padding: 1.4rem 1.5rem;
   border: 1px solid var(--s-line);
   border-radius: 12px;
   background: var(--s-surface);
 }
 
-.admin-panel-head {
+.ops-panel-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -9307,7 +9307,7 @@ body {
   margin-bottom: 1.2rem;
 }
 
-.admin h2 {
+.ops-panel h2 {
   margin: 0 0 0.3rem;
   font-size: 1rem;
   font-weight: 600;
@@ -9315,7 +9315,7 @@ body {
   color: var(--s-ink);
 }
 
-.admin-hint {
+.ops-hint {
   max-width: 62ch;
   margin: 0;
   font-size: 0.83rem;
@@ -9323,7 +9323,7 @@ body {
   color: var(--s-muted);
 }
 
-.admin-link-button {
+.ops-link-button {
   padding: 0.42rem 0.85rem;
   border: 1px solid var(--s-line);
   border-radius: 8px;
@@ -9335,25 +9335,25 @@ body {
   transition: border-color var(--s-fast) var(--s-ease), color var(--s-fast) var(--s-ease);
 }
 
-.admin-link-button:hover {
+.ops-link-button:hover {
   border-color: var(--s-accent-ring);
   color: var(--s-accent-text);
 }
 
 /* --- read-only facts ---------------------------------------------------- */
 
-.admin-facts {
+.ops-facts {
   display: flex;
   gap: 2.4rem;
   margin: 0;
   flex-wrap: wrap;
 }
 
-.admin-facts-wide {
+.ops-facts-wide {
   gap: 2rem 2.8rem;
 }
 
-.admin-fact dt {
+.ops-fact dt {
   margin-bottom: 0.32rem;
   font-size: 0.66rem;
   font-weight: 600;
@@ -9362,7 +9362,7 @@ body {
   color: var(--s-faint);
 }
 
-.admin-fact dd {
+.ops-fact dd {
   margin: 0;
   font-size: 1.3rem;
   font-weight: 600;
@@ -9371,7 +9371,7 @@ body {
   color: var(--s-ink);
 }
 
-.admin-fact-text {
+.ops-fact-text {
   font-size: 0.92rem !important;
   font-weight: 500 !important;
   color: var(--s-text) !important;
@@ -9401,5 +9401,145 @@ body {
 
   .admin-warning-action {
     margin-left: 0;
+  }
+}
+
+/* ==========================================================================
+   Settings - account and system health
+   --------------------------------------------------------------------------
+   Deliberately the quietest page in the product. Delivery safety and
+   scheduler configuration moved to Administration, where they are things you
+   change rather than things you look up, so what is left is three short
+   answers: who you are signed in as, whether Scout's dependencies are up,
+   and what its workflow has actually run.
+
+   It reuses the ops-* console primitives rather than inventing a parallel
+   set, so Settings and Administration cannot drift apart visually.
+   ========================================================================== */
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settings-head {
+  padding-bottom: 0.1rem;
+}
+
+.settings h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.5rem, 2.2vw, 1.95rem);
+  letter-spacing: -0.02em;
+  color: var(--s-ink);
+}
+
+/* --- dependencies ------------------------------------------------------- */
+
+.health-list {
+  display: flex;
+  gap: 2.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.health-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.health-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4fc4a8;
+  box-shadow: 0 0 0 3px rgba(79, 196, 168, 0.14);
+}
+
+.health-item.down .health-dot {
+  background: #f07a7a;
+  box-shadow: 0 0 0 3px rgba(240, 122, 122, 0.16);
+}
+
+.health-label {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--s-ink);
+}
+
+.health-state {
+  font-size: 0.78rem;
+  color: var(--s-faint);
+}
+
+.health-item.down .health-state {
+  color: #f07a7a;
+}
+
+/* --- runs --------------------------------------------------------------- */
+
+.run-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 10px;
+  background: var(--s-line);
+  overflow: hidden;
+}
+
+.run-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 0.85rem 1.05rem;
+  background: var(--s-ground);
+}
+
+.run-main {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.run-target {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--s-ink);
+}
+
+.run-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 1.1rem;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--s-faint);
+}
+
+.run-errors {
+  color: #f07a7a;
+}
+
+.run-when {
+  color: var(--s-muted);
+}
+
+@media (max-width: 720px) {
+  .health-list {
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .run-item {
+    gap: 0.5rem;
   }
 }

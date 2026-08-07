@@ -8,14 +8,10 @@
 // page owns, and automation behaviour comes from the environment). Saying
 // so is better than a control that silently does nothing.
 //
-// Above them sit two things, both deliberately small:
-//
-//   - A summary line stating the net effect of the current configuration,
-//     assembled from live config. It survived from an earlier draft where
-//     it was the whole page; as one line it still earns its place, because
-//     no single panel below can tell you what the arrangement adds up to.
-//   - A warning strip, rendered only when something is actually wrong.
-//     The steady state is no strip at all.
+// Above them sits one thing, deliberately small: a warning strip that
+// renders only when something is actually wrong, with an action attached
+// only where this page can resolve it. The steady state is no strip at
+// all, and the layout is tuned for that rather than for today's faults.
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
@@ -317,11 +313,11 @@ export function AdministrationPage() {
       )}
 
       {/* --- schedules ---------------------------------------------------- */}
-      <section className="admin-panel" id="scheduling" aria-label="Schedules">
-        <div className="admin-panel-head">
+      <section className="ops-panel" id="scheduling" aria-label="Schedules">
+        <div className="ops-panel-head">
           <div>
             <h2>Schedules</h2>
-            <p className="admin-hint">
+            <p className="ops-hint">
               When Scout runs by itself. With nothing set here it falls back to the interval configured in the
               environment.
             </p>
@@ -395,11 +391,11 @@ export function AdministrationPage() {
       </section>
 
       {/* --- recipients --------------------------------------------------- */}
-      <section className="admin-panel" id="recipients" aria-label="Recipients">
-        <div className="admin-panel-head">
+      <section className="ops-panel" id="recipients" aria-label="Recipients">
+        <div className="ops-panel-head">
           <div>
             <h2>Recipients</h2>
-            <p className="admin-hint">Who receives generated reports, on what cadence, and through which channel.</p>
+            <p className="ops-hint">Who receives generated reports, on what cadence, and through which channel.</p>
           </div>
           <button type="button" onClick={() => setIsFormOpen((open) => !open)}>
             {isFormOpen ? "Cancel" : "Add recipient"}
@@ -528,15 +524,15 @@ export function AdministrationPage() {
       </section>
 
       {/* --- monitoring scope --------------------------------------------- */}
-      <section className="admin-panel" aria-label="Monitoring scope">
-        <div className="admin-panel-head">
+      <section className="ops-panel" aria-label="Monitoring scope">
+        <div className="ops-panel-head">
           <div>
             <h2>Monitoring scope</h2>
-            <p className="admin-hint">
+            <p className="ops-hint">
               Which companies Scout tracks. Companies are added and archived from the Companies page.
             </p>
           </div>
-          <Link to="/companies" className="admin-link-button">
+          <Link to="/companies" className="ops-link-button">
             Manage companies
           </Link>
         </div>
@@ -547,12 +543,12 @@ export function AdministrationPage() {
           <ErrorState message={getErrorMessage(companiesQuery.error)} />
         ) : (
           <>
-            <dl className="admin-facts">
-              <div className="admin-fact">
+            <dl className="ops-facts">
+              <div className="ops-fact">
                 <dt>Monitored</dt>
                 <dd>{monitored.length}</dd>
               </div>
-              <div className="admin-fact">
+              <div className="ops-fact">
                 <dt>Archived</dt>
                 <dd>{archived.length}</dd>
               </div>
@@ -565,11 +561,11 @@ export function AdministrationPage() {
       </section>
 
       {/* --- automation behavior ------------------------------------------ */}
-      <section className="admin-panel" aria-label="Automation behaviour">
-        <div className="admin-panel-head">
+      <section className="ops-panel" aria-label="Automation behaviour">
+        <div className="ops-panel-head">
           <div>
             <h2>Automation behaviour</h2>
-            <p className="admin-hint">
+            <p className="ops-hint">
               How Scout is allowed to act. These come from the deployment environment and cannot be changed from
               this page.
             </p>
@@ -581,12 +577,12 @@ export function AdministrationPage() {
         ) : statusQuery.isError ? (
           <ErrorState message={getErrorMessage(statusQuery.error)} />
         ) : status ? (
-          <dl className="admin-facts admin-facts-wide">
-            <div className="admin-fact">
+          <dl className="ops-facts ops-facts-wide">
+            <div className="ops-fact">
               <dt>Environment</dt>
-              <dd className="admin-fact-text">{status.delivery.environment}</dd>
+              <dd className="ops-fact-text">{status.delivery.environment}</dd>
             </div>
-            <div className="admin-fact">
+            <div className="ops-fact">
               <dt>Delivery</dt>
               <dd>
                 <Badge
@@ -595,7 +591,7 @@ export function AdministrationPage() {
                 />
               </dd>
             </div>
-            <div className="admin-fact">
+            <div className="ops-fact">
               <dt>Email</dt>
               <dd>
                 <Badge
@@ -604,7 +600,7 @@ export function AdministrationPage() {
                 />
               </dd>
             </div>
-            <div className="admin-fact">
+            <div className="ops-fact">
               <dt>Teams</dt>
               <dd>
                 <Badge
@@ -613,7 +609,7 @@ export function AdministrationPage() {
                 />
               </dd>
             </div>
-            <div className="admin-fact">
+            <div className="ops-fact">
               <dt>Scheduler</dt>
               <dd>
                 <Badge
@@ -622,9 +618,9 @@ export function AdministrationPage() {
                 />
               </dd>
             </div>
-            <div className="admin-fact">
+            <div className="ops-fact">
               <dt>Fallback interval</dt>
-              <dd className="admin-fact-text">{status.scheduler.interval_hours}h</dd>
+              <dd className="ops-fact-text">{status.scheduler.interval_hours}h</dd>
             </div>
           </dl>
         ) : null}
