@@ -7966,7 +7966,7 @@ body {
 .knowledge-workspace {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 1.5rem;
 }
 
 /* --- head --------------------------------------------------------------- */
@@ -8732,7 +8732,7 @@ body {
 .observations {
   display: flex;
   flex-direction: column;
-  gap: 1.6rem;
+  gap: 1.5rem;
 }
 
 /* --- head --------------------------------------------------------------- */
@@ -8752,7 +8752,7 @@ body {
 
 .observations h1 {
   margin: 0 0 0.85rem;
-  font-size: clamp(1.55rem, 2.4vw, 2.05rem);
+  font-size: clamp(1.5rem, 2.2vw, 1.95rem);
   letter-spacing: -0.02em;
   color: var(--s-ink);
 }
@@ -9542,4 +9542,43 @@ body {
   .run-item {
     gap: 0.5rem;
   }
+}
+
+/* ==========================================================================
+   Consistency pass - rules the markup was already asking for
+   --------------------------------------------------------------------------
+   Two classes were being applied by components with no rule behind them, so
+   the elements fell back to defaults that contradicted their intent.
+   ========================================================================== */
+
+/* Three buttons across two Knowledge pages carry className="secondary" and
+   nothing ever defined it, so a Cancel and a Clear rendered identically to
+   the action they sit beside. A secondary button should recede. */
+.app-shell button.secondary:not(.sidebar-toggle) {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  color: var(--s-muted);
+}
+
+.app-shell button.secondary:not(.sidebar-toggle):hover:not(:disabled) {
+  background: var(--s-hover);
+  border-color: var(--s-line);
+  color: var(--s-text);
+}
+
+/* The armed-delivery notice on Settings. It only renders when Scout can
+   actually send, which makes it the one line on that page that must not
+   look like body copy. */
+.deploy-armed {
+  max-width: 78ch;
+  margin: 0 0 1.15rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(240, 162, 75, 0.28);
+  border-left: 2px solid #f0a24b;
+  border-radius: 10px;
+  background: rgba(240, 162, 75, 0.06);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--s-text);
 }

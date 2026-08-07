@@ -1,13 +1,12 @@
 // Settings - is Scout healthy, and what has it actually run?
 //
-// This page used to carry four cards, two of which now belong to
-// Administration: delivery safety and scheduler configuration are things
-// you administer, not things you look up here. Repeating them would mean
-// two pages disagreeing the moment one of them changed, so they are gone
-// and a pointer takes their place.
+// The split with Administration is on whether a thing is changed or
+// inspected. Administration owns schedules, recipients and monitoring
+// scope. This page owns what the running system is - none of which is
+// editable, because nothing in the API writes it.
 //
-// What is genuinely left is small and mostly boolean, so the page stays
-// restrained by design rather than by omission:
+// It is small and mostly boolean, so it stays restrained by design rather
+// than by omission:
 //
 //   account    - the only personal thing in the product, read-only because
 //                no profile-editing endpoint exists.
@@ -17,10 +16,10 @@
 //                system information rather than as controls.
 //   health     - the services Scout degrades without: Postgres, the vector
 //                store, retrieval on top of it, and the scheduler.
-//   runs     - what the workflow has actually executed. The old table led
-//              with a truncated workflow UUID, which links nowhere (there
-//              is no run detail route) and told the reader nothing; the
-//              company, the stages reached and any errors are what matter.
+//   runs       - what the workflow has actually executed. The old table led
+//                with a truncated workflow UUID, which links nowhere (there
+//                is no run detail route) and told the reader nothing; the
+//                company, the stages reached and any errors are what matter.
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
