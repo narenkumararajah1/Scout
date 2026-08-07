@@ -1,4 +1,4 @@
-// Have we done this before?
+// Ask Scout.
 //
 // Purpose. Every other page in Scout runs Scout's agenda - it decides what
 // to surface and you read it. This is the only page where you set the
@@ -6,9 +6,11 @@
 // than one account: 81 ingested case studies of work Innominds has actually
 // delivered, plus the capability model, retrieved and cited.
 //
-// So its question is the one a seller asks before every call - "have we done
-// this before?" - and the answer has to be checkable, because an
-// uncheckable answer about your own delivery history is worse than no
+// The title is the plain name of the tool rather than a question in the
+// user's voice. Putting words in the reader's mouth reads as marketing on
+// a page they use daily, and the subtitle already says what the page
+// reaches across. What the page owes them is a checkable answer, because
+// an uncheckable answer about your own delivery history is worse than no
 // answer.
 //
 // The signature interaction follows from what the backend already returns
@@ -203,7 +205,7 @@ export function AskScoutPage() {
       </div>
 
       <header className="ask-head">
-        <h1 className="ask-title">Have we done this before?</h1>
+        <h1 className="ask-title">Ask Scout</h1>
         <p className="ask-subtitle">
           Ask across everything Scout holds &mdash; the companies it watches and the work Innominds
           has already delivered. Every claim it makes carries the passage it came from.
