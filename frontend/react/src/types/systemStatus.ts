@@ -5,6 +5,10 @@ export interface HealthStatus {
   status: string;
   database_connected: boolean;
   chroma_connected: boolean;
+  // Chroma answering a real retrieval probe, not merely being reachable -
+  // returned by health.py alongside the two connection flags but missing
+  // here until now, so nothing in the UI could surface it.
+  knowledge_retrieval: boolean;
 }
 
 export interface SchedulerStatus {

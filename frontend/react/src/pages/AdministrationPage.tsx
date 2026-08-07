@@ -1,15 +1,20 @@
-// Administration hub (V2->V3 parity pass). Recipients section reuses
-// V2's full recipient CRUD (backend/routers/recipients.py) unchanged -
-// no new backend work. Scheduling section drives the new /schedules/*
-// endpoints (backend/routers/schedule.py), which read/write the
-// Schedule entity that existed since V2 Phase 2 but was never wired
-// into the live scheduler until now (backend/scheduler.py). Recipient
-// preferences (channels/companies) already double as distribution
-// configuration - who gets a report, and how - so there's no separate
-// "distribution config" section here.
+// Administration - the control center for how Scout runs itself.
+//
+// The things you can actually administer lead the page, in the order you
+// reach for them: schedules, recipients, and what is in scope. The first
+// two are full CRUD against real endpoints;
+// the other two are read-only here because nothing in the API writes them
+// (monitoring scope is changed by archiving a company, which the Companies
+// page owns, and automation behaviour comes from the environment). Saying
+// so is better than a control that silently does nothing.
+//
+// Above them sits one thing, deliberately small: a warning strip that
+// renders only when something is actually wrong, with an action attached
+// only where this page can resolve it. The steady state is no strip at
+// all, and the layout is tuned for that rather than for today's faults.
 import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
-import { Card } from "../components/ui/Card";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
@@ -20,6 +25,8 @@ import { useRecipientActions } from "../hooks/useRecipientActions";
 import { useRecipients } from "../hooks/useRecipients";
 import { useScheduleActions } from "../hooks/useScheduleActions";
 import { useSchedules } from "../hooks/useSchedules";
+import { useSystemStatus } from "../hooks/useSystemStatus";
+import { useWorkflowHistory } from "../hooks/useWorkflowHistory";
 import type { Recipient } from "../types/recipient";
 import type { Schedule } from "../types/schedule";
 import { getErrorMessage } from "../utils/errors";
@@ -169,6 +176,13 @@ function ScheduleForm({
   );
 }
 
+
+interface Warning {
+  id: string;
+  text: string;
+  action?: { label: string; target: string };
+}
+
 export function AdministrationPage() {
   const { confirm, confirmDialog } = useConfirm();
   const recipientsQuery = useRecipients();
@@ -179,6 +193,11 @@ export function AdministrationPage() {
   const { createSchedule, enableSchedule, disableSchedule, deleteSchedule } = useScheduleActions();
   const [isScheduleFormOpen, setIsScheduleFormOpen] = useState(false);
   const [scheduleActionError, setScheduleActionError] = useState<string | null>(null);
+
+  const statusQuery = useSystemStatus();
+  const workflowQuery = useWorkflowHistory();
+  const companiesQuery = useCompanies();
+  const allCompaniesQuery = useCompanies(true);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [name, setName] = useState("");
@@ -222,17 +241,164 @@ export function AdministrationPage() {
 
   const recipients = recipientsQuery.data ?? [];
   const schedules = schedulesQuery.data ?? [];
+  const monitored = companiesQuery.data ?? [];
+  const archived = (allCompaniesQuery.data ?? []).filter((company) => company.archived_at);
+  const status = statusQuery.data;
+  const enabledRecipients = recipients.filter((recipient) => recipient.delivery_status !== "disabled");
+  const lastRun = (workflowQuery.data ?? [])[0];
+  const lastTarget = lastRun?.target_company ?? null;
+  const targetIsMonitored = lastTarget !== null && monitored.some((company) => company.name === lastTarget);
+
+  const configReady = statusQuery.isSuccess && recipientsQuery.isSuccess && schedulesQuery.isSuccess;
+
+  // Only what is genuinely wrong, stated in one line. An action is attached
+  // only where this page can actually resolve it - offering one that leads
+  // nowhere is worse than offering none. In the steady state this list is
+  // empty and nothing renders.
+  const warnings: Warning[] = [];
+  if (configReady && lastTarget !== null && !targetIsMonitored) {
+    warnings.push({
+      id: "off-portfolio",
+      text: `Scheduled runs analysed "${lastTarget}" instead of your monitored companies.`,
+    });
+  }
+  if (configReady && status && !status.scheduler.running) {
+    warnings.push({
+      id: "scheduler-down",
+      text: "The scheduler is stopped. Nothing will run automatically.",
+    });
+  }
+  if (configReady && recipients.length > 0 && enabledRecipients.length === 0) {
+    warnings.push({
+      id: "no-recipients",
+      text: "No recipient is enabled, so reports have nowhere to go.",
+      action: { label: "Enable a recipient", target: "#recipients" },
+    });
+  }
+
+  // Deferred a frame so the scroll runs against the committed layout.
+  function scrollTo(selector: string) {
+    requestAnimationFrame(() => {
+      document.querySelector(selector)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
   return (
-    <div className="administration-page">
+    <div className="admin">
       {confirmDialog && <ConfirmDialog {...confirmDialog} />}
-      <h1>Administration</h1>
 
-      <Card title="Recipients">
-        <div className="page-header">
-          <p className="card-description">Who receives generated reports, and how.</p>
+      <header className="admin-head">
+        <h1>Administration</h1>
+        <p className="admin-lede">Schedules, recipients, scope, and how Scout is allowed to act.</p>
+      </header>
+
+      {warnings.length > 0 && (
+        <div className="admin-warnings" role="status">
+          {warnings.map((warning) => (
+            <div key={warning.id} className="admin-warning">
+              <span className="admin-warning-mark" aria-hidden="true" />
+              <p className="admin-warning-text">{warning.text}</p>
+              {warning.action && (
+                <button
+                  type="button"
+                  className="admin-warning-action"
+                  onClick={() => scrollTo(warning.action!.target)}
+                >
+                  {warning.action.label}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* --- schedules ---------------------------------------------------- */}
+      <section className="ops-panel" id="scheduling" aria-label="Schedules">
+        <div className="ops-panel-head">
+          <div>
+            <h2>Schedules</h2>
+            <p className="ops-hint">
+              When Scout runs by itself. With nothing set here it falls back to the interval configured in the
+              environment.
+            </p>
+          </div>
+          <button type="button" onClick={() => setIsScheduleFormOpen((open) => !open)}>
+            {isScheduleFormOpen ? "Cancel" : "Add schedule"}
+          </button>
+        </div>
+
+        {isScheduleFormOpen && (
+          <ScheduleForm
+            submitLabel="Add schedule"
+            isSaving={createSchedule.isPending}
+            onSubmit={(input) => createSchedule.mutate(input, { onSuccess: () => setIsScheduleFormOpen(false) })}
+          />
+        )}
+        {createSchedule.isError && <p className="form-error">{getErrorMessage(createSchedule.error)}</p>}
+        {scheduleActionError && <p className="form-error">{scheduleActionError}</p>}
+
+        {schedulesQuery.isLoading ? (
+          <LoadingState />
+        ) : schedulesQuery.isError ? (
+          <ErrorState message={getErrorMessage(schedulesQuery.error)} />
+        ) : schedules.length === 0 ? (
+          <EmptyState message="No schedules configured - Scout falls back to the default interval." />
+        ) : (
+          <ul className="recipient-list">
+            {schedules.map((schedule) => (
+              <li key={schedule.id} className={`recipient-list-item${schedule.enabled ? "" : " is-off"}`}>
+                <div className="recipient-list-item-header">
+                  <div>
+                    <strong>
+                      {schedule.frequency} at {schedule.time}
+                    </strong>
+                    <p className="recipient-summary">
+                      {schedule.target_company_ids.length === 0
+                        ? "All companies"
+                        : `${schedule.target_company_ids.length} target compan${
+                            schedule.target_company_ids.length === 1 ? "y" : "ies"
+                          }`}
+                    </p>
+                  </div>
+                  <Badge
+                    label={schedule.enabled ? "enabled" : "disabled"}
+                    variant={schedule.enabled ? "success" : "neutral"}
+                  />
+                </div>
+                <div className="recipient-actions">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      schedule.enabled ? disableSchedule.mutate(schedule.id) : enableSchedule.mutate(schedule.id)
+                    }
+                    disabled={enableSchedule.isPending || disableSchedule.isPending}
+                  >
+                    {schedule.enabled ? "Disable" : "Enable"}
+                  </button>
+                  <button
+                    type="button"
+                    className="company-remove-button"
+                    onClick={() => handleDeleteSchedule(schedule)}
+                    disabled={deleteSchedule.isPending}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* --- recipients --------------------------------------------------- */}
+      <section className="ops-panel" id="recipients" aria-label="Recipients">
+        <div className="ops-panel-head">
+          <div>
+            <h2>Recipients</h2>
+            <p className="ops-hint">Who receives generated reports, on what cadence, and through which channel.</p>
+          </div>
           <button type="button" onClick={() => setIsFormOpen((open) => !open)}>
-            {isFormOpen ? "Cancel" : "Add Recipient"}
+            {isFormOpen ? "Cancel" : "Add recipient"}
           </button>
         </div>
 
@@ -287,12 +453,24 @@ export function AdministrationPage() {
         ) : (
           <ul className="recipient-list">
             {recipients.map((recipient) => (
-              <li key={recipient.id} className="recipient-list-item">
+              <li
+                key={recipient.id}
+                className={`recipient-list-item${recipient.delivery_status === "disabled" ? " is-off" : ""}`}
+              >
                 <div className="recipient-list-item-header">
                   <div>
                     <strong>{recipient.name}</strong>
                     <p className="recipient-summary">
-                      {recipient.email} - {recipient.preferred_frequency ?? "no frequency set"}
+                      {recipient.email} &middot; {recipient.preferred_frequency ?? "no frequency set"} &middot;{" "}
+                      {recipient.preferred_channels.length > 0
+                        ? recipient.preferred_channels.join(", ")
+                        : "no channel set"}{" "}
+                      &middot;{" "}
+                      {recipient.preferred_company_ids.length === 0
+                        ? "all companies"
+                        : `${recipient.preferred_company_ids.length} compan${
+                            recipient.preferred_company_ids.length === 1 ? "y" : "ies"
+                          }`}
                     </p>
                   </div>
                   <Badge
@@ -343,80 +521,45 @@ export function AdministrationPage() {
             ))}
           </ul>
         )}
-      </Card>
+      </section>
 
-      <Card title="Scheduling">
-        <div className="page-header">
-          <p className="card-description">
-            When Scout runs its research workflow automatically, instead of relying only on the .env-configured
-            fallback interval.
-          </p>
-          <button type="button" onClick={() => setIsScheduleFormOpen((open) => !open)}>
-            {isScheduleFormOpen ? "Cancel" : "Add Schedule"}
-          </button>
+      {/* --- monitoring scope --------------------------------------------- */}
+      <section className="ops-panel" aria-label="Monitoring scope">
+        <div className="ops-panel-head">
+          <div>
+            <h2>Monitoring scope</h2>
+            <p className="ops-hint">
+              Which companies Scout tracks. Companies are added and archived from the Companies page.
+            </p>
+          </div>
+          <Link to="/companies" className="ops-link-button">
+            Manage companies
+          </Link>
         </div>
 
-        {isScheduleFormOpen && (
-          <ScheduleForm
-            submitLabel="Add schedule"
-            isSaving={createSchedule.isPending}
-            onSubmit={(input) => createSchedule.mutate(input, { onSuccess: () => setIsScheduleFormOpen(false) })}
-          />
-        )}
-        {createSchedule.isError && <p className="form-error">{getErrorMessage(createSchedule.error)}</p>}
-
-        {scheduleActionError && <p className="form-error">{scheduleActionError}</p>}
-
-        {schedulesQuery.isLoading ? (
+        {companiesQuery.isLoading ? (
           <LoadingState />
-        ) : schedulesQuery.isError ? (
-          <ErrorState message={getErrorMessage(schedulesQuery.error)} />
-        ) : schedules.length === 0 ? (
-          <EmptyState message="No schedules configured yet - Scout falls back to the default interval." />
+        ) : companiesQuery.isError ? (
+          <ErrorState message={getErrorMessage(companiesQuery.error)} />
         ) : (
-          <ul className="recipient-list">
-            {schedules.map((schedule) => (
-              <li key={schedule.id} className="recipient-list-item">
-                <div className="recipient-list-item-header">
-                  <div>
-                    <strong>
-                      {schedule.frequency} at {schedule.time}
-                    </strong>
-                    <p className="recipient-summary">
-                      {schedule.target_company_ids.length === 0
-                        ? "All companies"
-                        : `${schedule.target_company_ids.length} target compan${
-                            schedule.target_company_ids.length === 1 ? "y" : "ies"
-                          }`}
-                    </p>
-                  </div>
-                  <Badge label={schedule.enabled ? "enabled" : "disabled"} variant={schedule.enabled ? "success" : "neutral"} />
-                </div>
-
-                <div className="recipient-actions">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      schedule.enabled ? disableSchedule.mutate(schedule.id) : enableSchedule.mutate(schedule.id)
-                    }
-                    disabled={enableSchedule.isPending || disableSchedule.isPending}
-                  >
-                    {schedule.enabled ? "Disable" : "Enable"}
-                  </button>
-                  <button
-                    type="button"
-                    className="company-remove-button"
-                    onClick={() => handleDeleteSchedule(schedule)}
-                    disabled={deleteSchedule.isPending}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <>
+            <dl className="ops-facts">
+              <div className="ops-fact">
+                <dt>Monitored</dt>
+                <dd>{monitored.length}</dd>
+              </div>
+              <div className="ops-fact">
+                <dt>Archived</dt>
+                <dd>{archived.length}</dd>
+              </div>
+            </dl>
+            {monitored.length > 0 && (
+              <p className="admin-scope-list">{monitored.map((company) => company.name).join(", ")}</p>
+            )}
+          </>
         )}
-      </Card>
+      </section>
+
     </div>
   );
 }

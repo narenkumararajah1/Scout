@@ -32,6 +32,8 @@ import { useCompanyRelationships } from "../hooks/useCompanyRelationships";
 import { useCompanySnapshots } from "../hooks/useCompanySnapshots";
 import { useCompanyTrends } from "../hooks/useCompanyTrends";
 import { useCompanyVisit } from "../hooks/useCompanyVisit";
+import { useExecutiveDashboard } from "../hooks/useExecutiveDashboard";
+import { useOpportunityRankings } from "../hooks/useOpportunityRankings";
 import { useGenerateMeetingBrief } from "../hooks/useGenerateMeetingBrief";
 import { useGenerateOutreachDraft } from "../hooks/useGenerateOutreachDraft";
 import { useGenerateSalesPlaybook } from "../hooks/useGenerateSalesPlaybook";
@@ -102,6 +104,20 @@ export function CompanyDetailsPage() {
   const queryClient = useQueryClient();
   const { toasts, pushToast, dismissToast } = useToasts();
   const { confirm, confirmDialog } = useConfirm();
+
+  // --- the case ---------------------------------------------------------
+  // Everything else on this page is generated *from* opportunities, and the
+  // page never showed them. The case file was missing the case.
+  //
+  // This uses /analytics/executive-dashboard rather than the intelligence
+  // endpoint because it is the only source that resolves an opportunity's
+  // evidence correctly: it joins supporting_signal_ids against the research
+  // session that *generated* the opportunity. The intelligence endpoint's
+  // `recent_signals` is the latest session only, so those ids never match -
+  // verified against production, 0 of 4 resolving.
+  const executiveDashboardQuery = useExecutiveDashboard(50);
+  const rankingsQuery = useOpportunityRankings(25);
+  const [openThread, setOpenThread] = useState<string | null>(null);
 
   const toggleMonitoring = useMutation({
     mutationFn: () => {
@@ -457,31 +473,234 @@ export function CompanyDetailsPage() {
 
       {toggleMonitoring.isError && <p className="form-error">{getErrorMessage(toggleMonitoring.error)}</p>}
 
+      {/* --- the assessment ------------------------------------------------
+          The page is Scout's read on an *account*, not a viewer for its
+          opportunities. So it opens with the assessment: what kind of
+          company this is and what state it is in, in Scout's own recorded
+          prose. The opportunities below are what that assessment led to.
+
+          This narrative already existed - it was buried in the "What
+          changed" card two thirds down the page, framed as a by-product of
+          the last refresh rather than as the thing Scout concluded. */}
+      {refreshSummaryQuery.data?.narrative && (
+        <section className="assessment" aria-labelledby="assessment-heading">
+          <h2 id="assessment-heading" className="assessment-heading">
+            Scout&rsquo;s assessment
+          </h2>
+          <p className="assessment-narrative">{refreshSummaryQuery.data.narrative}</p>
+          <p className="assessment-meta">
+            Read{" "}
+            <time dateTime={refreshSummaryQuery.data.captured_at}>
+              {new Date(refreshSummaryQuery.data.captured_at).toLocaleDateString(undefined, {
+                day: "numeric",
+                month: "long",
+              })}
+            </time>
+            {" · "}
+            {refreshSummaryQuery.data.signal_count} signal
+            {refreshSummaryQuery.data.signal_count === 1 ? "" : "s"} captured
+          </p>
+        </section>
+      )}
+
+      {/* --- the case -----------------------------------------------------
+          Everything below this - playbooks, briefs, outreach drafts,
+          reports - is generated *from* opportunities, and this page used to
+          show all of them while omitting the thing they derive from.
+
+          The signature interaction is the thread: every conclusion can be
+          opened to show the reasoning Scout actually recorded when it drew
+          it. This is the only page in the product where you can ask "how do
+          you know that?" - the Dashboard asserts one conclusion and the
+          Companies page compares many.
+
+          What the thread shows is bounded by what exists. Scout's reasoning
+          and the *types* of evidence behind each opportunity are real and
+          complete (50 of 50 records carry both). Individual signal titles
+          and sources are not reachable from any current endpoint, so the
+          thread does not pretend to them. */}
+      {(() => {
+        const entry = executiveDashboardQuery.data?.companies.find(
+          (c) => c.company_id === company.id,
+        );
+        const found = entry?.opportunities ?? [];
+        const rankings = rankingsQuery.data ?? [];
+        const bestRankIndex = rankings.findIndex((o) => o.company_id === company.id);
+        const ordered = [...found].sort(
+          (a, b) =>
+            (b.priority ?? 0) - (a.priority ?? 0) ||
+            (b.confidence_score ?? 0) - (a.confidence_score ?? 0),
+        );
+
+        return (
+          <section className="casefile" aria-labelledby="casefile-heading">
+            <header className="casefile-head">
+              <h2 id="casefile-heading" className="casefile-heading">
+                What Scout found here
+              </h2>
+              {!executiveDashboardQuery.isLoading && (
+                <p className="casefile-standing">
+                  {found.length === 0 ? (
+                    "Nothing open yet"
+                  ) : (
+                    <>
+                      {found.length} {found.length === 1 ? "opportunity" : "opportunities"}
+                      {bestRankIndex !== -1 && (
+                        <>
+                          {" · "}best ranks #{bestRankIndex + 1} of {rankings.length} across the
+                          portfolio
+                        </>
+                      )}
+                    </>
+                  )}
+                </p>
+              )}
+            </header>
+
+            {executiveDashboardQuery.isLoading ? (
+              <LoadingState message="Reading the case file..." />
+            ) : executiveDashboardQuery.isError ? (
+              <ErrorState message={getErrorMessage(executiveDashboardQuery.error)} />
+            ) : ordered.length === 0 ? (
+              <EmptyState message="Scout is watching this company but has not opened an opportunity on it yet. Refresh Intelligence to look again." />
+            ) : (
+              <ol className="casefile-list">
+                {ordered.map((opportunity, index) => {
+                  const isOpen = openThread === opportunity.id;
+                  const evidence = Object.entries(opportunity.signal_type_counts ?? {});
+                  const evidenceTotal = evidence.reduce((n, [, count]) => n + count, 0);
+                  return (
+                    <li
+                      key={opportunity.id}
+                      className={isOpen ? "casefile-item is-open" : "casefile-item"}
+                    >
+                      <button
+                        type="button"
+                        className="casefile-summary"
+                        aria-expanded={isOpen}
+                        aria-controls={`thread-${opportunity.id}`}
+                        onClick={() => setOpenThread(isOpen ? null : opportunity.id)}
+                      >
+                        <span className="casefile-index" aria-hidden="true">
+                          {index + 1}
+                        </span>
+                        <span className="casefile-body">
+                          <span className="casefile-title">{opportunity.title}</span>
+                          <span className="casefile-meta">
+                            {opportunity.priority === 10 && (
+                              <span className="casefile-tag is-lead">top of scale</span>
+                            )}
+                            {evidenceTotal > 0 && (
+                              <span className="casefile-tag">
+                                {evidenceTotal} {evidenceTotal === 1 ? "signal" : "signals"}
+                              </span>
+                            )}
+                            {opportunity.reasoning.length > 0 && (
+                              <span className="casefile-tag">
+                                {opportunity.reasoning.length} capabilit
+                                {opportunity.reasoning.length === 1 ? "y" : "ies"} matched
+                              </span>
+                            )}
+                          </span>
+                        </span>
+                        <span className="casefile-pull" aria-hidden="true">
+                          <span className="casefile-pull-label">
+                            {isOpen ? "Close" : "Why"}
+                          </span>
+                          <span className="casefile-chevron" />
+                        </span>
+                      </button>
+
+                      {/* Rows animate open with grid-template-rows rather than
+                          a measured height, so the transition is smooth
+                          without JavaScript measuring anything. */}
+                      <div className="casefile-thread" id={`thread-${opportunity.id}`}>
+                        <div className="casefile-thread-inner">
+                          {opportunity.reasoning.length > 0 && (
+                            <div className="thread-block">
+                              <h3 className="thread-label">Scout&rsquo;s reasoning</h3>
+                              <ul className="thread-reasoning">
+                                {opportunity.reasoning.map((line, i) => (
+                                  <li key={i}>{line}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {evidence.length > 0 && (
+                            <div className="thread-block">
+                              <h3 className="thread-label">Evidence behind it</h3>
+                              <ul className="thread-evidence">
+                                {evidence.map(([type, count]) => (
+                                  <li key={type}>
+                                    <span className="thread-evidence-count">{count}</span>
+                                    <span className="thread-evidence-type">{type}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                              {/* Stated rather than quietly omitted: the
+                                  individual records are not reachable from
+                                  any endpoint this page can call. */}
+                              <p className="thread-note">
+                                Scout recorded the kind of each signal, not a link to the source
+                                document.
+                              </p>
+                            </div>
+                          )}
+
+                          {opportunity.recommended_services.length > 0 && (
+                            <div className="thread-block">
+                              <h3 className="thread-label">What we would sell</h3>
+                              <ul className="thread-services">
+                                {opportunity.recommended_services.map((service) => (
+                                  <li key={service}>{service}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+
+            {/* The arc has to land somewhere. An assessment and a set of
+                conclusions with no recommended move leaves the reader to
+                work out the "so what" themselves - which is the job they
+                came to Scout to have done. These are Scout's own recorded
+                next actions, not a generic call to action. */}
+            {(refreshSummaryQuery.data?.recommended_actions?.length ?? 0) > 0 && (
+              <div className="assessment-next">
+                <h3 className="assessment-next-heading">What Scout recommends next</h3>
+                <ol className="assessment-actions">
+                  {refreshSummaryQuery.data!.recommended_actions.map((action, i) => (
+                    <li key={i}>
+                      <span className="assessment-action-index" aria-hidden="true">
+                        {i + 1}
+                      </span>
+                      {action}
+                    </li>
+                  ))}
+                </ol>
+                <p className="assessment-next-note">
+                  Scout can go further on any of these &mdash; a playbook, a meeting brief or an
+                  outreach draft, further down this page.
+                </p>
+              </div>
+            )}
+          </section>
+        );
+      })()}
+
       {/* Placed above Overview on purpose: 07_COMPANY_REFRESH_ENGINE.md
           makes this the primary output of an analysis run, so it should be
           the first thing read on the page rather than buried under static
           profile fields. */}
-      <RefreshSummaryCard
-        summary={refreshSummaryQuery.data}
-        isLoading={refreshSummaryQuery.isLoading}
-        onRunAnalysis={handleRunAnalysis}
-        isRunning={refreshIntelligence.isPending}
-      />
 
-      <Card title="Overview">
-        <dl className="company-overview">
-          <dt>Industry</dt>
-          <dd>{company.industry ?? "Unknown"}</dd>
-          <dt>Headquarters</dt>
-          <dd>{company.headquarters ?? "Unknown"}</dd>
-          <dt>Website</dt>
-          <dd>{company.website ?? "Unknown"}</dd>
-        </dl>
-      </Card>
-
-      {/* Above Company Intelligence, because "who do I call and why" is a
-          more actionable answer than the technology and initiative lists
-          below it (V3 Enhancements Phase 4B). */}
+      <h2 className="section-group">The account</h2>
+      <p className="section-group-note">Who Scout would call, what they run, and what they are investing in.</p>
       <KeyPeople
         overview={executivesQuery.data}
         isLoading={executivesQuery.isLoading}
@@ -564,6 +783,30 @@ export function CompanyDetailsPage() {
           </div>
         )}
       </Card>
+
+      <Card title="Overview">
+        <dl className="company-overview">
+          <dt>Industry</dt>
+          <dd>{company.industry ?? "Unknown"}</dd>
+          <dt>Headquarters</dt>
+          <dd>{company.headquarters ?? "Unknown"}</dd>
+          <dt>Website</dt>
+          <dd>{company.website ?? "Unknown"}</dd>
+        </dl>
+      </Card>
+
+      {/* Above Company Intelligence, because "who do I call and why" is a
+          more actionable answer than the technology and initiative lists
+          below it (V3 Enhancements Phase 4B). */}
+
+      <h2 className="section-group">How it is moving</h2>
+      <p className="section-group-note">What has changed since Scout last looked, and where the trend is going.</p>
+      <RefreshSummaryCard
+        summary={refreshSummaryQuery.data}
+        isLoading={refreshSummaryQuery.isLoading}
+        onRunAnalysis={handleRunAnalysis}
+        isRunning={refreshIntelligence.isPending}
+      />
 
       <Card title="Trends">
         {trendsQuery.isLoading ? (
@@ -702,6 +945,9 @@ export function CompanyDetailsPage() {
           </button>
         </div>
       </Card>
+
+      <h2 className="section-group">What Scout can produce</h2>
+      <p className="section-group-note">Everything below is generated from the assessment above, on demand.</p>
 
       <Card title="AI Sales Coach">
         <p className="card-description">
@@ -943,6 +1189,7 @@ export function CompanyDetailsPage() {
           </ul>
         )}
       </Card>
+
     </div>
   );
 }
