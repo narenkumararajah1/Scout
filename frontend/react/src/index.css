@@ -1014,6 +1014,10 @@ a {
   min-height: 0;
   overflow-y: auto;
   padding: 1.5rem;
+  /* A hairline where the working surface begins. Small, but it is what
+     turns "content over a background" into "content on a plane". */
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.028);
 }
 
 /* Shared components */
@@ -3911,6 +3915,9 @@ body {
   isolation: isolate; /* keeps the light field behind content without z-index escalation */
   background:
     radial-gradient(140% 110% at 38% 22%, #131b30 0%, rgba(19, 27, 48, 0) 72%),
+    /* The floor. Without it the single overhead key reads as an open sky
+       again; a room is defined as much by its bottom as by its light. */
+    linear-gradient(to bottom, rgba(8, 11, 21, 0) 52%, rgba(7, 10, 19, 0.6) 100%),
     #0a0e1a;
   color: var(--s-text);
 }
@@ -3923,25 +3930,30 @@ body {
    Every stop fades to a transparent version of its own colour. The
    `transparent` keyword computes to rgba(0,0,0,0), so a blue ramp to
    `transparent` interpolates through black and leaves a dirty band. */
+/* The workspace is lit once, from above, and then holds still.
+   
+   This is the whole distinction between the front door and the room behind
+   it. The login carries an aurora that drifts, because arriving somewhere
+   should feel alive. A tool you sit in front of all day should not: motion
+   here belongs to data and to what you touch - the verdict following your
+   attention, a list re-ordering, a sweep filtering - and an ambient layer
+   that never stops competes with all of it.
+   
+   Three drifting sources became one fixed key, cooler and tighter, hung
+   high and slightly left so it falls across the content column rather than
+   the navigation. Removing the animation also retires a permanently
+   compositing blurred layer that covered 140% of the viewport, so the
+   calmer result is also the cheaper one. */
 .app-shell::before {
   content: "";
   position: fixed;
-  inset: -20%;
+  inset: -10%;
   z-index: -2;
   pointer-events: none;
   background:
-    /* 1. the primary, over the content column rather than behind the nav */
-    radial-gradient(70vmax 62vmax at 26% -4%, rgba(64, 108, 255, 0.3) 0%,
-      rgba(64, 108, 255, 0.12) 36%, rgba(64, 108, 255, 0) 74%),
-    /* 2. an indigo hand-off across the upper right, so the primary does not
-          simply stop */
-    radial-gradient(58vmax 48vmax at 72% -8%, rgba(88, 78, 232, 0.2) 0%,
-      rgba(88, 78, 232, 0) 68%),
-    /* 3. bottom-right counterweight, balancing the mass at the top */
-    radial-gradient(62vmax 56vmax at 98% 96%, rgba(56, 128, 246, 0.16) 0%,
-      rgba(56, 128, 246, 0) 72%);
-  filter: blur(18px);
-  animation: workspace-drift 34s ease-in-out infinite alternate;
+    radial-gradient(54vmax 42vmax at 34% -8%, rgba(72, 110, 224, 0.23) 0%,
+      rgba(72, 110, 224, 0.075) 44%, rgba(72, 110, 224, 0) 78%);
+  filter: blur(14px);
 }
 
 /* Hairline grid, masked so it fades out well before the content column.
@@ -3959,11 +3971,6 @@ body {
   background-size: 62px 62px;
   mask-image: radial-gradient(78% 68% at 34% 6%, #000 8%, transparent 100%);
   -webkit-mask-image: radial-gradient(78% 68% at 34% 6%, #000 8%, transparent 100%);
-}
-
-@keyframes workspace-drift {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to { transform: translate3d(1.5%, 1.2%, 0) scale(1.05); }
 }
 
 /* --- navigation ----------------------------------------------------------
