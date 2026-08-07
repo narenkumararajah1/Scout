@@ -7947,3 +7947,1459 @@ body {
     transition: none;
   }
 }
+
+/* ==========================================================================
+   Knowledge Library - the knowledge management workspace
+   --------------------------------------------------------------------------
+   Four workflows own this page: add a document, ingest a web page, browse
+   what is there, and search it. They come first and stay visible.
+
+   The coverage panel underneath them is not an argument that Scout is
+   trustworthy - it is the answer to "what should I upload next". It ranks
+   the services Scout recommends by how far the library falls short of the
+   capability it states, weighted by how many accounts depend on it, and
+   hands each shortfall straight to the upload form with the category and
+   tag already filled. That hand-off is why it belongs here and not in
+   Analytics.
+   ========================================================================== */
+
+.knowledge-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* --- head --------------------------------------------------------------- */
+
+.kw-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.35rem;
+  animation: verdict-rise 0.5s var(--s-ease) both;
+}
+
+.knowledge-workspace h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.5rem, 2.2vw, 1.95rem);
+  letter-spacing: -0.02em;
+  color: var(--s-ink);
+}
+
+.kw-lede {
+  max-width: 58ch;
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--s-muted);
+}
+
+.kw-stats {
+  display: flex;
+  gap: 2.1rem;
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.kw-stat dt {
+  margin-bottom: 0.28rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.kw-stat dd {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--s-ink);
+}
+
+.kw-stat-when {
+  font-size: 0.86rem !important;
+  font-weight: 500 !important;
+  color: var(--s-text) !important;
+}
+
+.kw-stat-alert dd {
+  color: #f0a24b;
+}
+
+/* --- panels ------------------------------------------------------------- */
+
+.kw-panel {
+  padding: 1.5rem 1.6rem;
+  border: 1px solid var(--s-line);
+  border-radius: 14px;
+  background: var(--s-surface);
+  box-shadow: var(--s-shadow-1);
+  animation: verdict-rise 0.5s var(--s-ease) both;
+}
+
+.kw-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.15rem;
+}
+
+.knowledge-workspace h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--s-ink);
+}
+
+.kw-count {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--s-hover);
+  font-size: 0.72rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--s-muted);
+}
+
+.kw-hint {
+  max-width: 62ch;
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--s-muted);
+}
+
+/* --- add to the library ------------------------------------------------- */
+
+.kw-tabs {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--s-line);
+  border-radius: 10px;
+  background: var(--s-ground);
+}
+
+.kw-tab {
+  padding: 0.42rem 0.85rem;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--s-muted);
+  cursor: pointer;
+  transition: background var(--s-fast) var(--s-ease), color var(--s-fast) var(--s-ease);
+}
+
+.kw-tab:hover {
+  color: var(--s-text);
+}
+
+.kw-tab.active {
+  background: var(--s-accent-tint);
+  color: var(--s-accent-text);
+}
+
+.kw-tab:focus-visible {
+  outline: 2px solid var(--s-accent-ring);
+  outline-offset: 1px;
+}
+
+.kw-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1rem 1.25rem;
+  align-items: start;
+}
+
+.kw-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.kw-field-wide {
+  grid-column: 1 / -1;
+}
+
+.kw-field label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--s-text);
+}
+
+.kw-optional {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--s-faint);
+}
+
+.kw-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  flex-wrap: wrap;
+  padding-top: 0.35rem;
+}
+
+/* The bulk panel arrives as its own Card; inside a panel it should read as
+   part of the form area, not as a second surface floating on top of one. */
+.kw-ingest .card {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* --- search ------------------------------------------------------------- */
+
+.kw-search-form {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.kw-search-form input[type="search"] {
+  flex: 1 1 24rem;
+}
+
+.kw-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 1.35rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kw-result {
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--s-line);
+  border-radius: 10px;
+  background: var(--s-ground);
+}
+
+.kw-result-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.kw-result-kind {
+  font-size: 0.63rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.kw-result-name {
+  font-size: 0.87rem;
+  font-weight: 500;
+  color: var(--s-ink);
+}
+
+.kw-result-match {
+  margin-left: auto;
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--s-faint);
+}
+
+.kw-result-link {
+  font-size: 0.77rem;
+  color: var(--s-accent-text);
+}
+
+.kw-result-content {
+  max-width: 88ch;
+  margin: 0;
+  font-size: 0.81rem;
+  line-height: 1.57;
+  color: var(--s-muted);
+}
+
+/* --- browse ------------------------------------------------------------- */
+
+.kw-browse .knowledge-filters {
+  margin-bottom: 1.15rem;
+}
+
+/* --- coverage ----------------------------------------------------------- */
+
+.kw-coverage .ledger {
+  box-shadow: none;
+}
+
+.ledger-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-top: 1.3rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--s-line);
+}
+
+.ledger-action {
+  padding: 0.42rem 0.85rem;
+  border: 1px solid var(--s-accent-ring);
+  border-radius: 8px;
+  background: var(--s-accent-tint);
+  font-size: 0.79rem;
+  font-weight: 500;
+  color: var(--s-accent-text);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--s-fast) var(--s-ease);
+}
+
+.ledger-action:hover {
+  background: var(--s-hover);
+}
+
+/* --- the ledger --------------------------------------------------------- */
+
+.ledger {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--s-line);
+  border-radius: 14px;
+  background: var(--s-surface);
+  box-shadow: var(--s-shadow-1);
+  overflow: hidden;
+}
+
+.ledger-row {
+  position: relative;
+  background: var(--s-ground);
+  transition: opacity var(--s-fast) var(--s-ease);
+}
+
+/* Attention follows the open row, the same way the Dashboard's verdict
+   follows the hovered company. */
+.ledger-focused .ledger-row {
+  opacity: 0.42;
+}
+
+.ledger-focused .ledger-row.open {
+  opacity: 1;
+}
+
+.ledger-summary {
+  display: grid;
+  grid-template-columns: minmax(11rem, 1.35fr) auto minmax(8rem, 1.6fr) minmax(7.5rem, auto);
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1.05rem 1.4rem;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--s-fast) var(--s-ease);
+}
+
+.ledger-summary:hover {
+  background: var(--s-hover);
+}
+
+.ledger-summary:focus-visible {
+  outline: 2px solid var(--s-accent-ring);
+  outline-offset: -2px;
+}
+
+.ledger-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--s-ink);
+}
+
+.ledger-demand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.ledger-demand-count {
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--s-text);
+}
+
+.ledger-demand-unit {
+  font-size: 0.76rem;
+  color: var(--s-faint);
+}
+
+/* --- claim vs proof, on one shared scale -------------------------------- */
+
+.ledger-track {
+  position: relative;
+  height: 34px;
+  border-radius: 4px;
+}
+
+/* The baseline the markers sit on. */
+.ledger-track::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--s-line-strong);
+}
+
+/* The claim's own figure sits quieter than the proof's - the proof is the
+   number being judged. */
+.ledger-mark-claim .ledger-mark-value {
+  color: var(--s-faint);
+  font-weight: 400;
+}
+
+.ledger-mark-proof .ledger-mark-value {
+  color: var(--s-text);
+  font-weight: 500;
+}
+
+/* The unproven distance. */
+.ledger-span {
+  position: absolute;
+  top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(111, 147, 255, 0.55),
+    rgba(111, 147, 255, 0.08)
+  );
+  animation: ledger-span-in 0.7s var(--s-ease) both;
+  transform-origin: left center;
+}
+
+@keyframes ledger-span-in {
+  from {
+    transform: translateY(-50%) scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(-50%) scaleX(1);
+    opacity: 1;
+  }
+}
+
+.ledger-mark {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin-left: -5.5px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  animation: ledger-mark-in 0.5s var(--s-ease) 0.18s both;
+}
+
+@keyframes ledger-mark-in {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+/* What Scout says it can do - always high, never the weak link. */
+.ledger-mark-claim {
+  border: 1.5px solid rgba(255, 255, 255, 0.42);
+  background: var(--s-ground);
+}
+
+/* What Scout can actually show. */
+.ledger-mark-proof {
+  background: #6f93ff;
+  box-shadow: 0 0 0 3px rgba(61, 104, 255, 0.16);
+}
+
+.ledger-mark-value {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--s-muted);
+  white-space: nowrap;
+}
+
+.band-thin .ledger-mark-proof {
+  background: #f0a24b;
+  box-shadow: 0 0 0 3px rgba(240, 162, 75, 0.16);
+}
+
+.band-thin .ledger-span {
+  background: linear-gradient(90deg, rgba(240, 162, 75, 0.55), rgba(240, 162, 75, 0.08));
+}
+
+.ledger-track-waiting {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--s-line), var(--s-line-strong), var(--s-line));
+  background-size: 200% 100%;
+  animation: watch-sweep 1.6s linear infinite;
+}
+
+.ledger-track-empty,
+.ledger-track-error {
+  display: inline-block;
+  padding-top: 0.55rem;
+  font-size: 0.78rem;
+  color: var(--s-faint);
+}
+
+.ledger-verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-align: right;
+  color: var(--s-muted);
+}
+
+.ledger-gap {
+  font-size: 0.68rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  color: var(--s-faint);
+}
+
+
+
+
+
+.band-strong .ledger-verdict {
+  color: var(--s-accent-text);
+}
+
+.band-thin .ledger-verdict {
+  color: #f0a24b;
+}
+
+/* --- what stands behind it ---------------------------------------------- */
+
+/* 0fr -> 1fr animates an unknown height without measuring it. */
+.ledger-detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--s-slow) var(--s-ease);
+}
+
+.ledger-row.open .ledger-detail {
+  grid-template-rows: 1fr;
+}
+
+.ledger-detail-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.ledger-row.open .ledger-detail-inner {
+  padding: 0.35rem 1.4rem 1.5rem;
+}
+
+.ledger-block-label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0 0 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.ledger-block-count {
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 400;
+  color: var(--s-faint);
+}
+
+.ledger-claim-block {
+  padding: 0.95rem 1.15rem;
+  margin-bottom: 1.35rem;
+  border-radius: 10px;
+  background: var(--s-surface);
+  border: 1px solid var(--s-line);
+}
+
+.ledger-claim-text {
+  max-width: 76ch;
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.62;
+  color: var(--s-text);
+}
+
+.proof-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.proof-item {
+  padding-left: 0.95rem;
+  border-left: 2px solid var(--s-line);
+}
+
+.proof-item-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.3rem;
+}
+
+.proof-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--s-ink);
+  text-decoration: none;
+}
+
+.proof-title:hover {
+  color: var(--s-accent-text);
+  text-decoration: underline;
+}
+
+.proof-match {
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--s-faint);
+  margin-left: auto;
+}
+
+.proof-excerpt {
+  max-width: 84ch;
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.58;
+  color: var(--s-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ledger-no-proof {
+  max-width: 70ch;
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--s-muted);
+}
+
+.ledger-accounts {
+  margin: 1.35rem 0 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--s-line);
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--s-faint);
+}
+
+/* --- ask it something else ---------------------------------------------- */
+
+@media (max-width: 900px) {
+  .ledger-summary {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "name demand"
+      "track track"
+      "verdict verdict";
+    gap: 0.7rem 1rem;
+  }
+
+  .ledger-name {
+    grid-area: name;
+  }
+
+  .ledger-demand {
+    grid-area: demand;
+  }
+
+  .ledger-track {
+    grid-area: track;
+  }
+
+  .ledger-verdict {
+    grid-area: verdict;
+    text-align: left;
+  }
+}
+
+@media (max-width: 720px) {
+  .kw-head {
+    align-items: flex-start;
+  }
+
+  .kw-stats {
+    gap: 1.4rem;
+  }
+
+  .kw-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kw-head,
+  .kw-panel,
+  .ledger-span,
+  .ledger-mark {
+    animation: none;
+  }
+
+  .ledger-detail {
+    transition: none;
+  }
+
+  .ledger-track-waiting {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   Notifications - the observation record
+   --------------------------------------------------------------------------
+   The Dashboard's feed answers "what should I do" with the newest few. This
+   is the archive, and it answers a different question: what has Scout
+   observed, and what does it add up to?
+
+   A flat reverse-chronological list threw away the one real structure in the
+   data. Sorted by time, the company changes exactly once per company - Scout
+   works the portfolio one account at a time, writing each account's findings
+   together. So the page is a spine with a stop per account, in the order
+   Scout reached them, and each observation is a facet of that account's pass
+   rather than a free-floating ping.
+
+   Choosing a kind thins the spine instead of re-ranking it. Chronology is
+   what this page owns; re-ordering accounts by merit belongs to Companies.
+   ========================================================================== */
+
+.observations {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+/* --- head --------------------------------------------------------------- */
+
+.obs-head {
+  animation: verdict-rise 0.5s var(--s-ease) both;
+}
+
+.obs-eyebrow {
+  margin: 0 0 0.7rem;
+  font-size: 0.71rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.observations h1 {
+  margin: 0 0 0.85rem;
+  font-size: clamp(1.55rem, 2.4vw, 2.05rem);
+  letter-spacing: -0.02em;
+  color: var(--s-ink);
+}
+
+.obs-lede {
+  max-width: 64ch;
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.62;
+  color: var(--s-text);
+}
+
+.obs-lede-waiting {
+  color: var(--s-muted);
+}
+
+.obs-caveat {
+  max-width: 66ch;
+  margin: 0.7rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--s-faint);
+}
+
+/* --- the lens ----------------------------------------------------------- */
+
+.obs-lens {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.25rem;
+}
+
+.obs-kinds {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.obs-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.42rem 0.8rem;
+  border: 1px solid var(--s-line);
+  border-radius: 999px;
+  background: var(--s-surface);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--s-muted);
+  cursor: pointer;
+  transition: border-color var(--s-fast) var(--s-ease), color var(--s-fast) var(--s-ease),
+    background var(--s-fast) var(--s-ease);
+}
+
+.obs-kind:hover {
+  border-color: var(--s-line-strong);
+  color: var(--s-text);
+}
+
+.obs-kind.active {
+  border-color: var(--s-accent-ring);
+  background: var(--s-accent-tint);
+  color: var(--s-accent-text);
+}
+
+.obs-kind:focus-visible {
+  outline: 2px solid var(--s-accent-ring);
+  outline-offset: 2px;
+}
+
+.obs-kind-count {
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--s-faint);
+}
+
+.obs-kind.active .obs-kind-count {
+  color: var(--s-accent-text);
+}
+
+.obs-kind-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--kind-hue, var(--s-line-strong));
+}
+
+/* One hue per kind, used by the chip, the stop's mix, and the row tag so
+   the same colour means the same thing in all three places. */
+.kind-opportunity_alert {
+  --kind-hue: #6f93ff;
+}
+
+.kind-strategic_initiative {
+  --kind-hue: #9d8cf5;
+}
+
+.kind-ai_initiative {
+  --kind-hue: #4fc4a8;
+}
+
+.kind-hiring_spike {
+  --kind-hue: #f0a24b;
+}
+
+.kind-leadership_change {
+  --kind-hue: #e37fa8;
+}
+
+.obs-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.81rem;
+  color: var(--s-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.obs-toggle-count {
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--s-faint);
+}
+
+.obs-kind-action {
+  margin: 0;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--s-line);
+  border-left: 2px solid var(--kind-hue, var(--s-accent));
+  border-radius: 10px;
+  background: var(--s-surface);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--s-muted);
+}
+
+.obs-kind-action strong {
+  color: var(--s-text);
+  font-weight: 600;
+}
+
+/* --- the sweep ---------------------------------------------------------- */
+
+.sweep {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sweep-stop {
+  display: grid;
+  grid-template-columns: 4.6rem 1fr;
+  gap: 0 1.4rem;
+  position: relative;
+  padding-left: 1.2rem;
+  animation: verdict-rise 0.45s var(--s-ease) both;
+}
+
+/* The spine. Drawn per stop so a filtered-out stop takes its segment with
+   it and the line never dangles into empty space. */
+.sweep-stop::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55rem;
+  bottom: -1.5rem;
+  width: 1px;
+  background: var(--s-line-strong);
+}
+
+.sweep-stop:last-child::before {
+  bottom: auto;
+  height: 1.4rem;
+}
+
+.sweep-marker {
+  position: absolute;
+  left: -4.5px;
+  top: 0.4rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--s-ground);
+  border: 1.5px solid rgba(255, 255, 255, 0.38);
+}
+
+.sweep-when {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding-top: 0.1rem;
+  text-align: right;
+}
+
+.sweep-time {
+  font-size: 0.83rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--s-text);
+}
+
+.sweep-day {
+  font-size: 0.7rem;
+  color: var(--s-faint);
+}
+
+.sweep-stop-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.7rem;
+}
+
+.sweep-company {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--s-ink);
+  text-decoration: none;
+}
+
+.sweep-company:hover {
+  color: var(--s-accent-text);
+}
+
+.sweep-tally {
+  font-size: 0.76rem;
+  color: var(--s-faint);
+}
+
+/* What Scout found here, at a glance, before reading a word of it. */
+.sweep-mix {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.sweep-stop-head .sweep-clear {
+  margin-left: auto;
+}
+
+.sweep-mix-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 8px;
+  height: 8px;
+  padding: 0 2px;
+  border-radius: 999px;
+  background: var(--kind-hue, var(--s-line-strong));
+}
+
+.sweep-mix-count {
+  font-size: 0.56rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--s-ground);
+}
+
+/* --- observations ------------------------------------------------------- */
+
+.obs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 12px;
+  background: var(--s-line);
+  overflow: hidden;
+}
+
+.obs-item {
+  position: relative;
+  padding: 0.85rem 1.1rem;
+  background: var(--s-ground);
+  transition: opacity var(--s-fast) var(--s-ease);
+}
+
+.obs-item.reviewed {
+  opacity: 0.55;
+}
+
+.obs-item-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin-bottom: 0.35rem;
+}
+
+.obs-tag {
+  flex: none;
+  padding: 0.13rem 0.5rem;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--kind-hue) 16%, transparent);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--kind-hue, var(--s-muted));
+  white-space: nowrap;
+}
+
+.obs-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.42;
+  color: var(--s-ink);
+}
+
+.obs-summary {
+  max-width: 84ch;
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.58;
+  color: var(--s-muted);
+}
+
+.obs-review {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.9rem;
+  padding: 0.24rem 0.55rem;
+  border: 1px solid var(--s-line);
+  border-radius: 7px;
+  background: var(--s-ground);
+  font-size: 0.72rem;
+  color: var(--s-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--s-fast) var(--s-ease), border-color var(--s-fast) var(--s-ease),
+    color var(--s-fast) var(--s-ease);
+}
+
+.obs-item:hover .obs-review,
+.obs-review:focus-visible {
+  opacity: 1;
+}
+
+.obs-review:hover {
+  border-color: var(--s-accent-ring);
+  color: var(--s-accent-text);
+}
+
+/* Reveal-on-hover has no equivalent on touch, where there is no hover
+   state to enter - the control has to be there from the start. */
+@media (hover: none) {
+  .obs-review {
+    opacity: 1;
+  }
+}
+
+.obs-reviewed {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.9rem;
+  font-size: 0.7rem;
+  color: var(--s-faint);
+}
+
+/* Bulk clear lives on the stop, because triage is per account. */
+.sweep-clear {
+  padding: 0.24rem 0.6rem;
+  border: 1px solid var(--s-line);
+  border-radius: 7px;
+  background: none;
+  font-size: 0.72rem;
+  color: var(--s-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--s-fast) var(--s-ease), border-color var(--s-fast) var(--s-ease),
+    color var(--s-fast) var(--s-ease);
+}
+
+.sweep-stop:hover .sweep-clear,
+.sweep-clear:focus-visible {
+  opacity: 1;
+}
+
+.sweep-clear:hover {
+  border-color: var(--s-accent-ring);
+  color: var(--s-accent-text);
+}
+
+@media (hover: none) {
+  .sweep-clear {
+    opacity: 1;
+  }
+}
+
+/* --- foot --------------------------------------------------------------- */
+
+.obs-foot {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--s-faint);
+}
+
+.obs-quiet {
+  max-width: 70ch;
+  margin: 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--s-line);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--s-faint);
+}
+
+@media (max-width: 720px) {
+  .sweep-stop {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  .sweep-when {
+    flex-direction: row;
+    gap: 0.5rem;
+    text-align: left;
+  }
+
+  .obs-lens {
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .obs-head,
+  .sweep-stop {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   Administration - the control center
+   --------------------------------------------------------------------------
+   The four things you can administer lead the page in the order you reach for
+   them. Two are real controls; two are read-only, and are labelled as such
+   rather than dressed up as switches that do nothing.
+
+   Above them, two small things earn their place. A summary line stating what
+   the current configuration adds up to - no panel below can say that, because
+   the answer spans all of them. And a warning strip that renders only when
+   something is actually wrong; the steady state is no strip at all, and the
+   design is tuned for that state rather than for today's faults.
+   ========================================================================== */
+
+.admin {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* --- head --------------------------------------------------------------- */
+
+.admin-head {
+  padding-bottom: 0.1rem;
+}
+
+.admin h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.5rem, 2.2vw, 1.95rem);
+  letter-spacing: -0.02em;
+  color: var(--s-ink);
+}
+
+.admin-lede {
+  max-width: 56ch;
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--s-muted);
+}
+
+/* --- warnings ----------------------------------------------------------- */
+
+.admin-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.admin-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(240, 162, 75, 0.26);
+  border-left: 2px solid #f0a24b;
+  border-radius: 10px;
+  background: rgba(240, 162, 75, 0.05);
+}
+
+.admin-warning-mark {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f0a24b;
+}
+
+.admin-warning-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--s-text);
+}
+
+.admin-warning-action {
+  margin-left: auto;
+  padding: 0.32rem 0.7rem;
+  border: 1px solid rgba(240, 162, 75, 0.4);
+  border-radius: 7px;
+  background: none;
+  font-size: 0.77rem;
+  font-weight: 500;
+  color: #f0a24b;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--s-fast) var(--s-ease);
+}
+
+.admin-warning-action:hover {
+  background: rgba(240, 162, 75, 0.1);
+}
+
+/* --- panels ------------------------------------------------------------- */
+
+.admin-panel {
+  padding: 1.4rem 1.5rem;
+  border: 1px solid var(--s-line);
+  border-radius: 12px;
+  background: var(--s-surface);
+}
+
+.admin-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+}
+
+.admin h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--s-ink);
+}
+
+.admin-hint {
+  max-width: 62ch;
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: var(--s-muted);
+}
+
+.admin-link-button {
+  padding: 0.42rem 0.85rem;
+  border: 1px solid var(--s-line);
+  border-radius: 8px;
+  font-size: 0.79rem;
+  font-weight: 500;
+  color: var(--s-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color var(--s-fast) var(--s-ease), color var(--s-fast) var(--s-ease);
+}
+
+.admin-link-button:hover {
+  border-color: var(--s-accent-ring);
+  color: var(--s-accent-text);
+}
+
+/* --- read-only facts ---------------------------------------------------- */
+
+.admin-facts {
+  display: flex;
+  gap: 2.4rem;
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.admin-facts-wide {
+  gap: 2rem 2.8rem;
+}
+
+.admin-fact dt {
+  margin-bottom: 0.32rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--s-faint);
+}
+
+.admin-fact dd {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--s-ink);
+}
+
+.admin-fact-text {
+  font-size: 0.92rem !important;
+  font-weight: 500 !important;
+  color: var(--s-text) !important;
+}
+
+.admin-scope-list {
+  max-width: 84ch;
+  margin: 1.15rem 0 0;
+  padding-top: 0.95rem;
+  border-top: 1px solid var(--s-line);
+  font-size: 0.83rem;
+  line-height: 1.6;
+  color: var(--s-muted);
+}
+
+/* A disabled recipient or schedule is inert; it should not read with the
+   same weight as one that will actually fire. */
+.recipient-list-item.is-off {
+  opacity: 0.58;
+}
+
+@media (max-width: 720px) {
+  .admin-warning {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .admin-warning-action {
+    margin-left: 0;
+  }
+}
