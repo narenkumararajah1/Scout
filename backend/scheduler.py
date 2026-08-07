@@ -12,6 +12,13 @@ them, one CronTrigger job per schedule, instead of the fixed
 scheduler_interval_hours .env setting. Falls back to that fixed interval
 only when no enabled schedules exist, so a fresh install (no schedules
 configured yet) keeps behaving exactly as it always has.
+
+What the job *does* was a separate gap, fixed later: registration read
+each Schedule's trigger but the job body ignored the rest of the row and
+called V2's single-target run_workflow(), which analyses the
+settings.target_company placeholder. Jobs now run
+backend/orchestration/scheduled_monitoring.py across the monitored
+companies, and each schedule passes its own target_company_ids through.
 """
 
 import logging
@@ -23,7 +30,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 from backend.config import get_settings
 from backend.models.schedule import Schedule
-from backend.orchestration.workflow import run_workflow
+from backend.orchestration.scheduled_monitoring import run_scheduled_monitoring
 from backend.repositories import schedule_repository
 
 logger = logging.getLogger(__name__)
@@ -34,10 +41,24 @@ SCHEDULE_JOB_PREFIX = "scout_schedule_"
 scheduler = AsyncIOScheduler()
 
 
-async def _run_scheduled_workflow() -> None:
+async def _run_scheduled_workflow(target_company_ids: Optional[list[str]] = None) -> None:
+    """APScheduler's entrypoint for every registered job.
+
+    `target_company_ids` comes from the Schedule row that registered the
+    job; the fallback interval job passes none, meaning "every monitored
+    company". Resolving that to actual companies is
+    scheduled_monitoring's job, not this module's - this stays about
+    scheduling.
+    """
     logger.info("Scheduled workflow run starting.")
-    state = await run_workflow()
-    logger.info("Scheduled workflow run finished with status: %s", state.status)
+    states = await run_scheduled_monitoring(target_company_ids)
+    completed = sum(1 for state in states if state.status == "completed")
+    logger.info(
+        "Scheduled workflow run finished: %d of %d compan%s completed.",
+        completed,
+        len(states),
+        "y" if len(states) == 1 else "ies",
+    )
 
 
 def _cron_trigger_for(schedule: Schedule) -> Optional[CronTrigger]:
@@ -85,6 +106,12 @@ def _register_jobs() -> None:
             scheduler.add_job(
                 _run_scheduled_workflow,
                 trigger=trigger,
+                # The schedule's targets, captured at registration -
+                # refresh_jobs() re-registers after any schedule change,
+                # so an edited target list takes effect immediately
+                # rather than at the next restart. An empty list means
+                # "all monitored companies".
+                args=[list(schedule.target_company_ids)],
                 id=f"{SCHEDULE_JOB_PREFIX}{schedule.id}",
                 replace_existing=True,
             )
@@ -94,6 +121,8 @@ def _register_jobs() -> None:
         settings = get_settings()
         scheduler.add_job(
             _run_scheduled_workflow,
+            # No args: no schedule configured means no target list to
+            # honour, so the run covers every monitored company.
             trigger=IntervalTrigger(hours=settings.scheduler_interval_hours),
             id=JOB_ID,
             replace_existing=True,
