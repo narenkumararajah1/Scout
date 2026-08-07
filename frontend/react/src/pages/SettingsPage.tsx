@@ -9,15 +9,18 @@
 // What is genuinely left is small and mostly boolean, so the page stays
 // restrained by design rather than by omission:
 //
-//   account  - the only personal thing in the product, read-only because
-//              no profile-editing endpoint exists.
-//   health   - the three dependencies Scout degrades without: Postgres,
-//              the vector store, and retrieval on top of it.
+//   account    - the only personal thing in the product, read-only because
+//                no profile-editing endpoint exists.
+//   deployment - how this instance is configured: environment, whether
+//                delivery is armed, and which channels exist. Set in the
+//                environment, not from any page, so it is presented as
+//                system information rather than as controls.
+//   health     - the services Scout degrades without: Postgres, the vector
+//                store, retrieval on top of it, and the scheduler.
 //   runs     - what the workflow has actually executed. The old table led
 //              with a truncated workflow UUID, which links nowhere (there
 //              is no run detail route) and told the reader nothing; the
 //              company, the stages reached and any errors are what matter.
-import { Link } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
@@ -39,12 +42,17 @@ export function SettingsPage() {
 
   const dependencies = status
     ? [
-        { label: "Database", ok: status.health.database_connected },
-        { label: "Vector store", ok: status.health.chroma_connected },
-        { label: "Knowledge retrieval", ok: status.health.knowledge_retrieval },
+        { label: "Database", ok: status.health.database_connected, up: "Connected", down: "Unreachable" },
+        { label: "Vector store", ok: status.health.chroma_connected, up: "Connected", down: "Unreachable" },
+        { label: "Knowledge retrieval", ok: status.health.knowledge_retrieval, up: "Answering", down: "Failing" },
+        { label: "Scheduler", ok: status.scheduler.running, up: "Running", down: "Stopped" },
       ]
     : [];
   const unhealthy = dependencies.filter((dependency) => !dependency.ok);
+
+  // Dry run is the safe default; anything that can actually leave the
+  // building is worth saying out loud rather than leaving to a badge.
+  const isArmed = status !== undefined && !status.delivery.dry_run && (status.delivery.email_live || status.delivery.teams_live);
 
   return (
     <div className="settings">
@@ -82,6 +90,82 @@ export function SettingsPage() {
         )}
       </section>
 
+      {/* --- deployment --------------------------------------------------- */}
+      <section className="ops-panel" aria-label="Deployment">
+        <div className="ops-panel-head">
+          <div>
+            <h2>Deployment</h2>
+            <p className="ops-hint">
+              How this instance is configured. Set in the deployment environment, not from the application.
+            </p>
+          </div>
+        </div>
+
+        {statusQuery.isLoading ? (
+          <LoadingState />
+        ) : statusQuery.isError ? (
+          <ErrorState message={getErrorMessage(statusQuery.error)} onRetry={() => void statusQuery.refetch()} />
+        ) : status ? (
+          <>
+            {isArmed && (
+              <p className="deploy-armed">
+                Delivery is live in the {status.delivery.environment} environment. Sending from Outreach or Report
+                Distribution will reach real recipients.
+              </p>
+            )}
+            <dl className="ops-facts ops-facts-wide">
+              <div className="ops-fact">
+                <dt>Environment</dt>
+                <dd className="ops-fact-text">{status.delivery.environment}</dd>
+              </div>
+              <div className="ops-fact">
+                <dt>Delivery mode</dt>
+                <dd>
+                  <Badge
+                    label={status.delivery.dry_run ? "Dry run" : "Live"}
+                    variant={status.delivery.dry_run ? "neutral" : "warning"}
+                  />
+                </dd>
+              </div>
+              <div className="ops-fact">
+                <dt>Email (SMTP)</dt>
+                <dd>
+                  <Badge
+                    label={
+                      status.delivery.email_live
+                        ? "Live"
+                        : status.delivery.smtp_configured
+                          ? "Configured, not sending"
+                          : "Not configured"
+                    }
+                    variant={status.delivery.email_live ? "warning" : "neutral"}
+                  />
+                </dd>
+              </div>
+              <div className="ops-fact">
+                <dt>Microsoft Teams</dt>
+                <dd>
+                  <Badge
+                    label={
+                      status.delivery.teams_live
+                        ? "Live"
+                        : status.delivery.teams_configured
+                          ? "Configured, not sending"
+                          : "Not configured"
+                    }
+                    variant={status.delivery.teams_live ? "warning" : "neutral"}
+                  />
+                </dd>
+              </div>
+              <div className="ops-fact">
+                <dt>Scheduler interval</dt>
+                <dd className="ops-fact-text">{status.scheduler.interval_hours}h fallback</dd>
+              </div>
+            </dl>
+          </>
+        ) : null}
+      </section>
+
       {/* --- health ------------------------------------------------------- */}
       <section className="ops-panel" aria-label="System health">
         <div className="ops-panel-head">
@@ -90,12 +174,9 @@ export function SettingsPage() {
             <p className="ops-hint">
               {unhealthy.length === 0
                 ? "The services Scout depends on to research, remember and answer."
-                : `${unhealthy.map((dependency) => dependency.label).join(" and ")} unreachable — Scout's answers will be incomplete until this is restored.`}
+                : `${unhealthy.map((dependency) => dependency.label.toLowerCase()).join(" and ")} degraded — Scout's answers will be incomplete until this is restored.`}
             </p>
           </div>
-          <Link to="/administration" className="ops-link-button">
-            Automation settings
-          </Link>
         </div>
 
         {statusQuery.isLoading ? (
@@ -108,7 +189,7 @@ export function SettingsPage() {
               <li key={dependency.label} className={`health-item${dependency.ok ? "" : " down"}`}>
                 <span className="health-dot" aria-hidden="true" />
                 <span className="health-label">{dependency.label}</span>
-                <span className="health-state">{dependency.ok ? "Connected" : "Unreachable"}</span>
+                <span className="health-state">{dependency.ok ? dependency.up : dependency.down}</span>
               </li>
             ))}
           </ul>

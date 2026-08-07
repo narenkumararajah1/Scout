@@ -1,8 +1,8 @@
 // Administration - the control center for how Scout runs itself.
 //
 // The things you can actually administer lead the page, in the order you
-// reach for them: schedules, recipients, what is in scope, and how the
-// automation behaves. Two of those are full CRUD against real endpoints;
+// reach for them: schedules, recipients, and what is in scope. The first
+// two are full CRUD against real endpoints;
 // the other two are read-only here because nothing in the API writes them
 // (monitoring scope is changed by archiving a company, which the Companies
 // page owns, and automation behaviour comes from the environment). Saying
@@ -560,71 +560,6 @@ export function AdministrationPage() {
         )}
       </section>
 
-      {/* --- automation behavior ------------------------------------------ */}
-      <section className="ops-panel" aria-label="Automation behaviour">
-        <div className="ops-panel-head">
-          <div>
-            <h2>Automation behaviour</h2>
-            <p className="ops-hint">
-              How Scout is allowed to act. These come from the deployment environment and cannot be changed from
-              this page.
-            </p>
-          </div>
-        </div>
-
-        {statusQuery.isLoading ? (
-          <LoadingState />
-        ) : statusQuery.isError ? (
-          <ErrorState message={getErrorMessage(statusQuery.error)} />
-        ) : status ? (
-          <dl className="ops-facts ops-facts-wide">
-            <div className="ops-fact">
-              <dt>Environment</dt>
-              <dd className="ops-fact-text">{status.delivery.environment}</dd>
-            </div>
-            <div className="ops-fact">
-              <dt>Delivery</dt>
-              <dd>
-                <Badge
-                  label={status.delivery.dry_run ? "Dry run" : "Live"}
-                  variant={status.delivery.dry_run ? "neutral" : "warning"}
-                />
-              </dd>
-            </div>
-            <div className="ops-fact">
-              <dt>Email</dt>
-              <dd>
-                <Badge
-                  label={status.delivery.email_live ? "Live" : status.delivery.smtp_configured ? "Configured, off" : "Not configured"}
-                  variant={status.delivery.email_live ? "success" : "neutral"}
-                />
-              </dd>
-            </div>
-            <div className="ops-fact">
-              <dt>Teams</dt>
-              <dd>
-                <Badge
-                  label={status.delivery.teams_live ? "Live" : status.delivery.teams_configured ? "Configured, off" : "Not configured"}
-                  variant={status.delivery.teams_live ? "success" : "neutral"}
-                />
-              </dd>
-            </div>
-            <div className="ops-fact">
-              <dt>Scheduler</dt>
-              <dd>
-                <Badge
-                  label={status.scheduler.running ? "Running" : "Stopped"}
-                  variant={status.scheduler.running ? "success" : "danger"}
-                />
-              </dd>
-            </div>
-            <div className="ops-fact">
-              <dt>Fallback interval</dt>
-              <dd className="ops-fact-text">{status.scheduler.interval_hours}h</dd>
-            </div>
-          </dl>
-        ) : null}
-      </section>
     </div>
   );
 }
