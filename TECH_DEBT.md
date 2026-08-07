@@ -137,6 +137,87 @@ Several entries record mistakes — a bug introduced while fixing another bug, a
 verification that passed vacuously, an approach abandoned after it was built.
 Those are the most useful entries in the file.
 
+## Every scheduled run analysed a placeholder company
+
+Recorded 2026-08-07.
+
+**What happened.** `/workflow/history` in production held exactly one
+recorded run, and its target was `Example Prospect Co.` — a company
+nobody had ever added. None of the 19 monitored companies had been
+covered by an automatic run, at any point.
+
+**Root cause.** Two independent things, which is why it survived so long.
+`backend/scheduler.py` registered `_run_scheduled_workflow()`, whose body
+called V2's `run_workflow()` — a function that takes no company and reads
+`settings.target_company`, defaulted to `"Example Prospect Co."`. And the
+schedule-driven registration path had the same hole from the other end:
+`_cron_trigger_for()` used each `Schedule`'s frequency and time, so jobs
+fired at the configured moment, while the rest of the row — including
+`target_company_ids` — reached nothing. Production has zero `Schedule`
+rows, so the fallback interval job was the live path.
+
+**Why nothing looked wrong.** Every signal a scheduler is normally judged
+by was healthy: running, 24h interval, a next run time recorded, runs
+completing. The System Status page showed all of it. The only visible
+symptom was a company name in one column of the history table.
+
+**Resolution.** `backend/orchestration/scheduled_monitoring.py`. A
+scheduled run resolves the monitored portfolio (`monitoring_status ==
+"enabled"`, not archived) and runs each company through the same V3
+pipeline the UI's Run Scout / Refresh Intelligence actions use — the path
+that actually produces opportunities, refresh snapshots and
+notifications. Each schedule now passes its own `target_company_ids` into
+its job; empty means all monitored companies, matching what the
+Administration UI already renders for that case. Explicit ids are
+filtered against the monitored set rather than trusted, since a schedule
+outlives the companies it names. This finally makes ADR-012 ("manual
+analysis reuses the exact same service functions scheduled monitoring
+would use") true in both directions.
+
+**Three decisions worth stating.**
+
+*Refresh, not publish.* Companies go through
+`refresh_company_intelligence()` — the full pipeline minus
+`ReportingStage`. Publishing would append one Report per company per day
+that nobody asked for, the exact side effect the refresh/publish split
+was introduced to stop. Notifications are generated either way, so
+alerting is unaffected. If unattended daily reports are ever wanted, that
+is a deliberate product decision and a one-argument change, not a default
+to drift into.
+
+*One workflow-history row per company.* Each company's outcome is saved
+as its own `WorkflowState`, so `/workflow/history` and System Status keep
+answering "what ran, against which company, did it work" — the record
+that made this diagnosable at all. The row also carries
+`published_report: false`, so "where is last night's report" is
+answerable from the record itself.
+
+*Failure is per company* (FR-020). Each company's run and its history
+write are individually guarded; one provider timeout costs one company,
+not the rest of the portfolio.
+
+**`settings.target_company` stays — deliberately.** It is now legacy V2
+demo configuration: nothing unattended reads it, and its only remaining
+readers are V2's six ADK agents (`backend/agents/`), reachable solely
+through `POST /workflow/run`. Removing the setting means rewriting all
+six agents to take a company argument, which is a decision about whether
+the V2 agent workflow is retired or ported — not a config cleanup, and
+not something to settle inside a bug fix. It is marked as legacy in
+`backend/config/settings.py` with that reasoning, so the next person to
+find it does not mistake it for live configuration.
+
+*Still open:* the V2 and V3 execution paths remain two ways to analyse a
+company. `POST /workflow/run` still runs the placeholder-targeted agent
+workflow, and the dashboard still exposes it. Reconciling them is the
+real close-out; this change makes the *unattended* path correct, which is
+the half that was silently wrong.
+
+**Found only by reading the data.** The scheduler's own status was
+correct in every particular. Nothing short of looking at which company
+the runs actually named would have surfaced it — which is why the
+regression tests assert the companies analysed, not that the job
+succeeded.
+
 ## Intelligence-report sends are not recorded in delivery_history
 
 Recorded 2026-08-05, when Distribute was added to the intelligence report

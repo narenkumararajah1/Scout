@@ -84,6 +84,20 @@ class Settings(BaseSettings):
     # Used starting Phase 2 Day 6 (Research Agent). Scout researches a
     # configured target company rather than a per-run user query, per
     # PROJECT_CONTEXT.md's framing of an autonomous, scheduled workflow.
+    #
+    # LEGACY - V2 demo only, and deliberately kept rather than removed.
+    # The single-target framing above predates the multi-company model:
+    # the only things that still read this are V2's six ADK agents
+    # (backend/agents/), reachable exclusively through POST /workflow/run.
+    # Nothing unattended reads it anymore - scheduled runs iterate the
+    # monitored companies instead (backend/orchestration/
+    # scheduled_monitoring.py), which is what this default silently
+    # replaced until that was fixed.
+    #
+    # Not removed here because removing it means deleting the setting
+    # *and* rewriting all six agents to take a company argument, i.e.
+    # retiring or porting the V2 agent workflow - a decision about that
+    # workflow's future, not a config cleanup. Tracked in TECH_DEBT.md.
     target_company: str = "Example Prospect Co."
 
     # Used starting Phase 2 Day 8 (Knowledge Agent). Documents placed here
